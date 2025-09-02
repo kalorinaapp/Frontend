@@ -9,6 +9,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  get: ^4.6.6
+  hugeicons: ^0.0.11
+  flutter_svg: ^2.0.17
+  flutter_local_notifications: ^17.2.2
+  supabase_flutter: ^2.10.0
+  health: ^13.1.4
+  permission_handler: ^12.0.1
+  camera: ^0.11.2
+  image_picker: ^1.2.0
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_test:
@@ -17,3 +27,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icons/
+    - assets/images/
