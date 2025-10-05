@@ -28,6 +28,11 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.isDualButtonMode.value = false;
+    });
+
     
     // Initialize finger animation
     _fingerAnimationController = AnimationController(
@@ -125,135 +130,182 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 30),
-          
-          // Title
-          Center(
-            child: Text(
-              'Ostvarite svoje ciljeve\nuz notifikacije',
-              style: ThemeHelper.title2.copyWith(
-                color: CupertinoColors.black,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          
-          const SizedBox(height: 120),
-          
-          // Notification permission text container
-          Center(
-            child: Container(
-              width: 300,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemGrey5,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: CupertinoColors.systemGrey6,
-                  width: 1,
+      width: 393,
+      height: 852,
+      decoration: const BoxDecoration(color: Colors.white),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 30),
+            
+            // Title
+            SizedBox(
+              width: 301,
+              child: Text(
+                'Enable notifications for better results',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: const Color(0xFF1E1822),
+                  fontSize: 30,
+                  fontFamily: 'Instrument Sans',
+                  fontWeight: FontWeight.w600,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.systemGrey.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+              ),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Subtitle
+            SizedBox(
+              width: 311,
+              child: Text(
+                '(Recommended)',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: const Color(0xFF1E1822),
+                  fontSize: 20,
+                  fontFamily: 'Instrument Sans',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 60),
+            
+            // Main notification card
+            Container(
+              width: 290,
+              height: 197,
+              decoration: const ShapeDecoration(
+                color: Color(0xFFF8F7FC),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Bell icon with notification badge
+                  Image.asset('assets/images/notifications.png', width: 100, height: 100,),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Description text
+                  SizedBox(
+                    width: 257,
+                    child: Text(
+                      'Kalorina helps you keep track — Get daily reminders',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: const Color(0xFF1E1822),
+                        fontSize: 18,
+                        fontFamily: 'Instrument Sans',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              child: Text(
-                'Kalorina would like to send you Notifications',
-                style: ThemeHelper.body1.copyWith(
-                  color: CupertinoColors.black,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
             ),
-          ),
-          
-          const SizedBox(height: 20),
-          
-          // Buttons row
-          Center(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
+            
+            const SizedBox(height: 60),
+            
+            // Buttons row
+            Column(
               children: [
-                // Don't Allow button
-                GestureDetector(
-                  onTap: _onDontAllowPressed,
-                  child: Container(
-                    width: 120,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemGrey6,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Don\'t Allow',
-                      style: ThemeHelper.body1.copyWith(
-                        color: CupertinoColors.black,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(width: 48),
-                
-                // Allow button with finger emoji below
-                Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Don't Allow button
+                    GestureDetector(
+                      onTap: _onDontAllowPressed,
+                      child: Container(
+                        width: 127,
+                        height: 48,
+                        decoration: const ShapeDecoration(
+                          color: Color(0xFFF8F7FC),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Don\'t Allow',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: const Color(0x7F1E1822),
+                              fontSize: 15,
+                              fontFamily: 'Instrument Sans',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(width: 20),
+                    
+                    // Allow button
                     GestureDetector(
                       onTap: _onAllowPressed,
                       child: Container(
-                        width: 120,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.black,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Allow',
-                          style: ThemeHelper.body1.copyWith(
-                            color: CupertinoColors.white,
-                            fontWeight: FontWeight.w500,
+                        width: 150,
+                        height: 60,
+                        decoration: const ShapeDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(0.50, 1.00),
+                            end: Alignment(0.50, 0.00),
+                            colors: [Color(0xFF7D7D7D), Color(0xFF1E1822)],
                           ),
-                          textAlign: TextAlign.center,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Allow',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontFamily: 'Instrument Sans',
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                    
-                    const SizedBox(height: 8),
-                    
-                    // Animated finger emoji below Allow button
-                    AnimatedBuilder(
-                      animation: _fingerAnimation,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(0, _fingerAnimation.value * 10 - 5),
-                          child: const Text(
-                            '👆',
-                            style: TextStyle(fontSize: 36),
-                          ),
-                        );
-                      },
-                    ),
                   ],
+                ),
+                
+                const SizedBox(height: 8),
+                
+                // Animated finger emoji below Allow button
+                AnimatedBuilder(
+                  animation: _fingerAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(80, _fingerAnimation.value * 10 - 5),
+                      child: Text(
+                        '👆',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 40,
+                          fontFamily: 'Instrument Sans',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
-          ),
-          
-          const Spacer(),
-        ],
+            
+            const SizedBox(height: 100),
+          ],
+        ),
       ),
     );
   }

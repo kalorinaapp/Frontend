@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
-import '../../controller/onboarding.controller.dart';
 
 class WeightTransitionPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -14,26 +12,17 @@ class WeightTransitionPage extends StatefulWidget {
 }
 
 class _WeightTransitionPageState extends State<WeightTransitionPage> {
-  late OnboardingController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<OnboardingController>();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFFFF5F5), // Light pink at top
-            Color(0xFFFFE8E8), // Slightly deeper pink at bottom
-          ],
-        ),
+        color: CupertinoColors.white,
       ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24),

@@ -1,0 +1,10 @@
+{ "@@locale": "bg",
+  "createYourAccount": "Създай своя акаунт",
+  "welcomeBack": "Добре дошъл отново",
+  "continueWithApple": "Продължи с Apple",
+  "continueWithGoogle": "Продължи с Google",
+  "wantToSignInLater": "Искаш ли да се впишеш по-късно? ",
+  "skip": "Пропусни",
+  "byContinuingAgree": "Продължавайки, приемаш нашите\nУсловия за ползване и Политика за поверителност"
+}
+

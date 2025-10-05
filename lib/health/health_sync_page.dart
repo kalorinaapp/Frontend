@@ -161,9 +161,7 @@ class _HealthSyncPageState extends State<HealthSyncPage> {
           await _health.requestHealthDataHistoryAuthorization();
           await _health.requestHealthDataInBackgroundAuthorization();
         } catch (_) {}
-      } else {
-        authorized = true;
-      }
+      } 
 
       setState(() {
         _syncState = authorized ? SyncState.authorized : SyncState.notAuthorized;
@@ -247,8 +245,7 @@ class _HealthSyncPageState extends State<HealthSyncPage> {
         break;
       case SyncState.idle:
       case SyncState.authorized:
-      default:
-        bg = CupertinoColors.systemBlue;
+      bg = CupertinoColors.systemBlue;
         text = 'Idle';
     }
 

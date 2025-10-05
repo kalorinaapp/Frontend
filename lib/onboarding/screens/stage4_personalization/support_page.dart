@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
-import '../../controller/onboarding.controller.dart';
 
 class SupportPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -14,12 +12,12 @@ class SupportPage extends StatefulWidget {
 }
 
 class _SupportPageState extends State<SupportPage> {
-  late OnboardingController _controller;
+  // late OnboardingController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<OnboardingController>();
+    // _controller = Get.find<OnboardingController>();
   }
 
   @override

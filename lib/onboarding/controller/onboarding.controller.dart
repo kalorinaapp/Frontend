@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'dart:developer' as developer;
 
 enum ValidationType {
   multipleChoice,
@@ -31,6 +32,10 @@ class OnboardingController extends GetxController {
   final RxBool isNextButtonEnabled = true.obs;
   final RxBool showNavigation = true.obs;
   final RxInt totalPages = 1.obs;
+  
+  // Dual button mode for Yes/No pages
+  final RxBool isDualButtonMode = false.obs;
+  final RxString dualButtonChoice = ''.obs;
 
   // Data storage for different page types
   final RxMap<String, dynamic> _pageData = <String, dynamic>{}.obs;
@@ -50,18 +55,22 @@ class OnboardingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    developer.log('OnboardingController initialized', name: 'OnboardingController');
     _initializePageValidation();
 
     // Listen to current page changes to update next button state
     currentPage.listen((page) {
+      developer.log('Page changed to: $page', name: 'OnboardingController');
       _updateNextButtonState();
     });
   }
 
   // Initialize validation state for all pages
   void _initializePageValidation() {
+    developer.log('Initializing page validation for ${_pageValidationConfigs.keys.length} pages', name: 'OnboardingController');
     for (int pageIndex in _pageValidationConfigs.keys) {
       _pageValidation[pageIndex.toString()] = false;
+      developer.log('Page $pageIndex validation initialized to false', name: 'OnboardingController');
     }
   }
 
@@ -70,6 +79,7 @@ class OnboardingController extends GetxController {
     int pageIndex,
     PageValidationConfig config,
   ) async {
+    developer.log('Registering page validation for page $pageIndex with type: ${config.validationType}', name: 'OnboardingController');
     _pageValidationConfigs[pageIndex] = config;
     _pageValidation[pageIndex.toString()] = false;
     _updateNextButtonState();
@@ -77,17 +87,28 @@ class OnboardingController extends GetxController {
 
   // Update next button state based on current page validation
   void _updateNextButtonState() {
+    if (isDualButtonMode.value) {
+      // For dual button mode, we don't need the next button enabled state
+      // as we'll show Yes/No buttons instead
+      developer.log('Skipping next button state update - dual button mode active', name: 'OnboardingController');
+      return;
+    }
+    
     final currentPageKey = currentPage.value.toString();
 
     if (_pageValidationConfigs.containsKey(currentPage.value)) {
-      isNextButtonEnabled.value = _pageValidation[currentPageKey] ?? false;
+      final isValid = _pageValidation[currentPageKey] ?? false;
+      isNextButtonEnabled.value = isValid;
+      developer.log('Next button enabled: $isValid for page ${currentPage.value}', name: 'OnboardingController');
     } else {
       isNextButtonEnabled.value = true;
+      developer.log('Next button enabled: true (no validation required) for page ${currentPage.value}', name: 'OnboardingController');
     }
   }
 
   // Generic method to set data for any page
   void setPageData<T>(String key, T value, {bool validateOnSet = true}) {
+    developer.log('Setting page data: $key = $value', name: 'OnboardingController');
     _pageData[key] = value;
 
     if (validateOnSet) {
@@ -198,8 +219,10 @@ class OnboardingController extends GetxController {
     final config = _pageValidationConfigs[currentPage.value];
     if (config != null) {
       isValid = _validatePageData(config);
+      developer.log('Validating page ${currentPage.value}: $isValid (type: ${config.validationType})', name: 'OnboardingController');
     } else {
       isValid = true;
+      developer.log('Page ${currentPage.value} has no validation requirements - marking as valid', name: 'OnboardingController');
     }
 
     _pageValidation[pageKey] = isValid;
@@ -213,45 +236,63 @@ class OnboardingController extends GetxController {
         final data = getPageData(config.dataKey);
         final minSelections = config.minSelections ?? 1;
         if (data is List && data.length >= minSelections) {
+          developer.log('Multiple choice validation passed: ${data.length} selections (min: $minSelections)', name: 'OnboardingController');
           return true;
         }
+        developer.log('Multiple choice validation failed: ${data is List ? data.length : 0} selections (min: $minSelections)', name: 'OnboardingController');
         return false;
       case ValidationType.singleChoice:
         final selection = getStringData(config.dataKey);
-        return selection != null && selection.isNotEmpty;
+        final isValid = selection != null && selection.isNotEmpty;
+        developer.log('Single choice validation: $isValid (value: $selection)', name: 'OnboardingController');
+        return isValid;
 
       case ValidationType.textInput:
         final text = getStringData(config.dataKey);
-        return text != null && text.trim().isNotEmpty;
+        final isValid = text != null && text.trim().isNotEmpty;
+        developer.log('Text input validation: $isValid (length: ${text?.length ?? 0})', name: 'OnboardingController');
+        return isValid;
 
       case ValidationType.dateInput:
         final date = getDateTimeData(config.dataKey);
-        return date != null;
+        final isValid = date != null;
+        developer.log('Date input validation: $isValid (date: $date)', name: 'OnboardingController');
+        return isValid;
 
       case ValidationType.numberInput:
         final number = getIntData(config.dataKey);
-        return number != null && number > 0;
+        final isValid = number != null && number > 0;
+        developer.log('Number input validation: $isValid (value: $number)', name: 'OnboardingController');
+        return isValid;
     }
   }
 
   // Navigation methods
   void goToNextPage() {
     if (isNextButtonEnabled.value) {
+      developer.log('Navigating to next page: ${currentPage.value} -> ${currentPage.value + 1}', name: 'OnboardingController');
       currentPage.value++;
+    } else {
+      developer.log('Cannot navigate to next page - validation failed for page ${currentPage.value}', name: 'OnboardingController');
     }
   }
 
   void goToPreviousPage() {
     if (currentPage.value > 0) {
+      developer.log('Navigating to previous page: ${currentPage.value} -> ${currentPage.value - 1}', name: 'OnboardingController');
       currentPage.value--;
+    } else {
+      developer.log('Cannot navigate to previous page - already at first page', name: 'OnboardingController');
     }
   }
 
   void goToPage(int pageIndex) {
+    developer.log('Navigating directly to page: ${currentPage.value} -> $pageIndex', name: 'OnboardingController');
     currentPage.value = pageIndex;
   }
 
   void setTotalPages(int total) {
+    developer.log('Setting total pages to: $total', name: 'OnboardingController');
     totalPages.value = total;
   }
 
@@ -271,11 +312,13 @@ class OnboardingController extends GetxController {
 
   // Get all collected data
   Map<String, dynamic> getAllData() {
+    developer.log('Retrieving all onboarding data: ${_pageData.keys.length} entries', name: 'OnboardingController');
     return Map<String, dynamic>.from(_pageData);
   }
 
   // Clear all data
   void clearAllData() {
+    developer.log('Clearing all onboarding data', name: 'OnboardingController');
     _pageData.clear();
     _pageValidation.clear();
     _initializePageValidation();
@@ -283,24 +326,29 @@ class OnboardingController extends GetxController {
 
   // Reset to specific page
   void resetToPage(int pageIndex) {
+    developer.log('Resetting to page: $pageIndex', name: 'OnboardingController');
     currentPage.value = pageIndex;
     _updateNextButtonState();
   }
 
   // Check if onboarding is complete
   bool get isOnboardingComplete {
-    return _pageValidationConfigs.keys.every(
+    final isComplete = _pageValidationConfigs.keys.every(
       (pageIndex) => _pageValidation[pageIndex.toString()] ?? false,
     );
+    developer.log('Onboarding completion check: $isComplete', name: 'OnboardingController');
+    return isComplete;
   }
 
   // Force validation of current page (useful for manual validation triggers)
   void validateCurrentPage() {
+    developer.log('Manually triggering validation for current page: ${currentPage.value}', name: 'OnboardingController');
     _validateCurrentPage();
   }
 
   // Force validation of specific page
   void validatePage(int pageIndex) {
+    developer.log('Manually triggering validation for page: $pageIndex', name: 'OnboardingController');
     final currentPageTemp = currentPage.value;
     currentPage.value = pageIndex;
     _validateCurrentPage();
@@ -324,6 +372,28 @@ class OnboardingController extends GetxController {
   }
 
   void setNavigationVisibility(bool show) {
+    developer.log('Setting navigation visibility: $show', name: 'OnboardingController');
     showNavigation.value = show;
   }
+
+  // Dual button mode methods
+  void setDualButtonMode(bool enabled) {
+    developer.log('Setting dual button mode: $enabled', name: 'OnboardingController');
+    isDualButtonMode.value = enabled;
+    if (!enabled) {
+      dualButtonChoice.value = '';
+    }
+  }
+
+  void setDualButtonChoice(String choice) {
+    developer.log('Setting dual button choice: $choice', name: 'OnboardingController');
+    dualButtonChoice.value = choice;
+    // Auto-validate when a choice is made
+    _validateCurrentPage();
+  }
+
+  bool get hasDualButtonChoice {
+    return dualButtonChoice.value.isNotEmpty;
+  }
+
 }

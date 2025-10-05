@@ -1,0 +1,10 @@
+{ "@@locale": "hu",
+  "createYourAccount": "Hozd létre a fiókodat",
+  "welcomeBack": "Üdv újra itt",
+  "continueWithApple": "Folytatás Apple-lel",
+  "continueWithGoogle": "Folytatás Google-lel",
+  "wantToSignInLater": "Később szeretnél bejelentkezni? ",
+  "skip": "Kihagyás",
+  "byContinuingAgree": "A folytatással elfogadod a\nFelhasználási feltételeket és az Adatvédelmi irányelveket"
+}
+

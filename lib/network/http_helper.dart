@@ -26,7 +26,9 @@ class ResponseAPI {
 Map<String, String> getHeaders() {
   final header = <String, String>{};
   header['Content-Type'] = 'application/json';
+  print('==authToken== ${AppConstants.authToken}');
   if (AppConstants.authToken.isNotEmpty) {
+    print('==authToken== ${AppConstants.authToken}');
     header['authorization'] = 'Bearer ${AppConstants.authToken}';
   }
   return header;
@@ -64,6 +66,32 @@ Future multiPostAPINew({
         .catchError((error) => _handleError(error, callback));
     _handleResponse(response, callback);
     } else {
+    callback.call(ResponseAPI(0, 'No Internet', isError: true));
+  }
+}
+
+Future multiGetAPINew({
+  required String methodName,
+  Map<String, String>? query,
+  required Function(ResponseAPI) callback,
+}) async {
+  if (await isInternetAvailable()) {
+    final base = AppConstants.baseUrl + methodName;
+    final uri = Uri.parse(base).replace(queryParameters: query);
+    log('==GET request== $uri');
+    final headers = getHeaders();
+    final response = await http
+        .get(uri, headers: headers)
+        .timeout(const Duration(seconds: 20))
+        .onError((error, stackTrace) {
+          log('onError== $error');
+          log('stackTrace== $stackTrace');
+          _handleError(error, callback);
+          return Future.value(ResponseAPI(0, 'Something went wrong', isError: true) as FutureOr<http.Response>?);
+        })
+        .catchError((error) => _handleError(error, callback));
+    _handleResponse(response, callback);
+  } else {
     callback.call(ResponseAPI(0, 'No Internet', isError: true));
   }
 }

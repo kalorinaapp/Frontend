@@ -72,6 +72,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
               Obx(() => GestureDetector(
                 onTap: () {
                   _controller.setStringData('workout_frequency', '0');
+                  _controller.validatePage(_controller.currentPage.value);
                 },
                 child: Container(
                   width: double.infinity,
@@ -89,25 +90,43 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Column(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        '0',
-                        style: ThemeHelper.headline.copyWith(
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Image.asset(
+                          'assets/icons/warning.png',
+                          width: 24,
+                          height: 24,
                           color: _controller.getStringData('workout_frequency') == '0'
                               ? CupertinoColors.white
                               : CupertinoColors.black,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Ne treniram',
-                        style: ThemeHelper.subhead.copyWith(
-                          color: _controller.getStringData('workout_frequency') == '0'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
-                        ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '0',
+                            style: ThemeHelper.headline.copyWith(
+                              color: _controller.getStringData('workout_frequency') == '0'
+                                  ? CupertinoColors.white
+                                  : CupertinoColors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Ne treniram',
+                            style: ThemeHelper.subhead.copyWith(
+                              color: _controller.getStringData('workout_frequency') == '0'
+                                  ? CupertinoColors.white
+                                  : CupertinoColors.black,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -118,6 +137,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
               Obx(() => GestureDetector(
                 onTap: () {
                   _controller.setStringData('workout_frequency', '1-2');
+                  _controller.validatePage(_controller.currentPage.value);
                 },
                 child: Container(
                   width: double.infinity,
@@ -135,26 +155,45 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Column(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        '1-2',
-                        style: ThemeHelper.headline.copyWith(
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Image.asset(
+                          'assets/icons/shoe.png',
+                          width: 24,
+                          height: 24,
                           color: _controller.getStringData('workout_frequency') == '1-2'
                               ? CupertinoColors.white
                               : CupertinoColors.black,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Treninzi s vremena na vrijeme',
-                        style: ThemeHelper.subhead.copyWith(
-                          color: _controller.getStringData('workout_frequency') == '1-2'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '1-2',
+                              style: ThemeHelper.headline.copyWith(
+                                color: _controller.getStringData('workout_frequency') == '1-2'
+                                    ? CupertinoColors.white
+                                    : CupertinoColors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Treninzi s vremena na vrijeme',
+                              style: ThemeHelper.subhead.copyWith(
+                                color: _controller.getStringData('workout_frequency') == '1-2'
+                                    ? CupertinoColors.white
+                                    : CupertinoColors.black,
+                              ),
+                            ),
+                          ],
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -165,6 +204,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
               Obx(() => GestureDetector(
                 onTap: () {
                   _controller.setStringData('workout_frequency', '3-5');
+                  _controller.validatePage(_controller.currentPage.value);
                 },
                 child: Container(
                   width: double.infinity,
@@ -182,26 +222,45 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Column(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        '3-5',
-                        style: ThemeHelper.headline.copyWith(
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Image.asset(
+                          'assets/icons/weights.png',
+                          width: 24,
+                          height: 24,
                           color: _controller.getStringData('workout_frequency') == '3-5'
                               ? CupertinoColors.white
                               : CupertinoColors.black,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Nekoliko treninga tjedno',
-                        style: ThemeHelper.subhead.copyWith(
-                          color: _controller.getStringData('workout_frequency') == '3-5'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '3-5',
+                              style: ThemeHelper.headline.copyWith(
+                                color: _controller.getStringData('workout_frequency') == '3-5'
+                                    ? CupertinoColors.white
+                                    : CupertinoColors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Nekoliko treninga tjedno',
+                              style: ThemeHelper.subhead.copyWith(
+                                color: _controller.getStringData('workout_frequency') == '3-5'
+                                    ? CupertinoColors.white
+                                    : CupertinoColors.black,
+                              ),
+                            ),
+                          ],
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -212,6 +271,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
               Obx(() => GestureDetector(
                 onTap: () {
                   _controller.setStringData('workout_frequency', '6-7');
+                  _controller.validatePage(_controller.currentPage.value);
                 },
                 child: Container(
                   width: double.infinity,
@@ -228,25 +288,43 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Column(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        '6-7',
-                        style: ThemeHelper.headline.copyWith(
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Image.asset(
+                          'assets/icons/flame_black.png',
+                          width: 24,
+                          height: 24,
                           color: _controller.getStringData('workout_frequency') == '6-7'
                               ? CupertinoColors.white
                               : CupertinoColors.black,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Predani sportaš',
-                        style: ThemeHelper.subhead.copyWith(
-                          color: _controller.getStringData('workout_frequency') == '6-7'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
-                        ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '6-7',
+                            style: ThemeHelper.headline.copyWith(
+                              color: _controller.getStringData('workout_frequency') == '6-7'
+                                  ? CupertinoColors.white
+                                  : CupertinoColors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Predani sportaš',
+                            style: ThemeHelper.subhead.copyWith(
+                              color: _controller.getStringData('workout_frequency') == '6-7'
+                                  ? CupertinoColors.white
+                                  : CupertinoColors.black,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -1,7 +1,18 @@
 import 'package:flutter/cupertino.dart';
 
 class ThemeHelper {
-  static bool get isLightMode => true; // This will be connected to ThemeProvider later
+  static bool _isLightMode = true;
+  
+  static bool get isLightMode => _isLightMode;
+  
+  static void setLightMode(bool isLight) {
+    _isLightMode = isLight;
+  }
+  
+  static void updateSystemBrightness(Brightness brightness) {
+    // This can be used to sync with system brightness if needed
+    // For now, we'll keep it simple and just use our theme provider
+  }
 
   // Gradient Colors from Design
   static const Color gradientStartBlue = Color(0xFF74A9DA);
@@ -16,27 +27,27 @@ class ThemeHelper {
   // Colors
   static Color get background => isLightMode 
       ? CupertinoColors.systemBackground 
-      : CupertinoColors.systemBackground.darkColor;
+      : CupertinoColors.black;
 
   static Color get cardBackground => isLightMode 
       ? CupertinoColors.secondarySystemBackground 
-      : CupertinoColors.secondarySystemBackground.darkColor;
+      : CupertinoColors.systemGrey6.darkColor;
 
   static Color get textPrimary => isLightMode 
       ? CupertinoColors.label 
-      : CupertinoColors.label.darkColor;
+      : CupertinoColors.white;
 
   static Color get textSecondary => isLightMode 
       ? CupertinoColors.secondaryLabel 
-      : CupertinoColors.secondaryLabel.darkColor;
+      : CupertinoColors.systemGrey2;
 
   static Color get divider => isLightMode 
       ? CupertinoColors.separator 
-      : CupertinoColors.separator.darkColor;
+      : CupertinoColors.systemGrey4;
 
   static Color get accent => isLightMode 
       ? CupertinoColors.activeBlue 
-      : CupertinoColors.activeBlue.darkColor;
+      : CupertinoColors.activeBlue;
 
   static Color get destructive => CupertinoColors.systemRed;
 
@@ -103,5 +114,30 @@ class ThemeHelper {
 
   static TextStyle textStyleWithColor(TextStyle style, Color color) {
     return style.copyWith(color: color);
+  }
+
+  static TextStyle textStyleWithColorAndSize(TextStyle style, Color color, double fontSize) {
+    return style.copyWith(color: color, fontSize: fontSize);
+  }
+  
+  // Helper method to create theme-aware containers
+  static BoxDecoration getCardDecoration() {
+    return BoxDecoration(
+      color: cardBackground,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: divider),
+    );
+  }
+  
+  // Helper method to create theme-aware button decoration
+  static BoxDecoration getButtonDecoration({bool isSelected = false}) {
+    return BoxDecoration(
+      color: isSelected ? textPrimary : background,
+      border: Border.all(
+        color: isSelected ? textPrimary : divider,
+        width: 2,
+      ),
+      borderRadius: BorderRadius.circular(12),
+    );
   }
 }

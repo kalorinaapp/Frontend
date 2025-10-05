@@ -9,56 +9,68 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Icon
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: CupertinoColors.systemGreen.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              CupertinoIcons.rectangle_stack,
-              size: 60,
-              color: CupertinoColors.systemGreen,
-            ),
+    return ListenableBuilder(
+      listenable: themeProvider,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGreen.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  CupertinoIcons.rectangle_stack,
+                  size: 60,
+                  color: CupertinoColors.systemGreen,
+                ),
+              ),
+              
+              const SizedBox(height: 48),
+              
+              // Title
+              Text(
+                'Welcome to Cal AI',
+                style: ThemeHelper.textStyleWithColor(
+                  ThemeHelper.title1,
+                  ThemeHelper.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Subtitle
+              Text(
+                'Your personal AI-powered nutrition assistant',
+                style: ThemeHelper.textStyleWithColor(
+                  ThemeHelper.title3,
+                  CupertinoColors.systemGreen,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Description
+              Text(
+                'Track your meals, get nutritional insights, and achieve your health goals with the power of artificial intelligence.',
+                style: ThemeHelper.textStyleWithColor(
+                  ThemeHelper.body1,
+                  ThemeHelper.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          
-          const SizedBox(height: 48),
-          
-          // Title
-          Text(
-            'Welcome to Cal AI',
-            style: ThemeHelper.title1,
-            textAlign: TextAlign.center,
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Subtitle
-          Text(
-            'Your personal AI-powered nutrition assistant',
-            style: ThemeHelper.title3.copyWith(
-              color: CupertinoColors.systemGreen,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Description
-          Text(
-            'Track your meals, get nutritional insights, and achieve your health goals with the power of artificial intelligence.',
-            style: ThemeHelper.body1,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

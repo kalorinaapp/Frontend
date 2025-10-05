@@ -84,7 +84,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('goal') == 'lose_weight' 
@@ -98,15 +98,28 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    'Smršati',
-                    style: ThemeHelper.headline.copyWith(
-                      color: _controller.getStringData('goal') == 'lose_weight'
-                          ? CupertinoColors.white
-                          : CupertinoColors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Image.asset(
+                        'assets/icons/lose.png',
+                        width: 24,
+                        height: 24,
+                        color: _controller.getStringData('goal') == 'lose_weight'
+                            ? CupertinoColors.white
+                            : CupertinoColors.black,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Smršati',
+                        style: ThemeHelper.headline.copyWith(
+                          color: _controller.getStringData('goal') == 'lose_weight'
+                              ? CupertinoColors.white
+                              : CupertinoColors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               )),
@@ -118,7 +131,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('goal') == 'maintain_weight' 
@@ -132,15 +145,28 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    'Održavati Težinu',
-                    style: ThemeHelper.headline.copyWith(
-                      color: _controller.getStringData('goal') == 'maintain_weight'
-                          ? CupertinoColors.white
-                          : CupertinoColors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Image.asset(
+                        'assets/icons/maintain.png',
+                        width: 24,
+                        height: 24,
+                        color: _controller.getStringData('goal') == 'maintain_weight'
+                            ? CupertinoColors.white
+                            : CupertinoColors.black,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Održavati Težinu',
+                        style: ThemeHelper.headline.copyWith(
+                          color: _controller.getStringData('goal') == 'maintain_weight'
+                              ? CupertinoColors.white
+                              : CupertinoColors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               )),
@@ -152,7 +178,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('goal') == 'gain_weight' 
                         ? CupertinoColors.black
@@ -165,15 +191,28 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    'Dobiti na Težini',
-                    style: ThemeHelper.headline.copyWith(
-                      color: _controller.getStringData('goal') == 'gain_weight'
-                          ? CupertinoColors.white
-                          : CupertinoColors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Image.asset(
+                        'assets/icons/gain.png',
+                        width: 24,
+                        height: 24,
+                        color: _controller.getStringData('goal') == 'gain_weight'
+                            ? CupertinoColors.white
+                            : CupertinoColors.black,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Dobiti na Težini',
+                        style: ThemeHelper.headline.copyWith(
+                          color: _controller.getStringData('goal') == 'gain_weight'
+                              ? CupertinoColors.white
+                              : CupertinoColors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               )),

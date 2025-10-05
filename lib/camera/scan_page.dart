@@ -1,14 +1,13 @@
 import 'dart:io';
 import 'dart:convert';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors, Icons; // For overlay painting & icons
 import 'package:image_picker/image_picker.dart';
 import '../constants/app_constants.dart' show AppConstants;
 import '../network/http_helper.dart';
-
 import 'scan_result_page.dart';
+import 'scan_tutorial_page.dart';
 
 class ScanPage extends StatefulWidget {
   const ScanPage({super.key});
@@ -67,11 +66,6 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _toggleCamera() async {
-    _isRear = !_isRear;
-    await _controller?.dispose();
-    await _initCamera();
-  }
 
   Future<void> _capture() async {
     if (_controller == null || _isBusy) return;
@@ -173,6 +167,7 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
                 ? CameraPreview(_controller!)
                 : const Center(child: CupertinoActivityIndicator()),
           ),
+          
           // Overlay with cutout and corners
           Positioned.fill(
             child: IgnorePointer(
@@ -181,61 +176,156 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
               ),
             ),
           ),
-          // Top bar with title and switch camera
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Scan Food', style: TextStyle(color: CupertinoColors.white, fontSize: 18, fontWeight: FontWeight.w600)),
-                  CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: _toggleCamera,
-                    child: const Icon(Icons.cameraswitch, color: CupertinoColors.white),
-                  ),
-                ],
+          
+          // Top bar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    // Back button
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: CupertinoColors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          weight: 30.0,
+                          CupertinoIcons.xmark_circle,
+                          color: CupertinoColors.black,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    // Title
+                    const Text(
+                      'Scan Food',
+                      style: TextStyle(
+                        color: CupertinoColors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    // Switch camera button
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            CupertinoPageRoute(
+                              builder: (_) => const ScanTutorialPage(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: const BoxDecoration(
+                            color: CupertinoColors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.info_circle,
+                            color: CupertinoColors.black,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
+          
           // Bottom controls
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Gallery button
-                  CupertinoButton(
-                    padding: const EdgeInsets.all(12),
-                    color: CupertinoColors.systemGrey6,
-                    borderRadius: BorderRadius.circular(28),
-                    onPressed: _isBusy ? null : _pickFromGallery,
-                    child: const Icon(Icons.photo_library, color: CupertinoColors.black),
-                  ),
-                  // Capture button
-                  GestureDetector(
-                    onTap: _isBusy ? null : _capture,
-                    child: Container(
-                      width: 76,
-                      height: 76,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: CupertinoColors.white, width: 6),
-                        color: _isBusy ? CupertinoColors.systemGrey : CupertinoColors.white,
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Gallery button
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: _isBusy ? null : _pickFromGallery,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGrey6,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: const Icon(
+                          Icons.photo_library,
+                          color: CupertinoColors.black,
+                          size: 24,
+                        ),
                       ),
                     ),
-                  ),
-                  // Torch placeholder (optional)
-                  CupertinoButton(
-                    padding: const EdgeInsets.all(12),
-                    color: CupertinoColors.systemGrey6,
-                    borderRadius: BorderRadius.circular(28),
-                    onPressed: null,
-                    child: const Icon(Icons.flash_on, color: CupertinoColors.black),
-                  ),
-                ],
+                    
+                    // Capture button - make it more prominent like in screenshot
+                    GestureDetector(
+                      onTap: _isBusy ? null : _capture,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: CupertinoColors.white,
+                            width: 5,
+                          ),
+                          color: Colors.transparent,
+                        ),
+                        child: _isBusy
+                            ? const CupertinoActivityIndicator(
+                                color: CupertinoColors.white,
+                              )
+                            : Container(
+                                margin: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: CupertinoColors.white,
+                                ),
+                                child: Image.asset('assets/icons/shutter.png'),
+                              ),
+                      ),
+                    ),
+                    
+                    // Flash button
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: null, 
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGrey6,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: const Icon(
+                          Icons.flash_on,
+                          color: CupertinoColors.black,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -251,8 +341,11 @@ class _ScannerOverlayPainter extends CustomPainter {
     // Use a layer so BlendMode.clear reveals the camera preview
     canvas.saveLayer(Offset.zero & size, Paint());
 
-    final paint = Paint()..color = Colors.black.withOpacity(0.5);
-    final cutoutSize = Size(size.width * 0.8, size.height * 0.4);
+    // ignore: deprecated_member_use
+    final paint = Paint()..color = Colors.black.withOpacity(0.6);
+    
+    // Make the cutout more square and centered like in the screenshot
+    final cutoutSize = Size(size.width * 0.75, size.width * 0.75); // Square aspect ratio
     final dx = (size.width - cutoutSize.width) / 2;
     final dy = (size.height - cutoutSize.height) / 2;
     final cutoutRect = Rect.fromLTWH(dx, dy, cutoutSize.width, cutoutSize.height);
@@ -260,38 +353,75 @@ class _ScannerOverlayPainter extends CustomPainter {
     // Dimmed background
     canvas.drawRect(Offset.zero & size, paint);
 
-    // Clear cutout
+    // Clear cutout - make it more curved/rounded
     final clearPaint = Paint()
       ..blendMode = BlendMode.clear;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(cutoutRect, const Radius.circular(20)),
+      RRect.fromRectAndRadius(cutoutRect, const Radius.circular(32)),
       clearPaint,
     );
 
     // Restore to apply clear blend
     canvas.restore();
 
-    // Corner accents
+    // Corner brackets - match the thick, bold design from screenshot
     final cornerPaint = Paint()
       ..color = Colors.white
-      ..strokeWidth = 4
-      ..style = PaintingStyle.stroke;
+      ..strokeWidth = 12
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
 
-    const cornerLen = 24.0;
-    final r = RRect.fromRectAndRadius(cutoutRect, const Radius.circular(20)).outerRect;
+    const cornerLen = 80.0;
+    const cornerOffset = 0.0; // Right at the corner edge like in screenshot
+    final r = RRect.fromRectAndRadius(cutoutRect, const Radius.circular(32)).outerRect;
 
-    // Top-left
-    canvas.drawLine(Offset(r.left, r.top), Offset(r.left + cornerLen, r.top), cornerPaint);
-    canvas.drawLine(Offset(r.left, r.top), Offset(r.left, r.top + cornerLen), cornerPaint);
-    // Top-right
-    canvas.drawLine(Offset(r.right, r.top), Offset(r.right - cornerLen, r.top), cornerPaint);
-    canvas.drawLine(Offset(r.right, r.top), Offset(r.right, r.top + cornerLen), cornerPaint);
-    // Bottom-left
-    canvas.drawLine(Offset(r.left, r.bottom), Offset(r.left + cornerLen, r.bottom), cornerPaint);
-    canvas.drawLine(Offset(r.left, r.bottom), Offset(r.left, r.bottom - cornerLen), cornerPaint);
-    // Bottom-right
-    canvas.drawLine(Offset(r.right, r.bottom), Offset(r.right - cornerLen, r.bottom), cornerPaint);
-    canvas.drawLine(Offset(r.right, r.bottom), Offset(r.right, r.bottom - cornerLen), cornerPaint);
+    // Top-left corner bracket
+    canvas.drawLine(
+      Offset(r.left - cornerOffset, r.top + cornerLen), 
+      Offset(r.left - cornerOffset, r.top - cornerOffset), 
+      cornerPaint
+    );
+    canvas.drawLine(
+      Offset(r.left - cornerOffset, r.top - cornerOffset), 
+      Offset(r.left + cornerLen, r.top - cornerOffset), 
+      cornerPaint
+    );
+    
+    // Top-right corner bracket
+    canvas.drawLine(
+      Offset(r.right - cornerLen, r.top - cornerOffset), 
+      Offset(r.right + cornerOffset, r.top - cornerOffset), 
+      cornerPaint
+    );
+    canvas.drawLine(
+      Offset(r.right + cornerOffset, r.top - cornerOffset), 
+      Offset(r.right + cornerOffset, r.top + cornerLen), 
+      cornerPaint
+    );
+    
+    // Bottom-left corner bracket
+    canvas.drawLine(
+      Offset(r.left - cornerOffset, r.bottom - cornerLen), 
+      Offset(r.left - cornerOffset, r.bottom + cornerOffset), 
+      cornerPaint
+    );
+    canvas.drawLine(
+      Offset(r.left - cornerOffset, r.bottom + cornerOffset), 
+      Offset(r.left + cornerLen, r.bottom + cornerOffset), 
+      cornerPaint
+    );
+    
+    // Bottom-right corner bracket
+    canvas.drawLine(
+      Offset(r.right - cornerLen, r.bottom + cornerOffset), 
+      Offset(r.right + cornerOffset, r.bottom + cornerOffset), 
+      cornerPaint
+    );
+    canvas.drawLine(
+      Offset(r.right + cornerOffset, r.bottom + cornerOffset), 
+      Offset(r.right + cornerOffset, r.bottom - cornerLen), 
+      cornerPaint
+    );
   }
 
   @override
