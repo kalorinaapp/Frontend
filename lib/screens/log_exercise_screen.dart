@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 
 import '../providers/theme_provider.dart' show ThemeProvider;
+import '../services/exercise_service.dart';
 
 class LogExerciseScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -25,12 +26,16 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   // Cardio tab state
   int _selectedIntensity = 1; // 0: Low, 1: Medium, 2: High
   double _duration = 27.0; // Duration in minutes
+  bool _isLoggingCardio = false;
+  Map<String, dynamic>? _cardioResult;
   
   // Direct Input tab state
   final TextEditingController _caloriesController = TextEditingController();
   
   // Describe tab state
   final TextEditingController _describeController = TextEditingController();
+  bool _isEstimating = false;
+  Map<String, dynamic>? _estimate;
   
   final List<String> _intensityLabels = ['Low', 'Medium', 'High'];
   final List<String> _intensityDescriptions = [
@@ -38,11 +43,67 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
     'Steady run, manageable effort',
     'Brisk walk, comfortable breathing'
   ];
+  final List<String> _weightIntensityDescriptions = [
+    'Heavy weights, close to max effort',
+    'Moderate weights, breaking a sweat',
+    'Light weights, no sweat',
+  ];
 
   @override
   void initState() {
     super.initState();
     _selectedTabIndex = widget.initialTabIndex;
+  }
+
+  Widget _buildCardioResultCard() {
+    final res = (_cardioResult?['log'] as Map<String, dynamic>?) ?? (_cardioResult ?? const {});
+    final type = res['type']?.toString() ?? 'exercise';
+    final duration = res['durationMinutes']?.toString() ?? '0';
+    final intensity = res['intensity']?.toString() ?? '';
+    final calories = res['caloriesBurned']?.toString() ?? (_cardioResult?['estimatedCalories']?.toString() ?? '0');
+    final startedAt = res['startedAt']?.toString();
+
+    String timeStr = '';
+    if (startedAt != null && startedAt.isNotEmpty) {
+      try {
+        final dt = DateTime.parse(startedAt);
+        timeStr = '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
+      } catch (_) {}
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CupertinoColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE8E8E8), width: 1.5),
+        boxShadow: [
+          BoxShadow(color: CupertinoColors.black.withOpacity(0.08), blurRadius: 15, offset: const Offset(0,4)),
+          BoxShadow(color: CupertinoColors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0,2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(CupertinoIcons.flame, size: 18, color: CupertinoColors.black),
+              const SizedBox(width: 8),
+              Text(type[0].toUpperCase() + type.substring(1), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const Spacer(),
+              Text('$calories kcal', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            _pill('Duration: $duration min'),
+            if (intensity.isNotEmpty) _pill('Intensity: $intensity'),
+            if (timeStr.isNotEmpty) _pill('Start: $timeStr'),
+          ]),
+        ],
+      ),
+    );
   }
 
   @override
@@ -163,7 +224,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
       case 0:
         return _buildCardioTab();
       case 1:
-        return _buildEmptyTab('Weight Training');
+        return _buildWeightTrainingTab();
       case 2:
         return _buildDescribeTab();
       case 3:
@@ -363,7 +424,27 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   ),
                 ),
                 
-                const SizedBox(height: 100), // Space for bottom button
+                const SizedBox(height: 12),
+
+                if (_isLoggingCardio)
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        CupertinoActivityIndicator(),
+                        SizedBox(width: 8),
+                        Text('Logging...', style: TextStyle(color: Color(0xFF666666))),
+                      ],
+                    ),
+                  ),
+
+                if (_cardioResult != null) ...[
+                  const SizedBox(height: 12),
+                  _buildCardioResultCard(),
+                  const SizedBox(height: 80),
+                ] else ...[
+                  const SizedBox(height: 100), // Space for bottom button
+                ],
               ],
             ),
           ),
@@ -377,8 +458,27 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             child: GestureDetector(
-              onTap: () {
-                // TODO: Implement add exercise functionality
+              onTap: () async {
+                setState(() {
+                  _isLoggingCardio = true;
+                  _cardioResult = null;
+                });
+                final service = ExerciseService();
+                // API expects the tab name as the type (e.g., Cardio, Weight Training)
+                final type = _tabs[_selectedTabIndex];
+                final intensity = ['low','moderate','high'][_selectedIntensity.clamp(0,2)];
+                final startedAt = DateTime.now().toIso8601String();
+                final res = await service.logExercise(
+                  
+                  type: type,
+                  durationMinutes: _duration.round(),
+                  intensity: intensity,
+                  startedAtIso: startedAt,
+                );
+                setState(() {
+                  _isLoggingCardio = false;
+                  _cardioResult = res;
+                });
               },
               child: Container(
                 width: double.infinity,
@@ -387,10 +487,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   color: CupertinoColors.black,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Text(
-                  'Add',
+                child: Text(
+                  _isLoggingCardio ? 'Logging...' : 'Add',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: CupertinoColors.white,
@@ -404,17 +504,272 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
     );
   }
 
-  Widget _buildEmptyTab(String tabName) {
-    return Center(
-      child: Text(
-        '$tabName content coming soon',
-        style: const TextStyle(
-          fontSize: 16,
-          color: Color(0xFF999999),
+  Widget _buildWeightTrainingTab() {
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  'Intensity',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: CupertinoColors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Column(
+                  children: [
+                    for (int i = 0; i < _intensityLabels.length; i++)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedIntensity = i;
+                            });
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: _selectedIntensity == i 
+                                  ? const Color(0xFFF5F5F5) 
+                                  : CupertinoColors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _selectedIntensity == i 
+                                    ? CupertinoColors.black 
+                                    : const Color(0xFFE8E8E8),
+                                width: _selectedIntensity == i ? 2 : 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: CupertinoColors.black.withOpacity(0.08),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 4),
+                                  spreadRadius: 0,
+                                ),
+                                BoxShadow(
+                                  color: CupertinoColors.black.withOpacity(0.04),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                  spreadRadius: 0,
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  _intensityLabels[i],
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: CupertinoColors.black,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '- ${_weightIntensityDescriptions[i]}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF666666),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                const Text(
+                  'Duration',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: CupertinoColors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text('15 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text('30 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text('45 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text('60 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Material(
+                  color: Colors.transparent,
+                  child: SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: CupertinoColors.black,
+                      inactiveTrackColor: const Color(0xFFE8E8E8),
+                      thumbColor: CupertinoColors.black,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+                      trackHeight: 6,
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+                    ),
+                    child: Slider(
+                      value: _duration,
+                      min: 15,
+                      max: 60,
+                      divisions: 45,
+                      onChanged: (value) {
+                        setState(() {
+                          _duration = value;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFFE8E8E8),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CupertinoColors.black.withOpacity(0.08),
+                        blurRadius: 15,
+                        offset: const Offset(0, 4),
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: CupertinoColors.black.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                        spreadRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: CupertinoTextField(
+                    controller: TextEditingController(text: _duration.round().toString()),
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: CupertinoColors.black,
+                    ),
+                    decoration: const BoxDecoration(),
+                    padding: EdgeInsets.zero,
+                    onChanged: (value) {
+                      final intValue = int.tryParse(value);
+                      if (intValue != null && intValue >= 15 && intValue <= 60) {
+                        setState(() {
+                          _duration = intValue.toDouble();
+                        });
+                      }
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                if (_isLoggingCardio)
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        CupertinoActivityIndicator(),
+                        SizedBox(width: 8),
+                        Text('Logging...', style: TextStyle(color: Color(0xFF666666))),
+                      ],
+                    ),
+                  ),
+
+                if (_cardioResult != null) ...[
+                  const SizedBox(height: 12),
+                  _buildCardioResultCard(),
+                  const SizedBox(height: 80),
+                ] else ...[
+                  const SizedBox(height: 100),
+                ],
+              ],
+            ),
+          ),
         ),
-      ),
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: GestureDetector(
+              onTap: () async {
+                setState(() {
+                  _isLoggingCardio = true;
+                  _cardioResult = null;
+                });
+                try {
+                  final service = ExerciseService();
+                  final type = _tabs[_selectedTabIndex];
+                  final intensity = ['low','moderate','high'][_selectedIntensity.clamp(0,2)];
+                  final startedAt = DateTime.now().toLocal().toIso8601String();
+                  final res = await service.logExercise(
+                    type: type,
+                    durationMinutes: _duration.round(),
+                    intensity: intensity,
+                    startedAtIso: startedAt,
+                  );
+                  if (!mounted) return;
+                  setState(() {
+                    _cardioResult = res;
+                  });
+                } catch (e) {
+                  if (!mounted) return;
+                  setState(() {
+                    _cardioResult = {'success': false, 'error': e.toString()};
+                  });
+                } finally {
+                  if (!mounted) return;
+                  setState(() {
+                    _isLoggingCardio = false;
+                  });
+                }
+              },
+              child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: CupertinoColors.black,
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Text(
+                _isLoggingCardio ? 'Logging...' : 'Add',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CupertinoColors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+        )
+      ],
     );
   }
+
+  // Removed unused _buildEmptyTab
 
   Widget _buildDescribeTab() {
     return GestureDetector(
@@ -536,6 +891,25 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 ),
                 
                 const Spacer(),
+
+                if (_isEstimating) ...[
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 80),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          CupertinoActivityIndicator(),
+                          SizedBox(width: 8),
+                          Text('Estimating...', style: TextStyle(color: Color(0xFF666666))),
+                        ],
+                      ),
+                    ),
+                  ),
+                ] else if (_estimate != null) ...[
+                  _buildEstimateCard(),
+                  const SizedBox(height: 80),
+                ],
               ],
             ),
           ),
@@ -548,8 +922,23 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
             child: Container(
               padding: const EdgeInsets.all(20),
               child: GestureDetector(
-                onTap: () {
-                  // TODO: Implement AI-powered exercise analysis
+                onTap: () async {
+                  if (_describeController.text.trim().isEmpty) return;
+                  setState(() {
+                    _isEstimating = true;
+                    _estimate = null;
+                  });
+                  final service = ExerciseService();
+                  final res = await service.estimateFromDescription(
+                    description: _describeController.text.trim(),
+                    intensity: ['low','medium','high'][_selectedIntensity],
+                    durationMinutes: _duration.round(),
+                    autolog: true,
+                  );
+                  setState(() {
+                    _isEstimating = false;
+                    _estimate = res;
+                  });
                 },
                 child: Container(
                   width: double.infinity,
@@ -558,10 +947,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                     color: CupertinoColors.black,
                     borderRadius: BorderRadius.circular(25),
                   ),
-                  child: const Text(
-                    'Add',
+                  child: Text(
+                    _isEstimating ? 'Estimating...' : 'Add',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: CupertinoColors.white,
@@ -573,6 +962,77 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildEstimateCard() {
+    final est = _estimate ?? const {};
+    final estimated = est['estimatedCalories']?.toString() ?? '0';
+    final rationale = est['rationale'] as String? ?? 'No rationale provided.';
+    final input = (est['input'] as Map<String, dynamic>?) ?? const {};
+    final desc = input['description'] as String? ?? '';
+    final intensity = input['intensity']?.toString() ?? '';
+    final duration = input['durationMinutes']?.toString() ?? '';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CupertinoColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE8E8E8), width: 1.5),
+        boxShadow: [
+          BoxShadow(color: CupertinoColors.black.withOpacity(0.08), blurRadius: 15, offset: const Offset(0,4)),
+          BoxShadow(color: CupertinoColors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0,2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(CupertinoIcons.flame, size: 18, color: CupertinoColors.black),
+              const SizedBox(width: 8),
+              const Text('AI Estimate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const Spacer(),
+              Text('$estimated kcal', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(height: 1, width: double.infinity, color: const Color(0xFFE8E8E8)),
+          const SizedBox(height: 12),
+          if (desc.isNotEmpty) ...[
+            Text(desc, style: const TextStyle(fontSize: 14, color: Color(0xFF333333))),
+            const SizedBox(height: 8),
+          ],
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (intensity.isNotEmpty)
+                _pill('Intensity: $intensity'),
+              if (duration.isNotEmpty)
+                _pill('Duration: $duration min'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text('Why this estimate', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Text(rationale, style: const TextStyle(fontSize: 13, color: Color(0xFF666666), height: 1.3)),
+        ],
+      ),
+    );
+  }
+
+  Widget _pill(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
+      ),
+      child: Text(text, style: const TextStyle(fontSize: 12, color: Color(0xFF333333))),
     );
   }
 
@@ -677,8 +1137,33 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             child: GestureDetector(
-              onTap: () {
-                // TODO: Implement add exercise functionality
+              onTap: () async {
+                final text = _caloriesController.text.trim();
+                final value = int.tryParse(text) ?? 0;
+                if (value <= 0) return;
+                setState(() {
+                  _isLoggingCardio = true;
+                  _cardioResult = null;
+                });
+                try {
+                  final service = ExerciseService();
+                  final startedAt = DateTime.now().toLocal().toIso8601String();
+                  final res = await service.logDirectCalories(caloriesBurned: value, startedAtIso: startedAt);
+                  if (!mounted) return;
+                  setState(() {
+                    _cardioResult = res;
+                  });
+                } catch (e) {
+                  if (!mounted) return;
+                  setState(() {
+                    _cardioResult = {'success': false, 'error': e.toString()};
+                  });
+                } finally {
+                  if (!mounted) return;
+                  setState(() {
+                    _isLoggingCardio = false;
+                  });
+                }
               },
               child: Container(
                 width: double.infinity,
@@ -687,10 +1172,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   color: CupertinoColors.black,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Text(
-                  'Add',
+                child: Text(
+                  _isLoggingCardio ? 'Logging...' : 'Add',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: CupertinoColors.white,
