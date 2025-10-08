@@ -2,8 +2,12 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart' show AppLocalizations;
 import '../providers/theme_provider.dart';
+import '../services/streak_service.dart';
+import 'log_streak_screen.dart' show LogStreakScreen;
 
 enum StreakStatus {
   completed,
@@ -42,6 +46,8 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
   int selectedDay = 6; // Thursday (6th)
   bool _showStreakCard = false; // State for showing streak card
+  late final StreakService streakService;
+  List<DateTime> weekDates = [];
   
   // Mock data - replace with real data from your backend
   final int dailyCalorieGoal = 2000;
@@ -57,6 +63,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   @override
   void initState() {
     super.initState();
+    streakService = Get.put(StreakService());
+    _initializeWeek();
+    _loadStreaksForWeek();
+    
     _percentageController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -69,6 +79,30 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       parent: _percentageController,
       curve: Curves.easeInOut,
     ));
+  }
+
+  void _initializeWeek() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    // Get Monday of current week (weekday 1)
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+    
+    weekDates = List.generate(7, (index) => monday.add(Duration(days: index)));
+  }
+
+  Future<void> _loadStreaksForWeek() async {
+    if (weekDates.isEmpty) return;
+    
+    final startDate = weekDates.first;
+    final endDate = weekDates.last;
+    
+    await Future.wait([
+      streakService.getStreaksForDateRange(
+        startDate: startDate,
+        endDate: endDate,
+      ),
+      streakService.getStreakHistory(),
+    ]);
   }
 
   @override
@@ -139,9 +173,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     // Log Streak button
                     GestureDetector(
                       onTap: () {
-                        setState(() {
-                          _showStreakCard = !_showStreakCard;
-                        });
+                        Navigator.of(context).push(
+                          CupertinoPageRoute(
+                            builder: (context) => const LogStreakScreen(),
+                          ),
+                        );
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -198,18 +234,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     ),
                   ],
                 ),
-                child: Row(
+                child: Obx(() => Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildDaySelector(l10n.monday, 1),
-                    _buildDaySelector(l10n.tuesday, 2),
-                    _buildDaySelector(l10n.wednesday, 3),
-                    _buildDaySelector(l10n.thursday, 4),
-                    _buildDaySelector(l10n.friday, 5),
-                    _buildDaySelector(l10n.saturday, 6),
-                    _buildDaySelector(l10n.sunday, 7),
-                  ],
-                ),
+                  children: weekDates.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final date = entry.value;
+                    return _buildDaySelector(date, index);
+                  }).toList(),
+                )),
               ),
               
               const SizedBox(height: 24),
@@ -445,11 +477,16 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
-  Widget _buildDaySelector(String day, int dayIndex) {
-    final isSelected = dayIndex == 3; // Sri is selected (current day)
+  Widget _buildDaySelector(DateTime date, int dayIndex) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final isSelected = date.isAtSameMomentAs(today);
     
-    // Define streak status for each day (you can modify this logic based on your data)
-    final streakStatus = _getStreakStatus(dayIndex);
+    // Get day abbreviation (Mon, Tue, etc.)
+    final dayAbbr = DateFormat('E').format(date).substring(0, 3);
+    
+    // Get streak status from service
+    final streakStatus = _getStreakStatusForDate(date, today);
     
     return GestureDetector(
       onTap: () {
@@ -461,7 +498,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         children: [
           // Day label
           Text(
-            day,
+            dayAbbr,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -480,50 +517,40 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
+  StreakStatus _getStreakStatusForDate(DateTime date, DateTime today) {
+    // Future dates are neutral
+    if (date.isAfter(today)) {
+      return StreakStatus.neutral;
+    }
+    
+    // Check if there's a streak entry for this date
+    final streakType = streakService.getStreakType(date);
+    
+    if (streakType == null) {
+      // No entry - neutral/not logged
+      return StreakStatus.neutral;
+    } else if (streakType == 'Successful') {
+      return StreakStatus.completed;
+    } else {
+      // Failed
+      return StreakStatus.missed;
+    }
+  }
+
   Widget _buildDayIcon(StreakStatus status, bool isSelected) {
     switch (status) {
       case StreakStatus.completed:
         return Image.asset('assets/icons/flame.png', width: 32, height: 32);
       case StreakStatus.missed:
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            // Blurred fire background
-            Opacity(
-              opacity: 0.3,
-              child: Image.asset('assets/icons/flame.png', width: 32, height: 32),
-            ),
-            // Red X mark overlay
-            Icon(
-              CupertinoIcons.xmark,
-              size: 12,
-              color: CupertinoColors.systemRed,
-            ),
-          ],
+        return Opacity(
+          opacity: 0.6,
+          child: Image.asset('assets/icons/flame_missed.png', width: 32, height: 32),
         );
       case StreakStatus.neutral:
         return Opacity(
           opacity: 0.3,
           child: Image.asset('assets/icons/flame.png', width: 32, height: 32),
         );
-    }
-  }
-  
-  // Helper method to determine streak status for each day
-  StreakStatus _getStreakStatus(int dayIndex) {
-    // Example logic - you can modify this based on your actual data
-    switch (dayIndex) {
-      case 1: // Pon - completed
-      case 2: // Uto - completed
-        return StreakStatus.completed;
-      case 4: // Čet - missed
-      case 6: // Sub - missed
-        return StreakStatus.missed;
-      case 3: // Sri - current day
-      case 5: // Pet - neutral/future
-      case 7: // Ned - neutral/future
-      default:
-        return StreakStatus.neutral;
     }
   }
 
@@ -771,8 +798,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       totalCarbs += ((macros['carbs'] ?? 0) as num).toInt();
     }
     
-    // Debug: Print the extracted values
-    print('Extracted values - Calories: $calories, Protein: $totalProtein, Fat: $totalFat, Carbs: $totalCarbs');
+    // Debug logging removed per project rules
     
     // Use createdAt for timestamp, fallback to current time
     String timeString;

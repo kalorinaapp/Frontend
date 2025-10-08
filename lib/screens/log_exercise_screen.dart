@@ -466,7 +466,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 final service = ExerciseService();
                 // API expects the tab name as the type (e.g., Cardio, Weight Training)
                 final type = _tabs[_selectedTabIndex];
-                final intensity = ['low','moderate','high'][_selectedIntensity.clamp(0,2)];
+                final intensity = '${_intensityLabels[_selectedIntensity]} - ${_intensityDescriptions[_selectedIntensity]}';
                 final startedAt = DateTime.now().toIso8601String();
                 final res = await service.logExercise(
                   
@@ -721,7 +721,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 try {
                   final service = ExerciseService();
                   final type = _tabs[_selectedTabIndex];
-                  final intensity = ['low','moderate','high'][_selectedIntensity.clamp(0,2)];
+                  final intensity = '${_intensityLabels[_selectedIntensity]} - ${_weightIntensityDescriptions[_selectedIntensity]}';
                   final startedAt = DateTime.now().toLocal().toIso8601String();
                   final res = await service.logExercise(
                     type: type,
