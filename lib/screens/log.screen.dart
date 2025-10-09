@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'dart:math' as math;
 
+import '../constants/app_constants.dart';
 import '../providers/theme_provider.dart' show ThemeProvider;
 import '../utils/theme_helper.dart' show ThemeHelper;
 import 'log_food_screen.dart';
@@ -17,6 +18,20 @@ class LogScreen extends StatefulWidget {
 }
 
 class _LogScreenState extends State<LogScreen> {
+  
+  // Helper method to determine meal type based on current time
+  String _getCurrentMealType() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 11) {
+      return 'breakfast';
+    } else if (hour >= 11 && hour < 16) {
+      return 'lunch';
+    } else if (hour >= 16 && hour < 21) {
+      return 'dinner';
+    } else {
+      return 'snacks';
+    }
+  }
   
   void _navigateToCardio() {
     Navigator.of(context).push(
@@ -62,7 +77,11 @@ class _LogScreenState extends State<LogScreen> {
   void _navigateToMyMeals() {
     Navigator.of(context).push(
       CupertinoPageRoute(
-        builder: (context) => LogFoodScreen(themeProvider: widget.themeProvider),
+        builder: (context) => LogFoodScreen(
+          themeProvider: widget.themeProvider,
+          userId: AppConstants.userId,
+          mealType: _getCurrentMealType(),
+        ),
       ),
     );
   }

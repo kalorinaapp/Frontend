@@ -196,10 +196,10 @@ class _HomeScreenState extends State<HomeScreen> {
           final first = meals.first;
           setState(() {
             _todayTotals = {
-              'totalCalories': (first['totalCalories'] ?? 0) as int,
-              'totalProtein': (first['totalProtein'] ?? 0) as int,
-              'totalCarbs': (first['totalCarbs'] ?? 0) as int,
-              'totalFat': (first['totalFat'] ?? 0) as int,
+              'totalCalories': ((first['totalCalories'] ?? 0) as num).toInt(),
+              'totalProtein': ((first['totalProtein'] ?? 0) as num).toInt(),
+              'totalCarbs': ((first['totalCarbs'] ?? 0) as num).toInt(),
+              'totalFat': ((first['totalFat'] ?? 0) as num).toInt(),
             };
             _todayCreatedAt = first['createdAt'] as String?;
             _todayEntries = ((first['entries'] as List?) ?? [])

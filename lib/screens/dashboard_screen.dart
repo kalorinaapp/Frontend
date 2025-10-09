@@ -374,22 +374,22 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         children: [
                           _buildCompactMacroCard(
                             'Fats',
-                            (widget.dailyProgress?['macros']?['fat']?['consumed'] ?? 0) as int,
-                            (widget.dailyProgress?['macros']?['fat']?['goal'] ?? 0) as int,
+                            ((widget.dailyProgress?['macros']?['fat']?['consumed'] ?? 0) as num).toInt(),
+                            ((widget.dailyProgress?['macros']?['fat']?['goal'] ?? 0) as num).toInt(),
                             CupertinoColors.systemRed,
                           ),
                           const SizedBox(height: 12),
                           _buildCompactMacroCard(
                             'Protein',
-                            (widget.dailyProgress?['macros']?['protein']?['consumed'] ?? 0) as int,
-                            (widget.dailyProgress?['macros']?['protein']?['goal'] ?? 0) as int,
+                            ((widget.dailyProgress?['macros']?['protein']?['consumed'] ?? 0) as num).toInt(),
+                            ((widget.dailyProgress?['macros']?['protein']?['goal'] ?? 0) as num).toInt(),
                             CupertinoColors.systemBlue,
                           ),
                           const SizedBox(height: 12),
                           _buildCompactMacroCard(
                             'Carbohydrates',
-                            (widget.dailyProgress?['macros']?['carbs']?['consumed'] ?? 0) as int,
-                            (widget.dailyProgress?['macros']?['carbs']?['goal'] ?? 0) as int,
+                            ((widget.dailyProgress?['macros']?['carbs']?['consumed'] ?? 0) as num).toInt(),
+                            ((widget.dailyProgress?['macros']?['carbs']?['goal'] ?? 0) as num).toInt(),
                             CupertinoColors.systemOrange,
                           ),
                         ],
@@ -1158,10 +1158,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   Widget _buildMealTotalsCard(Map<String, dynamic> meal) {
-    final calories = (meal['totalCalories'] ?? 0) as int;
-    final protein = (meal['totalProtein'] ?? 0) as int;
-    final fat = (meal['totalFat'] ?? 0) as int;
-    final carbs = (meal['totalCarbs'] ?? 0) as int;
+    final calories = ((meal['totalCalories'] ?? 0) as num).toInt();
+    final protein = ((meal['totalProtein'] ?? 0) as num).toInt();
+    final fat = ((meal['totalFat'] ?? 0) as num).toInt();
+    final carbs = ((meal['totalCarbs'] ?? 0) as num).toInt();
     final mealName = (meal['mealName'] as String?)?.trim();
     // Prefer mealImage; fallback to first entry.imageUrl if available
     String? imageUrl = (meal['mealImage'] as String?)?.trim();
