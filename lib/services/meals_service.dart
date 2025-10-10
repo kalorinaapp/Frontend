@@ -1,6 +1,7 @@
 import 'dart:convert';
+import 'package:calorie_ai_app/utils/network.dart';
 import 'package:flutter/foundation.dart';
-import '../network/http_helper.dart';
+import '../network/http_helper.dart' hide multiPostAPINew;
 
 class MealsService {
   const MealsService();
@@ -53,12 +54,15 @@ class MealsService {
       param: body,
       callback: (resp) async {
         try {
-          if (resp.isError == true) {
+          // Try to parse the response regardless of isError flag
+          // since 201 Created is a success status for POST requests
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+          
+          // If parsing succeeded but response indicates failure, set to null
+          if (parsed != null && parsed!['success'] == false) {
             debugPrint('MealsService save error: ${resp.response}');
             parsed = null;
-            return;
           }
-          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
         } catch (e) {
           debugPrint('MealsService save parse error: $e');
           parsed = null;
@@ -90,6 +94,78 @@ class MealsService {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
         } catch (e) {
           debugPrint('MealsService fetchAllMeals parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> fetchScannedMeals({
+    required String userId,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    Map<String, dynamic>? parsed;
+    await multiGetAPINew(
+      methodName: 'api/meals/scanned/$userId',
+      query: {
+        'page': page.toString(),
+        'limit': limit.toString(),
+      },
+      callback: (resp) async {
+        try {
+          if (resp.isError == true) {
+            debugPrint('MealsService fetchScannedMeals error: ${resp.response}');
+            parsed = null;
+            return;
+          }
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('MealsService fetchScannedMeals parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> updateMeal({
+    required String mealId,
+    required String userId,
+    required String date,
+    required String mealType,
+    required String mealName,
+    required List<Map<String, dynamic>> entries,
+    String? notes,
+  }) async {
+    Map<String, dynamic>? parsed;
+    
+    final body = {
+      'userId': userId,
+      'date': date,
+      'mealType': mealType,
+      'mealName': mealName,
+      'entries': entries,
+      'notes': notes ?? '',
+      'isCompleted': true,
+    };
+
+    await putAPI(
+      methodName: 'api/meals/$mealId',
+      param: body,
+      callback: (resp) async {
+        try {
+          // Try to parse the response regardless of isError flag
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+          
+          // If parsing succeeded but response indicates failure, set to null
+          if (parsed != null && parsed!['success'] == false) {
+            debugPrint('MealsService update error: ${resp.response}');
+            parsed = null;
+          }
+        } catch (e) {
+          debugPrint('MealsService update parse error: $e');
           parsed = null;
         }
       },

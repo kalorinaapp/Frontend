@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:shimmer/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/theme_provider.dart' show ThemeProvider;
 import '../services/food_service.dart';
 import '../services/meals_service.dart';
+import '../constants/app_constants.dart';
 import 'create_meal_screen.dart';
 import 'create_food_screen.dart';
 import 'edit_macro_screen.dart';
@@ -27,6 +29,7 @@ class LogFoodScreen extends StatefulWidget {
 class _LogFoodScreenState extends State<LogFoodScreen> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _caloriesController = TextEditingController();
+  final TextEditingController _foodNameController = TextEditingController();
   int _selectedTabIndex = 0;
   
   final List<String> _tabs = ['All', 'My Meals', 'My Foods', 'Saved Scans', 'Direct Input'];
@@ -39,6 +42,9 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
   // Amount value
   int _amountValue = 1;
   
+  // Direct Input ingredients
+  List<dynamic> _directInputIngredients = [];
+  
   // Food suggestions from API
   List<Map<String, dynamic>> _suggestions = [];
   bool _isLoadingSuggestions = false;
@@ -46,12 +52,25 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
   // My meals from API
   List<Map<String, dynamic>> _myMeals = [];
   bool _isLoadingMyMeals = false;
+  
+  // My foods from API
+  List<Map<String, dynamic>> _myFoods = [];
+  bool _isLoadingMyFoods = false;
+  
+  // Scanned meals from API
+  List<Map<String, dynamic>> _scannedMeals = [];
+  bool _isLoadingScannedMeals = false;
+  
+  // Direct Input saving state
+  bool _isSavingDirectInput = false;
 
   @override
   void initState() {
     super.initState();
     _fetchFoodSuggestions();
     _fetchMyMeals();
+    _fetchMyFoods();
+    _fetchScannedMeals();
   }
 
   Future<void> _fetchFoodSuggestions() async {
@@ -130,6 +149,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                 'mealType': item['mealType'] ?? '',
                 'date': item['date'] ?? '',
                 'notes': item['notes'] ?? '',
+                'entries': item['entries'] ?? [], // Store the complete entries data
               };
             }).toList();
           });
@@ -146,10 +166,193 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
     }
   }
 
+  Future<void> _fetchMyFoods() async {
+    setState(() {
+      _isLoadingMyFoods = true;
+    });
+
+    try {
+      final service = FoodService();
+      final response = await service.fetchAllFoods(
+        page: 1,
+        limit: 20,
+      );
+ 
+      if (response != null && response['success'] == true) {
+        final foods = response['foods'] as List<dynamic>?;
+        if (foods != null && mounted) {
+          setState(() {
+            _myFoods = foods.map((item) {
+              return {
+                '_id': item['_id'] ?? '',
+                'name': item['name'] ?? '',
+                'calories': item['calories'] ?? 0,
+                'description': item['description'] ?? '',
+                'servingSize': item['servingSize'] ?? '',
+                'servingPerContainer': item['servingPerContainer'] ?? '',
+                'protein': item['protein'] ?? 0,
+                'carbohydrates': item['carbohydrates'] ?? 0,
+                'totalFat': item['totalFat'] ?? 0,
+                'createdBy': item['createdBy'] ?? '',
+                'createdAt': item['createdAt'] ?? '',
+              };
+            }).toList();
+          });
+        }
+      }
+    } catch (e) {
+      // Handle error silently or show error message
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMyFoods = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _saveDirectInputFood() async {
+    // Validate required fields
+    if (_foodNameController.text.trim().isEmpty) {
+      _showErrorDialog('Please enter a food name');
+      return;
+    }
+
+    if (_caloriesController.text.trim().isEmpty) {
+      _showErrorDialog('Please enter calories');
+      return;
+    }
+
+    final calories = int.tryParse(_caloriesController.text.trim());
+    if (calories == null || calories < 0) {
+      _showErrorDialog('Please enter a valid calories value');
+      return;
+    }
+
+    setState(() {
+      _isSavingDirectInput = true;
+    });
+
+    try {
+      final service = FoodService();
+      final response = await service.saveFood(
+        name: _foodNameController.text.trim(),
+        calories: calories,
+        protein: _proteinValue.toDouble(),
+        carbohydrates: _carbsValue.toDouble(),
+        totalFat: _fatsValue.toDouble(),
+        servingSize: '$_amountValue serving',
+        isCustom: true,
+        createdBy: AppConstants.userId,
+      );
+
+      if (response != null && response['food'] != null) {
+        // Refresh my foods list
+        await _fetchMyFoods();
+        
+        // Clear the form
+        _foodNameController.clear();
+        _caloriesController.clear();
+        setState(() {
+          _carbsValue = 10;
+          _proteinValue = 41;
+          _fatsValue = 16;
+          _amountValue = 1;
+          _directInputIngredients = [];
+        });
+        
+        // Switch to My Foods tab
+        if (mounted) {
+          setState(() {
+            _selectedTabIndex = 2;
+          });
+        }
+      } else {
+        _showErrorDialog('Failed to save food');
+      }
+    } catch (e) {
+      _showErrorDialog('Error saving food: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSavingDirectInput = false;
+        });
+      }
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _fetchScannedMeals() async {
+    if (widget.userId == null || widget.userId!.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingScannedMeals = true;
+    });
+
+    try {
+      final service = MealsService();
+      final response = await service.fetchScannedMeals(
+        userId: widget.userId!,
+        page: 1,
+        limit: 20,
+      );
+
+      if (response != null && response['success'] == true) {
+        final meals = response['meals'] as List<dynamic>?;
+        if (meals != null && mounted) {
+          setState(() {
+            _scannedMeals = meals.map((item) {
+              return {
+                'id': item['id'] ?? '',
+                'mealName': item['mealName'] ?? '',
+                'mealImage': item['mealImage'] ?? '',
+                'totalCalories': item['totalCalories'] ?? 0,
+                'totalProtein': item['totalProtein'] ?? 0,
+                'totalCarbs': item['totalCarbs'] ?? 0,
+                'totalFat': item['totalFat'] ?? 0,
+                'entriesCount': item['entriesCount'] ?? 0,
+                'mealType': item['mealType'] ?? '',
+                'date': item['date'] ?? '',
+                'createdAt': item['createdAt'] ?? '',
+                'entries': item['entries'] ?? [],
+              };
+            }).toList();
+          });
+        }
+      }
+    } catch (e) {
+      // Handle error silently or show error message
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingScannedMeals = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
     _caloriesController.dispose();
+    _foodNameController.dispose();
     super.dispose();
   }
 
@@ -166,8 +369,89 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
       ),
     );
     
-    // Refresh my meals if a meal was saved
-    if (result == true) {
+    // Optimistically add the new meal if result contains meal data
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _myMeals.insert(0, {
+          'id': result['id'] ?? '',
+          'mealName': result['mealName'] ?? '',
+          'totalCalories': result['totalCalories'] ?? 0,
+          'totalProtein': result['totalProtein'] ?? 0,
+          'totalCarbs': result['totalCarbs'] ?? 0,
+          'totalFat': result['totalFat'] ?? 0,
+          'entriesCount': result['entriesCount'] ?? 0,
+          'mealType': result['mealType'] ?? '',
+          'date': result['date'] ?? '',
+          'notes': result['notes'] ?? '',
+          'entries': result['entries'] ?? [],
+        });
+      });
+    } else if (result == true) {
+      // Fallback: Refresh if result is just true
+      _fetchMyMeals();
+    }
+  }
+
+  void _onEditMeal(Map<String, dynamic> meal) async {
+    // Parse entries from the meal data
+    final entries = meal['entries'] as List<dynamic>? ?? [];
+    final items = entries.map((entry) {
+      return {
+        'name': entry['foodName'] ?? '',
+        'quantity': entry['quantity'] ?? 0,
+        'unit': entry['unit'] ?? '',
+        'calories': entry['calories'] ?? 0,
+        'protein': entry['protein'] ?? 0,
+        'carbohydrates': entry['carbs'] ?? 0, // Map 'carbs' to 'carbohydrates'
+        'fat': entry['fat'] ?? 0,
+      };
+    }).toList();
+    
+    // Convert meal data to match CreateMealScreen expected format
+    final mealData = {
+      'name': meal['mealName'] ?? '',
+      'calories': meal['totalCalories'] ?? 0,
+      'protein': meal['totalProtein'] ?? 0,
+      'carbohydrates': meal['totalCarbs'] ?? 0,
+      'fat': meal['totalFat'] ?? 0,
+      'servingSize': '1',
+      'items': items,
+    };
+    
+    final result = await Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) => CreateMealScreen(
+          mealData: mealData,
+          userId: widget.userId,
+          mealType: meal['mealType'] ?? widget.mealType,
+          isEdit: true,
+          mealId: meal['id'],
+        ),
+      ),
+    );
+    
+    // Optimistically update the meal if result contains updated meal data
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        final index = _myMeals.indexWhere((m) => m['id'] == meal['id']);
+        if (index != -1) {
+          _myMeals[index] = {
+            'id': result['id'] ?? '',
+            'mealName': result['mealName'] ?? '',
+            'totalCalories': result['totalCalories'] ?? 0,
+            'totalProtein': result['totalProtein'] ?? 0,
+            'totalCarbs': result['totalCarbs'] ?? 0,
+            'totalFat': result['totalFat'] ?? 0,
+            'entriesCount': result['entriesCount'] ?? 0,
+            'mealType': result['mealType'] ?? '',
+            'date': result['date'] ?? '',
+            'notes': result['notes'] ?? '',
+            'entries': result['entries'] ?? [],
+          };
+        }
+      });
+    } else if (result == true) {
+      // Fallback: Refresh if result is just true
       _fetchMyMeals();
     }
   }
@@ -408,6 +692,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                               return _buildMealItem(
                                 title: meal['mealName'],
                                 calories: (meal['totalCalories'] as num).toInt(),
+                                onTap: () => _onEditMeal(meal),
                               );
                             },
                           ),
@@ -487,6 +772,80 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
   }
 
   Widget _buildMealItem({
+    required String title,
+    required int calories,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: CupertinoColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE8E8E8),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: CupertinoColors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+              spreadRadius: 0,
+            ),
+            BoxShadow(
+              color: CupertinoColors.black.withOpacity(0.03),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Flame icon
+            Image.asset('assets/icons/flame_black.png', width: 16, height: 16),
+            const SizedBox(width: 8),
+            
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: CupertinoColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$calories calories',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF666666),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Arrow icon
+            const Icon(
+              CupertinoIcons.chevron_right,
+              size: 16,
+              color: Color(0xFF999999),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFoodItem({
     required String title,
     required int calories,
   }) {
@@ -681,15 +1040,46 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
   Widget _buildMyFoodsTab() {
     return Stack(
       children: [
-        Center(
-          child: Text(
-            'My Foods content coming soon',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Color(0xFF999999),
-            ),
+        Container(
+          margin: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              // Foods List
+              Expanded(
+                child: _isLoadingMyFoods
+                    ? ListView.separated(
+                        padding: const EdgeInsets.only(bottom: 100),
+                        itemCount: 8,
+                        separatorBuilder: (context, index) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) => _buildShimmerItem(),
+                      )
+                    : _myFoods.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No foods created yet',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Color(0xFF999999),
+                              ),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.only(bottom: 100),
+                            itemCount: _myFoods.length,
+                            separatorBuilder: (context, index) => const SizedBox(height: 16),
+                            itemBuilder: (context, index) {
+                              final food = _myFoods[index];
+                              return _buildFoodItem(
+                                title: food['name'],
+                                calories: (food['calories'] as num).toInt(),
+                              );
+                            },
+                          ),
+              ),
+            ],
           ),
         ),
+        
         // Bottom Bar with Create Food button
         Positioned(
           bottom: 0,
@@ -721,18 +1111,23 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
               ],
             ),
             child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
+              onTap: () async {
+                final result = await Navigator.of(context).push(
                   CupertinoPageRoute(
                     builder: (context) => const CreateFoodScreen(),
                   ),
                 );
+                
+                // Refresh my foods if a food was saved
+                if (result == true) {
+                  _fetchMyFoods();
+                }
               },
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.white,
+                  color: CupertinoColors.black,
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(
                     color: const Color(0xFFE8E8E8),
@@ -759,7 +1154,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.black,
+                    color: CupertinoColors.white,
                   ),
                 ),
               ),
@@ -771,6 +1166,66 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
   }
 
   Widget _buildEmptyTab(String tabName) {
+    // Special handling for Saved Scans
+    if (tabName == 'Saved Scans') {
+      if (_isLoadingScannedMeals) {
+        // Loading state
+        return Container(
+          margin: const EdgeInsets.all(20),
+          child: ListView.separated(
+            itemCount: 4,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) => _buildShimmerMealCard(),
+          ),
+        );
+      } else if (_scannedMeals.isEmpty) {
+        // Empty state
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(flex: 2),
+            const SizedBox(
+              width: 242,
+              child: Text(
+                'Your saved scans will appear here',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xB21E1822),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(13),
+              child: Image.asset(
+                'assets/images/saved_scans_empty.png',
+                width: 285,
+                height: 133,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const Spacer(flex: 3),
+          ],
+        );
+      } else {
+        // Display scanned meals
+        return Container(
+          margin: const EdgeInsets.all(20),
+          child: ListView.separated(
+            itemCount: _scannedMeals.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final meal = _scannedMeals[index];
+              return _buildScannedMealCard(meal);
+            },
+          ),
+        );
+      }
+    }
+    
+    // Default empty state for other tabs
     return Stack(
       children: [
         Center(
@@ -839,6 +1294,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                     ],
                   ),
                   child: CupertinoTextField(
+                    controller: _foodNameController,
                     placeholder: 'Edit Name',
                     placeholderStyle: const TextStyle(
                       color: Color(0xFF999999),
@@ -970,7 +1426,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Ingredients',
                       style: TextStyle(
                         fontSize: 20,
@@ -980,7 +1436,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        print('Add More tapped');
+                        _showAddDirectInputIngredientDialog();
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1000,7 +1456,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                             ),
                           ],
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
@@ -1011,7 +1467,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                                 color: CupertinoColors.black,
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             Icon(
                               CupertinoIcons.pencil,
                               size: 14,
@@ -1023,6 +1479,12 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                     ),
                   ],
                 ),
+                
+                // Ingredients List
+                if (_directInputIngredients.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  ..._directInputIngredients.map((ingredient) => _buildDirectInputIngredientCard(ingredient)).toList(),
+                ],
                 
                 const SizedBox(height: 16),
                 
@@ -1090,7 +1552,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
           ),
         ),
         
-        // Bottom Add Button
+        // Bottom Save Food Button
         Positioned(
           bottom: 0,
           left: 0,
@@ -1098,25 +1560,29 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             child: GestureDetector(
-              onTap: () {
-                print('Add food tapped');
-              },
+              onTap: _isSavingDirectInput ? null : _saveDirectInputFood,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.black,
+                  color: _isSavingDirectInput ? CupertinoColors.systemGrey : CupertinoColors.black,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Text(
-                  'Add',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
-                  ),
-                ),
+                child: _isSavingDirectInput
+                    ? const Center(
+                        child: CupertinoActivityIndicator(
+                          color: CupertinoColors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Save Food',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: CupertinoColors.white,
+                        ),
+                      ),
               ),
             ),
           ),
@@ -1337,8 +1803,25 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
             ),
           );
           
-          // Refresh my meals if a meal was saved
-          if (result == true) {
+          // Optimistically add the new meal if result contains meal data
+          if (result != null && result is Map<String, dynamic>) {
+            setState(() {
+              _myMeals.insert(0, {
+                'id': result['id'] ?? '',
+                'mealName': result['mealName'] ?? '',
+                'totalCalories': result['totalCalories'] ?? 0,
+                'totalProtein': result['totalProtein'] ?? 0,
+                'totalCarbs': result['totalCarbs'] ?? 0,
+                'totalFat': result['totalFat'] ?? 0,
+                'entriesCount': result['entriesCount'] ?? 0,
+                'mealType': result['mealType'] ?? '',
+                'date': result['date'] ?? '',
+                'notes': result['notes'] ?? '',
+                'entries': result['entries'] ?? [],
+              });
+            });
+          } else if (result == true) {
+            // Fallback: Refresh if result is just true
             _fetchMyMeals();
           }
         },
@@ -1346,7 +1829,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: CupertinoColors.white,
+            color: CupertinoColors.black,
             borderRadius: BorderRadius.circular(25),
             border: Border.all(
               color: const Color(0xFFE8E8E8),
@@ -1373,9 +1856,714 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: CupertinoColors.black,
+              color: CupertinoColors.white,
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerMealCard() {
+    return Shimmer.fromColors(
+      baseColor: const Color(0xFFE8E8E8),
+      highlightColor: const Color(0xFFF5F5F5),
+      child: Container(
+        width: double.infinity,
+        height: 120,
+        decoration: BoxDecoration(
+          color: CupertinoColors.white,
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScannedMealCard(Map<String, dynamic> meal) {
+    final calories = (meal['totalCalories'] as num).toInt();
+    final protein = (meal['totalProtein'] as num).toInt();
+    final fat = (meal['totalFat'] as num).toInt();
+    final carbs = (meal['totalCarbs'] as num).toInt();
+    final mealName = (meal['mealName'] as String?)?.trim();
+    final imageUrl = (meal['mealImage'] as String?)?.trim();
+    
+    String timeString = '';
+    final createdAtStr = meal['createdAt'] as String?;
+    if (createdAtStr != null) {
+      try {
+        final createdAt = DateTime.parse(createdAtStr);
+        timeString = '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
+      } catch (_) {}
+    }
+
+    return Container(
+      width: double.infinity,
+      height: 120,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8F7FC),
+        borderRadius: BorderRadius.all(Radius.circular(15)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 3,
+            offset: Offset(0, 0),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Meal image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: Container(
+                width: 96,
+                height: 96,
+                color: CupertinoColors.white,
+                child: imageUrl != null && imageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CupertinoActivityIndicator(),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Center(
+                          child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                        ),
+                      )
+                    : Center(
+                        child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Meal details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          mealName != null && mealName.isNotEmpty ? mealName : 'Scanned Meal',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF1E1822),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (timeString.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: const BoxDecoration(
+                            color: CupertinoColors.white,
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x33000000),
+                                blurRadius: 3,
+                                offset: Offset(0, 0),
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            timeString,
+                            style: const TextStyle(
+                              color: Color(0xFF1E1822),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Nutrition cards in 2x2 grid
+                  Row(
+                    children: [
+                      Column(
+                        children: [
+                          _buildNutritionBadge(calories.toString(), 'Calories', 'assets/icons/carbs.png'),
+                          const SizedBox(height: 4),
+                          _buildNutritionBadge(protein.toString(), 'Protein', 'assets/icons/drumstick.png'),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        children: [
+                          _buildNutritionBadge(fat.toString(), 'Fat', 'assets/icons/fat.png'),
+                          const SizedBox(height: 4),
+                          _buildNutritionBadge(carbs.toString(), 'Carbs', 'assets/icons/carbs.png'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Arrow icon
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: Icon(
+                CupertinoIcons.chevron_right,
+                size: 16,
+                color: CupertinoColors.systemGrey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNutritionBadge(String value, String label, String iconPath) {
+    return Container(
+      width: 70,
+      height: 30,
+      decoration: const BoxDecoration(
+        color: CupertinoColors.white,
+        borderRadius: BorderRadius.all(Radius.circular(6)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x3F000000),
+            blurRadius: 5,
+            offset: Offset(0, 0),
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Image.asset(
+              iconPath,
+              width: 12,
+              height: 12,
+            ),
+            const SizedBox(width: 4),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '$value g',
+                  style: const TextStyle(
+                    color: Color(0xE61E1822),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Color(0xB21E1822),
+                    fontSize: 7,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDirectInputIngredientCard(dynamic ingredient) {
+    final name = ingredient['name'] ?? '';
+    final quantity = ingredient['quantity']?.toString() ?? '';
+    final unit = ingredient['unit'] ?? '';
+    final calories = ingredient['calories']?.toString() ?? '0';
+    final protein = ingredient['protein']?.toString() ?? '0';
+    final carbs = ingredient['carbohydrates']?.toString() ?? '0';
+    final fat = ingredient['fat']?.toString() ?? '0';
+    
+    return GestureDetector(
+      onTap: () {
+        _showAddDirectInputIngredientDialog(existingIngredient: ingredient);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: CupertinoColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE8E8E8),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: CupertinoColors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: CupertinoColors.black,
+                    ),
+                  ),
+                ),
+                if (quantity.isNotEmpty && unit.isNotEmpty)
+                  Text(
+                    '$quantity $unit',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF666666),
+                    ),
+                  ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _directInputIngredients.remove(ingredient);
+                    });
+                  },
+                  child: const Icon(
+                    CupertinoIcons.xmark_circle_fill,
+                    size: 20,
+                    color: CupertinoColors.black,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (calories != '0')
+                  _buildDirectInputNutrientBadge('$calories kcal'),
+                if (protein != '0')
+                  _buildDirectInputNutrientBadge('P: ${protein}g'),
+                if (carbs != '0')
+                  _buildDirectInputNutrientBadge('C: ${carbs}g'),
+                if (fat != '0')
+                  _buildDirectInputNutrientBadge('F: ${fat}g'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDirectInputNutrientBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: CupertinoColors.white,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: CupertinoColors.black,
+          width: 1,
+        ),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: CupertinoColors.black,
+        ),
+      ),
+    );
+  }
+
+  void _showAddDirectInputIngredientDialog({dynamic existingIngredient}) {
+    final bool isEditing = existingIngredient != null;
+    
+    final TextEditingController nameController = TextEditingController(
+      text: existingIngredient?['name'] ?? '',
+    );
+    final TextEditingController quantityController = TextEditingController(
+      text: existingIngredient != null && existingIngredient['quantity'] != 0
+          ? existingIngredient['quantity'].toString()
+          : '',
+    );
+    final TextEditingController unitController = TextEditingController(
+      text: existingIngredient?['unit'] ?? '',
+    );
+    final TextEditingController caloriesController = TextEditingController(
+      text: existingIngredient != null && existingIngredient['calories'] != 0
+          ? existingIngredient['calories'].toString()
+          : '',
+    );
+    final TextEditingController proteinController = TextEditingController(
+      text: existingIngredient != null && existingIngredient['protein'] != 0
+          ? existingIngredient['protein'].toString()
+          : '',
+    );
+    final TextEditingController carbsController = TextEditingController(
+      text: existingIngredient != null && existingIngredient['carbohydrates'] != 0
+          ? existingIngredient['carbohydrates'].toString()
+          : '',
+    );
+    final TextEditingController fatController = TextEditingController(
+      text: existingIngredient != null && existingIngredient['fat'] != 0
+          ? existingIngredient['fat'].toString()
+          : '',
+    );
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+          color: CupertinoColors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Color(0xFFE8E8E8),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: CupertinoColors.systemGrey,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    isEditing ? 'Edit Ingredient' : 'Add Ingredient',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: CupertinoColors.black,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      final name = nameController.text.trim();
+                      if (name.isEmpty) {
+                        return;
+                      }
+
+                      final ingredientData = {
+                        'name': name,
+                        'quantity': quantityController.text.trim().isNotEmpty 
+                            ? double.tryParse(quantityController.text.trim()) ?? 0 
+                            : 0,
+                        'unit': unitController.text.trim(),
+                        'calories': caloriesController.text.trim().isNotEmpty 
+                            ? int.tryParse(caloriesController.text.trim()) ?? 0 
+                            : 0,
+                        'protein': proteinController.text.trim().isNotEmpty 
+                            ? int.tryParse(proteinController.text.trim()) ?? 0 
+                            : 0,
+                        'carbohydrates': carbsController.text.trim().isNotEmpty 
+                            ? int.tryParse(carbsController.text.trim()) ?? 0 
+                            : 0,
+                        'fat': fatController.text.trim().isNotEmpty 
+                            ? int.tryParse(fatController.text.trim()) ?? 0 
+                            : 0,
+                      };
+
+                      setState(() {
+                        if (isEditing) {
+                          // Find and update the existing ingredient
+                          final index = _directInputIngredients.indexOf(existingIngredient);
+                          if (index != -1) {
+                            _directInputIngredients[index] = ingredientData;
+                          }
+                        } else {
+                          // Add new ingredient
+                          _directInputIngredients.add(ingredientData);
+                        }
+                      });
+
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      isEditing ? 'Save' : 'Add',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Name Field (Mandatory)
+                    const Text(
+                      'Name *',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    CupertinoTextField(
+                      controller: nameController,
+                      placeholder: 'Enter ingredient name',
+                      placeholderStyle: const TextStyle(
+                        color: Color(0xFF999999),
+                        fontSize: 16,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: CupertinoColors.black,
+                      ),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.white,
+                        border: Border.all(
+                          color: const Color(0xFFE8E8E8),
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Quantity Section
+                    const Text(
+                      'Quantity & Unit',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: CupertinoTextField(
+                            controller: quantityController,
+                            placeholder: 'Amount',
+                            keyboardType: TextInputType.number,
+                            placeholderStyle: const TextStyle(
+                              color: Color(0xFF999999),
+                              fontSize: 16,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: CupertinoColors.black,
+                            ),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.white,
+                              border: Border.all(
+                                color: const Color(0xFFE8E8E8),
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.all(16),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 3,
+                          child: CupertinoTextField(
+                            controller: unitController,
+                            placeholder: 'Unit (g, cup, tbsp)',
+                            placeholderStyle: const TextStyle(
+                              color: Color(0xFF999999),
+                              fontSize: 16,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: CupertinoColors.black,
+                            ),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.white,
+                              border: Border.all(
+                                color: const Color(0xFFE8E8E8),
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.all(16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Nutrition Information
+                    const Text(
+                      'Nutrition (Optional)',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    
+                    // Calories
+                    CupertinoTextField(
+                      controller: caloriesController,
+                      placeholder: 'Calories',
+                      keyboardType: TextInputType.number,
+                      placeholderStyle: const TextStyle(
+                        color: Color(0xFF999999),
+                        fontSize: 16,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: CupertinoColors.black,
+                      ),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.white,
+                        border: Border.all(
+                          color: const Color(0xFFE8E8E8),
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Protein and Carbs
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoTextField(
+                            controller: proteinController,
+                            placeholder: 'Protein (g)',
+                            keyboardType: TextInputType.number,
+                            placeholderStyle: const TextStyle(
+                              color: Color(0xFF999999),
+                              fontSize: 16,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: CupertinoColors.black,
+                            ),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.white,
+                              border: Border.all(
+                                color: const Color(0xFFE8E8E8),
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.all(16),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CupertinoTextField(
+                            controller: carbsController,
+                            placeholder: 'Carbs (g)',
+                            keyboardType: TextInputType.number,
+                            placeholderStyle: const TextStyle(
+                              color: Color(0xFF999999),
+                              fontSize: 16,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: CupertinoColors.black,
+                            ),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.white,
+                              border: Border.all(
+                                color: const Color(0xFFE8E8E8),
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.all(16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Fat
+                    CupertinoTextField(
+                      controller: fatController,
+                      placeholder: 'Fat (g)',
+                      keyboardType: TextInputType.number,
+                      placeholderStyle: const TextStyle(
+                        color: Color(0xFF999999),
+                        fontSize: 16,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: CupertinoColors.black,
+                      ),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.white,
+                        border: Border.all(
+                          color: const Color(0xFFE8E8E8),
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                    ),
+                    
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

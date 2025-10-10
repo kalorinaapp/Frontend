@@ -7,12 +7,16 @@ class CreateMealScreen extends StatefulWidget {
   final Map<String, dynamic>? mealData;
   final String? userId;
   final String? mealType;
+  final bool isEdit;
+  final String? mealId;
   
   const CreateMealScreen({
     super.key,
     this.mealData,
     this.userId,
     this.mealType,
+    this.isEdit = false,
+    this.mealId,
   });
 
   @override
@@ -103,14 +107,12 @@ class _CreateMealScreenState extends State<CreateMealScreen> {
                   Row(
                     children: [
                       const Spacer(),
-                      const Text(
-                        'Create a Meal',
-                        style: TextStyle(
-                          
+                      Text(
+                        widget.isEdit ? 'Edit Meal' : 'Create a Meal',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: CupertinoColors.black,
-                          
                         ),
                       ),
                       const Spacer(),
@@ -442,10 +444,10 @@ class _CreateMealScreenState extends State<CreateMealScreen> {
                                     color: CupertinoColors.white,
                                   ),
                                 )
-                              : const Text(
-                                  'Save Meal',
+                              : Text(
+                                  widget.isEdit ? 'Update Meal' : 'Save Meal',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     color: CupertinoColors.white,
@@ -477,6 +479,12 @@ class _CreateMealScreenState extends State<CreateMealScreen> {
       return;
     }
 
+    // Validate mealId if in edit mode
+    if (widget.isEdit && (widget.mealId == null || widget.mealId!.isEmpty)) {
+      _showErrorDialog('Missing meal ID for update');
+      return;
+    }
+
     setState(() {
       _isSaving = true;
     });
@@ -501,15 +509,24 @@ class _CreateMealScreenState extends State<CreateMealScreen> {
       final now = DateTime.now();
       final date = DateTime(now.year, now.month, now.day).toIso8601String();
 
-      // Call API
+      // Call API (update or create)
       final service = MealsService();
-      final response = await service.saveCompleteMeal(
-        userId: widget.userId!,
-        date: date,
-        mealType: widget.mealType!,
-        mealName: _nameController.text.trim(),
-        entries: entries,
-      );
+      final response = widget.isEdit
+          ? await service.updateMeal(
+              mealId: widget.mealId!,
+              userId: widget.userId!,
+              date: date,
+              mealType: widget.mealType!,
+              mealName: _nameController.text.trim(),
+              entries: entries,
+            )
+          : await service.saveCompleteMeal(
+              userId: widget.userId!,
+              date: date,
+              mealType: widget.mealType!,
+              mealName: _nameController.text.trim(),
+              entries: entries,
+            );
 
       if (mounted) {
         setState(() {
@@ -517,10 +534,10 @@ class _CreateMealScreenState extends State<CreateMealScreen> {
         });
 
         if (response != null && response['success'] == true) {
-          // Show success and navigate back
-          _showSuccessDialog();
+          // Show success and navigate back with meal data
+          _showSuccessDialog(response['meal']);
         } else {
-          _showErrorDialog('Failed to save meal');
+          _showErrorDialog(widget.isEdit ? 'Failed to update meal' : 'Failed to save meal');
         }
       }
     } catch (e) {
@@ -528,23 +545,25 @@ class _CreateMealScreenState extends State<CreateMealScreen> {
         setState(() {
           _isSaving = false;
         });
-        _showErrorDialog('Error saving meal: $e');
+        _showErrorDialog('Error ${widget.isEdit ? 'updating' : 'saving'} meal: $e');
       }
     }
   }
 
-  void _showSuccessDialog() {
+  void _showSuccessDialog(Map<String, dynamic>? mealData) {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Success'),
-        content: const Text('Meal saved successfully!'),
+        content: Text(widget.isEdit 
+            ? 'Meal updated successfully!' 
+            : 'Meal saved successfully!'),
         actions: [
           CupertinoDialogAction(
             child: const Text('OK'),
             onPressed: () {
               Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(true); // Go back with success flag
+              Navigator.of(context).pop(mealData); // Go back with meal data
             },
           ),
         ],

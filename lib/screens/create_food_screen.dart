@@ -1,65 +1,23 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
+import 'package:get/get.dart';
+import '../controllers/create_food_controller.dart';
 
-class CreateFoodScreen extends StatefulWidget {
+class CreateFoodScreen extends StatelessWidget {
   const CreateFoodScreen({super.key});
 
   @override
-  State<CreateFoodScreen> createState() => _CreateFoodScreenState();
+  Widget build(BuildContext context) {
+    final controller = Get.put(CreateFoodController());
+    
+    return _CreateFoodView(controller: controller);
+  }
 }
 
-class _CreateFoodScreenState extends State<CreateFoodScreen> {
-  // Page control
-  int _currentPage = 0;
-
-  // Basic info controllers
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _servingSizeController = TextEditingController(text: '1tbsp');
-  final TextEditingController _servingPerContainerController = TextEditingController(text: '1');
-
-  // Nutrition controllers
-  final TextEditingController _proteinController = TextEditingController();
-  final TextEditingController _carbsController = TextEditingController();
-  final TextEditingController _totalFatController = TextEditingController();
-  final TextEditingController _saturatedFatController = TextEditingController();
-  final TextEditingController _polyunsaturatedFatController = TextEditingController();
-  final TextEditingController _monounsaturatedFatController = TextEditingController();
-  final TextEditingController _transFatController = TextEditingController();
-  final TextEditingController _cholesterolController = TextEditingController();
-  final TextEditingController _sodiumController = TextEditingController();
-  final TextEditingController _potassiumController = TextEditingController();
-  final TextEditingController _sugarController = TextEditingController();
-  final TextEditingController _fiberController = TextEditingController();
-  final TextEditingController _vitaminAController = TextEditingController();
-  final TextEditingController _vitaminCController = TextEditingController();
-  final TextEditingController _calciumController = TextEditingController();
-  final TextEditingController _ironController = TextEditingController();
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _descriptionController.dispose();
-    _servingSizeController.dispose();
-    _servingPerContainerController.dispose();
-    _proteinController.dispose();
-    _carbsController.dispose();
-    _totalFatController.dispose();
-    _saturatedFatController.dispose();
-    _polyunsaturatedFatController.dispose();
-    _monounsaturatedFatController.dispose();
-    _transFatController.dispose();
-    _cholesterolController.dispose();
-    _sodiumController.dispose();
-    _potassiumController.dispose();
-    _sugarController.dispose();
-    _fiberController.dispose();
-    _vitaminAController.dispose();
-    _vitaminCController.dispose();
-    _calciumController.dispose();
-    _ironController.dispose();
-    super.dispose();
-  }
+class _CreateFoodView extends StatelessWidget {
+  final CreateFoodController controller;
+  
+  const _CreateFoodView({required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -75,12 +33,10 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      if (_currentPage == 1) {
-                        setState(() {
-                          _currentPage = 0;
-                        });
+                      if (controller.currentPage.value == 1) {
+                        controller.goToPreviousPage();
                       } else {
-                        Navigator.of(context).pop();
+                        Get.back();
                       }
                     },
                     child: SvgPicture.asset(
@@ -91,23 +47,23 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                     ),
                   ),
                   const Spacer(),
-                  Text(
-                    _currentPage == 0 ? 'Create Food' : 'Add Food',
+                  Obx(() => Text(
+                    controller.currentPage.value == 0 ? 'Create Food' : 'Add Food',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: CupertinoColors.black,
                     ),
-                  ),
+                  )),
                   const Spacer(),
                   const SizedBox(width: 24), // Balance the back button
                 ],
               ),
             ),
 
-            // Content - Show different pages based on _currentPage
+            // Content - Show different pages based on currentPage
             Expanded(
-              child: _currentPage == 0 ? _buildPage1() : _buildPage2(),
+              child: Obx(() => controller.currentPage.value == 0 ? _buildPage1() : _buildPage2()),
             ),
           ],
         ),
@@ -146,12 +102,11 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Name Field
+                      // Name Field (Required)
                       _buildFieldRow(
-                        label: 'Name',
-                        controller: _nameController,
+                        label: 'Name *',
+                        textController: controller.nameController,
                         placeholder: '',
-                        showValue: false,
                       ),
                       
                       const SizedBox(height: 16),
@@ -161,9 +116,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                       // Description Field
                       _buildFieldRow(
                         label: 'Description',
-                        controller: _descriptionController,
+                        textController: controller.descriptionController,
                         placeholder: '',
-                        showValue: false,
                       ),
 
                       const SizedBox(height: 16),
@@ -173,9 +127,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                       // Serving size Field
                       _buildFieldRow(
                         label: 'Serving size',
-                        controller: _servingSizeController,
-                        value: _servingSizeController.text,
-                        showValue: true,
+                        textController: controller.servingSizeController,
+                        placeholder: '',
                       ),
 
                       const SizedBox(height: 16),
@@ -185,10 +138,10 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                       // Serving per container Field
                       _buildFieldRow(
                         label: 'Serving per container',
-                        controller: _servingPerContainerController,
-                        value: _servingPerContainerController.text,
-                        showValue: true,
+                        textController: controller.servingPerContainerController,
+                        placeholder: '',
                       ),
+                      
                     ],
                   ),
                 ),
@@ -208,9 +161,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
             padding: const EdgeInsets.all(20),
             child: GestureDetector(
               onTap: () {
-                setState(() {
-                  _currentPage = 1;
-                });
+                controller.goToNextPage();
               },
               child: Container(
                 width: double.infinity,
@@ -271,82 +222,82 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildNutritionFieldRow('Protein', _proteinController, hasUnit: true),
+                      _buildNutritionFieldRow('Protein',controller.proteinController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Carbs', _carbsController, hasUnit: true),
+                      _buildNutritionFieldRow('Carbs',controller.carbsController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Total fat', _totalFatController, hasUnit: true),
+                      _buildNutritionFieldRow('Total fat',controller.totalFatController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Saturated fat', _saturatedFatController, hasUnit: true),
+                      _buildNutritionFieldRow('Saturated fat',  controller.saturatedFatController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Polyunsaturated fat', _polyunsaturatedFatController, hasUnit: true),
+                      _buildNutritionFieldRow('Polyunsaturated fat',controller.polyunsaturatedFatController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Monounsaturated fat', _monounsaturatedFatController, hasUnit: true),
+                      _buildNutritionFieldRow('Monounsaturated fat', controller.monounsaturatedFatController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Trans fat', _transFatController, hasUnit: true),
+                      _buildNutritionFieldRow('Trans fat', controller.transFatController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Cholesterol', _cholesterolController, hasUnit: true),
+                      _buildNutritionFieldRow('Cholesterol', controller.cholesterolController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Sodium', _sodiumController, hasUnit: true),
+                      _buildNutritionFieldRow('Sodium',  controller.sodiumController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Potassium', _potassiumController, hasUnit: true),
+                      _buildNutritionFieldRow('Potassium', controller.potassiumController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Sugar', _sugarController, hasUnit: true),
+                      _buildNutritionFieldRow('Sugar', controller.sugarController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Fiber', _fiberController, hasUnit: true),
+                      _buildNutritionFieldRow('Fiber',  controller.fiberController, hasUnit: true),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Vitamin A', _vitaminAController, hasUnit: false),
+                      _buildNutritionFieldRow('Vitamin A', controller.vitaminAController, hasUnit: false),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Vitamin C', _vitaminCController, hasUnit: false),
+                      _buildNutritionFieldRow('Vitamin C',  controller.vitaminCController, hasUnit: false),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Calcium', _calciumController, hasUnit: false),
+                      _buildNutritionFieldRow('Calcium',  controller.calciumController, hasUnit: false),
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      _buildNutritionFieldRow('Iron', _ironController, hasUnit: false),
+                      _buildNutritionFieldRow('Iron',  controller.ironController, hasUnit: false),
                     ],
                   ),
                 ),
@@ -364,138 +315,158 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
           right: 0,
           child: Container(
             padding: const EdgeInsets.all(20),
-            child: GestureDetector(
-              onTap: () {
-                // TODO: Save food functionality
-                Navigator.of(context).pop();
-              },
+            child: Obx(() => GestureDetector(
+              onTap: controller.isSaving.value ? null : controller.saveFood,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.black,
+                  color: controller.isSaving.value ? CupertinoColors.systemGrey : CupertinoColors.black,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child:  Text(
-                  _currentPage == 0 ? 'Next' : 'Save Food',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
-                  ),
-                ),
+                child: controller.isSaving.value
+                    ? const Center(
+                        child: CupertinoActivityIndicator(
+                          color: CupertinoColors.white,
+                        ),
+                      )
+                    : Obx(() => Text(
+                        controller.currentPage.value == 0 ? 'Next' : 'Save Food',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: CupertinoColors.white,
+                        ),
+                      )),
               ),
-            ),
+            )),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildNutritionFieldRow(String label, TextEditingController controller, {required bool hasUnit}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Label
-        Text(
-          label,
-          style: const TextStyle(
-            color: CupertinoColors.black,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-
-        // Value and Edit Icon
-        Row(
-          children: [
-            if (hasUnit)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Text(
-                  'g',
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: CupertinoColors.black.withOpacity(0.6),
-                    fontSize: 8,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            GestureDetector(
-              onTap: () {
-                _showEditDialog(
-                  label: label,
-                  controller: controller,
-                  placeholder: '',
-                );
-              },
-              child: const Icon(
-                CupertinoIcons.pencil,
-                size: 8,
-                color: CupertinoColors.systemGrey,
-              ),
+  Widget _buildNutritionFieldRow(String label, TextEditingController textController, {required bool hasUnit}) {
+    return GestureDetector(
+      onTap: () {
+        controller.showEditDialog(
+          label: label,
+          controller: textController,
+          placeholder: '',
+        );
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Label
+          Text(
+            label,
+            style: const TextStyle(
+              color: CupertinoColors.black,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
-      ],
+          ),
+
+          // Value and Edit Icon
+          GetBuilder<CreateFoodController>(
+            builder: (_) => Row(
+              children: [
+                if (textController.text.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Text(
+                      textController.text,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        color: CupertinoColors.black.withOpacity(0.6),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                if (hasUnit)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      'g',
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        color: CupertinoColors.black.withOpacity(0.6),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                const Icon(
+                  CupertinoIcons.pencil,
+                  size: 8,
+                  color: CupertinoColors.systemGrey,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildFieldRow({
     required String label,
-    required TextEditingController controller,
-    String? value,
+    required TextEditingController textController,
     String? placeholder,
-    bool showValue = false,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Label
-        Text(
-          label,
-          style: const TextStyle(
-            color: CupertinoColors.black,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-
-        // Value and Edit Icon
-        Row(
-          children: [
-            if (showValue && value != null && value.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Text(
-                  value,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: CupertinoColors.black.withOpacity(0.6),
-                    fontSize: 8,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            GestureDetector(
-              onTap: () {
-                _showEditDialog(
-                  label: label,
-                  controller: controller,
-                  placeholder: placeholder,
-                );
-              },
-              child: const Icon(
-                CupertinoIcons.pencil,
-                size: 8,
-                color: CupertinoColors.systemGrey,
-              ),
+    return GestureDetector(
+      onTap: () {
+        controller.showEditDialog(
+          label: label,
+          controller: textController,
+          placeholder: placeholder,
+        );
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Label
+          Text(
+            label,
+            style: const TextStyle(
+              color: CupertinoColors.black,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
-      ],
+          ),
+
+          // Value and Edit Icon
+          GetBuilder<CreateFoodController>(
+            builder: (_) => Row(
+              children: [
+                if (textController.text.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      textController.text,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        color: CupertinoColors.black.withOpacity(0.6),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                const Icon(
+                  CupertinoIcons.pencil,
+                  size: 8,
+                  color: CupertinoColors.systemGrey,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -508,93 +479,6 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
             width: 1,
             color: CupertinoColors.black.withOpacity(0.15),
           ),
-        ),
-      ),
-    );
-  }
-
-  void _showEditDialog({
-    required String label,
-    required TextEditingController controller,
-    String? placeholder,
-  }) {
-    final TextEditingController tempController = TextEditingController(text: controller.text);
-
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) => Container(
-        height: 300,
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Title
-            Text(
-              'Edit $label',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.black,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Text Field
-            CupertinoTextField(
-              controller: tempController,
-              placeholder: placeholder ?? 'Enter $label',
-              style: const TextStyle(fontSize: 16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: const Color(0xFFE8E8E8),
-                  width: 1.5,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.all(12),
-              autofocus: true,
-            ),
-
-            const Spacer(),
-
-            // Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: CupertinoButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: CupertinoColors.systemGrey),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: CupertinoButton(
-                    color: CupertinoColors.black,
-                    onPressed: () {
-                      setState(() {
-                        controller.text = tempController.text;
-                      });
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(color: CupertinoColors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );
