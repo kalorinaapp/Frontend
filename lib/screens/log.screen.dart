@@ -74,32 +74,21 @@ class _LogScreenState extends State<LogScreen> {
     );
   }
 
-  void _navigateToMyMeals() {
+  void _navigateToMyMeals(int initialTabIndex) {
     Navigator.of(context).push(
       CupertinoPageRoute(
         builder: (context) => LogFoodScreen(
           themeProvider: widget.themeProvider,
           userId: AppConstants.userId,
           mealType: _getCurrentMealType(),
+          initialTabIndex: initialTabIndex,
         ),
       ),
     );
   }
 
-  void _navigateToMyFoods() {
-    // TODO: Implement my foods navigation
-    print('Navigate to My Foods');
-  }
 
-  void _navigateToSavedScans() {
-    // TODO: Implement saved scans navigation
-    print('Navigate to Saved Scans');
-  }
 
-  void _navigateToDirectInputFood() {
-    // TODO: Implement direct input food navigation
-    print('Navigate to Direct Input Food');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -185,15 +174,16 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/meat.png',
                   title: 'My Meals',
                   subtitle: 'Track gym sessions, sets, and strength exercises',
-                  onTap: _navigateToMyMeals,
+                  onTap: () => _navigateToMyMeals(0),
                 ),
+
                 const SizedBox(height: 12),
                 
                 _buildLogCard(
                   iconAsset: 'assets/icons/foods.png',
                   title: 'My Foods',
                   subtitle: 'Let AI calculate calories burned',
-                  onTap: _navigateToMyFoods,
+                  onTap: () => _navigateToMyMeals(1),
                 ),
                 const SizedBox(height: 12),
                 
@@ -201,7 +191,7 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/bookmark.png',
                   title: 'Saved Scans',
                   subtitle: 'Type in calories burned yourself',
-                  onTap: _navigateToSavedScans,
+                  onTap: () => _navigateToMyMeals(3),
                 ),
                 const SizedBox(height: 12),
                 
@@ -209,7 +199,7 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/input.png',
                   title: 'Direct Input',
                   subtitle: 'Type in what you ate yourself',
-                  onTap: _navigateToDirectInputFood,
+                  onTap: () => _navigateToMyMeals(4),
                 ),
                 const SizedBox(height: 20),
               ],

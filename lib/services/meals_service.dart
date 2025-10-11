@@ -172,6 +172,68 @@ class MealsService {
     );
     return parsed;
   }
+
+  Future<Map<String, dynamic>?> searchMeals({
+    required String userId,
+    required String searchTerm,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    Map<String, dynamic>? parsed;
+    await multiGetAPINew(
+      methodName: 'api/meals/search/$userId',
+      query: {
+        'search': searchTerm,
+        'page': page.toString(),
+        'limit': limit.toString(),
+      },
+      callback: (resp) async {
+        try {
+          if (resp.isError == true) {
+            debugPrint('MealsService searchMeals error: ${resp.response}');
+            parsed = null;
+            return;
+          }
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('MealsService searchMeals parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> searchScannedMeals({
+    required String userId,
+    required String searchTerm,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    Map<String, dynamic>? parsed;
+    await multiGetAPINew(
+      methodName: 'api/meals/scanned/$userId',
+      query: {
+        'search': searchTerm,
+        'page': page.toString(),
+        'limit': limit.toString(),
+      },
+      callback: (resp) async {
+        try {
+          if (resp.isError == true) {
+            debugPrint('MealsService searchScannedMeals error: ${resp.response}');
+            parsed = null;
+            return;
+          }
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('MealsService searchScannedMeals parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
 }
 
 

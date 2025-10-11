@@ -4,11 +4,23 @@ import 'package:get/get.dart';
 import '../controllers/create_food_controller.dart';
 
 class CreateFoodScreen extends StatelessWidget {
-  const CreateFoodScreen({super.key});
+  final bool isEditing;
+  final Map<String, dynamic>? foodData;
+  
+  const CreateFoodScreen({
+    super.key,
+    this.isEditing = false,
+    this.foodData,
+  });
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CreateFoodController());
+    
+    // Initialize with food data if editing
+    if (isEditing && foodData != null) {
+      controller.initializeWithFoodData(foodData!, isEditing);
+    }
     
     return _CreateFoodView(controller: controller);
   }
@@ -48,7 +60,9 @@ class _CreateFoodView extends StatelessWidget {
                   ),
                   const Spacer(),
                   Obx(() => Text(
-                    controller.currentPage.value == 0 ? 'Create Food' : 'Add Food',
+                    controller.isEditing.value 
+                        ? (controller.currentPage.value == 0 ? 'Edit Food' : 'Edit Food') 
+                        : (controller.currentPage.value == 0 ? 'Create Food' : 'Add Food'),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,

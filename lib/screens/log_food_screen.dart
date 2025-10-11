@@ -2,397 +2,85 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
 import '../providers/theme_provider.dart' show ThemeProvider;
-import '../services/food_service.dart';
-import '../services/meals_service.dart';
-import '../constants/app_constants.dart';
+import '../controllers/log_food_controller.dart';
 import 'create_meal_screen.dart';
 import 'create_food_screen.dart';
 import 'edit_macro_screen.dart';
 
-class LogFoodScreen extends StatefulWidget {
+class LogFoodScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
   final String? userId;
   final String? mealType;
+  final int initialTabIndex;
   
   const LogFoodScreen({
     super.key, 
     required this.themeProvider,
     this.userId,
     this.mealType,
+    this.initialTabIndex = 0,
   });
 
   @override
-  State<LogFoodScreen> createState() => _LogFoodScreenState();
+  Widget build(BuildContext context) {
+    // Initialize controller
+    final controller = Get.put(
+      LogFoodController(
+        userId: userId,
+        mealType: mealType,
+        initialTabIndex: initialTabIndex,
+      ),
+      tag: userId, // Use tag to allow multiple instances
+    );
+
+    return _LogFoodView(controller: controller);
+  }
 }
 
-class _LogFoodScreenState extends State<LogFoodScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _caloriesController = TextEditingController();
-  final TextEditingController _foodNameController = TextEditingController();
-  int _selectedTabIndex = 0;
+class _LogFoodView extends StatelessWidget {
+  final LogFoodController controller;
   
-  final List<String> _tabs = ['All', 'My Meals', 'My Foods', 'Saved Scans', 'Direct Input'];
+  const _LogFoodView({required this.controller});
   
-  // Macro values
-  int _carbsValue = 10;
-  int _proteinValue = 41;
-  int _fatsValue = 16;
-  
-  // Amount value
-  int _amountValue = 1;
-  
-  // Direct Input ingredients
-  List<dynamic> _directInputIngredients = [];
-  
-  // Food suggestions from API
-  List<Map<String, dynamic>> _suggestions = [];
-  bool _isLoadingSuggestions = false;
-  
-  // My meals from API
-  List<Map<String, dynamic>> _myMeals = [];
-  bool _isLoadingMyMeals = false;
-  
-  // My foods from API
-  List<Map<String, dynamic>> _myFoods = [];
-  bool _isLoadingMyFoods = false;
-  
-  // Scanned meals from API
-  List<Map<String, dynamic>> _scannedMeals = [];
-  bool _isLoadingScannedMeals = false;
-  
-  // Direct Input saving state
-  bool _isSavingDirectInput = false;
+  final List<String> _tabs = const ['All', 'My Meals', 'My Foods', 'Saved Scans', 'Direct Input'];
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchFoodSuggestions();
-    _fetchMyMeals();
-    _fetchMyFoods();
-    _fetchScannedMeals();
-  }
-
-  Future<void> _fetchFoodSuggestions() async {
-    setState(() {
-      _isLoadingSuggestions = true;
-    });
-
-    try {
-      final service = FoodService();
-      final response = await service.getFoodSuggestions();
-      
-      if (response != null && response['success'] == true) {
-        final suggestions = response['suggestions'] as List<dynamic>?;
-        if (suggestions != null && mounted) {
-          setState(() {
-            _suggestions = suggestions.map((item) {
-              return {
-                'name': item['name'] ?? '',
-                'calories': item['calories'] ?? 0,
-                'protein': item['protein'] ?? 0,
-                'carbohydrates': item['carbohydrates'] ?? 0,
-                'fat': item['fat'] ?? 0,
-                'fiber': item['fiber'] ?? 0,
-                'sugar': item['sugar'] ?? 0,
-                'sodium': item['sodium'] ?? 0,
-                'servingSize': item['servingSize'] ?? '1',
-                'servingUnit': item['servingUnit'] ?? 'serving',
-                'rationale': item['rationale'] ?? '',
-                'items': item['items'] ?? [],
-              };
-            }).toList();
-          });
-        }
-      }
-    } catch (e) {
-      // Handle error silently or show error message
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingSuggestions = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _fetchMyMeals() async {
-    if (widget.userId == null || widget.userId!.isEmpty) {
-      return;
-    }
-
-    setState(() {
-      _isLoadingMyMeals = true;
-    });
-
-    try {
-      final service = MealsService();
-      final response = await service.fetchAllMeals(
-        userId: widget.userId!,
-        page: 1,
-        limit: 20,
-      );
-
-      if (response != null && response['success'] == true) {
-        final meals = response['meals'] as List<dynamic>?;
-        if (meals != null && mounted) {
-          setState(() {
-            _myMeals = meals.map((item) {
-              return {
-                'id': item['id'] ?? '',
-                'mealName': item['mealName'] ?? '',
-                'totalCalories': item['totalCalories'] ?? 0,
-                'totalProtein': item['totalProtein'] ?? 0,
-                'totalCarbs': item['totalCarbs'] ?? 0,
-                'totalFat': item['totalFat'] ?? 0,
-                'entriesCount': item['entriesCount'] ?? 0,
-                'mealType': item['mealType'] ?? '',
-                'date': item['date'] ?? '',
-                'notes': item['notes'] ?? '',
-                'entries': item['entries'] ?? [], // Store the complete entries data
-              };
-            }).toList();
-          });
-        }
-      }
-    } catch (e) {
-      // Handle error silently or show error message
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingMyMeals = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _fetchMyFoods() async {
-    setState(() {
-      _isLoadingMyFoods = true;
-    });
-
-    try {
-      final service = FoodService();
-      final response = await service.fetchAllFoods(
-        page: 1,
-        limit: 20,
-      );
- 
-      if (response != null && response['success'] == true) {
-        final foods = response['foods'] as List<dynamic>?;
-        if (foods != null && mounted) {
-          setState(() {
-            _myFoods = foods.map((item) {
-              return {
-                '_id': item['_id'] ?? '',
-                'name': item['name'] ?? '',
-                'calories': item['calories'] ?? 0,
-                'description': item['description'] ?? '',
-                'servingSize': item['servingSize'] ?? '',
-                'servingPerContainer': item['servingPerContainer'] ?? '',
-                'protein': item['protein'] ?? 0,
-                'carbohydrates': item['carbohydrates'] ?? 0,
-                'totalFat': item['totalFat'] ?? 0,
-                'createdBy': item['createdBy'] ?? '',
-                'createdAt': item['createdAt'] ?? '',
-              };
-            }).toList();
-          });
-        }
-      }
-    } catch (e) {
-      // Handle error silently or show error message
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingMyFoods = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _saveDirectInputFood() async {
-    // Validate required fields
-    if (_foodNameController.text.trim().isEmpty) {
-      _showErrorDialog('Please enter a food name');
-      return;
-    }
-
-    if (_caloriesController.text.trim().isEmpty) {
-      _showErrorDialog('Please enter calories');
-      return;
-    }
-
-    final calories = int.tryParse(_caloriesController.text.trim());
-    if (calories == null || calories < 0) {
-      _showErrorDialog('Please enter a valid calories value');
-      return;
-    }
-
-    setState(() {
-      _isSavingDirectInput = true;
-    });
-
-    try {
-      final service = FoodService();
-      final response = await service.saveFood(
-        name: _foodNameController.text.trim(),
-        calories: calories,
-        protein: _proteinValue.toDouble(),
-        carbohydrates: _carbsValue.toDouble(),
-        totalFat: _fatsValue.toDouble(),
-        servingSize: '$_amountValue serving',
-        isCustom: true,
-        createdBy: AppConstants.userId,
-      );
-
-      if (response != null && response['food'] != null) {
-        // Refresh my foods list
-        await _fetchMyFoods();
-        
-        // Clear the form
-        _foodNameController.clear();
-        _caloriesController.clear();
-        setState(() {
-          _carbsValue = 10;
-          _proteinValue = 41;
-          _fatsValue = 16;
-          _amountValue = 1;
-          _directInputIngredients = [];
-        });
-        
-        // Switch to My Foods tab
-        if (mounted) {
-          setState(() {
-            _selectedTabIndex = 2;
-          });
-        }
-      } else {
-        _showErrorDialog('Failed to save food');
-      }
-    } catch (e) {
-      _showErrorDialog('Error saving food: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSavingDirectInput = false;
-        });
-      }
-    }
-  }
-
-  void _showErrorDialog(String message) {
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Error'),
-        content: Text(message),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('OK'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _fetchScannedMeals() async {
-    if (widget.userId == null || widget.userId!.isEmpty) {
-      return;
-    }
-
-    setState(() {
-      _isLoadingScannedMeals = true;
-    });
-
-    try {
-      final service = MealsService();
-      final response = await service.fetchScannedMeals(
-        userId: widget.userId!,
-        page: 1,
-        limit: 20,
-      );
-
-      if (response != null && response['success'] == true) {
-        final meals = response['meals'] as List<dynamic>?;
-        if (meals != null && mounted) {
-          setState(() {
-            _scannedMeals = meals.map((item) {
-              return {
-                'id': item['id'] ?? '',
-                'mealName': item['mealName'] ?? '',
-                'mealImage': item['mealImage'] ?? '',
-                'totalCalories': item['totalCalories'] ?? 0,
-                'totalProtein': item['totalProtein'] ?? 0,
-                'totalCarbs': item['totalCarbs'] ?? 0,
-                'totalFat': item['totalFat'] ?? 0,
-                'entriesCount': item['entriesCount'] ?? 0,
-                'mealType': item['mealType'] ?? '',
-                'date': item['date'] ?? '',
-                'createdAt': item['createdAt'] ?? '',
-                'entries': item['entries'] ?? [],
-              };
-            }).toList();
-          });
-        }
-      }
-    } catch (e) {
-      // Handle error silently or show error message
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingScannedMeals = false;
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _caloriesController.dispose();
-    _foodNameController.dispose();
-    super.dispose();
-  }
-
-  void _onAddFood(int index) async {
+  void _onAddFood(BuildContext context, int index) async {
     // Navigate to create meal screen with meal data
-    final suggestion = _suggestions[index];
+    final suggestion = controller.suggestions[index];
     final result = await Navigator.of(context).push(
       CupertinoPageRoute(
         builder: (context) => CreateMealScreen(
           mealData: suggestion,
-          userId: widget.userId,
-          mealType: widget.mealType,
+          userId: controller.userId,
+          mealType: controller.mealType,
         ),
       ),
     );
     
     // Optimistically add the new meal if result contains meal data
     if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        _myMeals.insert(0, {
-          'id': result['id'] ?? '',
-          'mealName': result['mealName'] ?? '',
-          'totalCalories': result['totalCalories'] ?? 0,
-          'totalProtein': result['totalProtein'] ?? 0,
-          'totalCarbs': result['totalCarbs'] ?? 0,
-          'totalFat': result['totalFat'] ?? 0,
-          'entriesCount': result['entriesCount'] ?? 0,
-          'mealType': result['mealType'] ?? '',
-          'date': result['date'] ?? '',
-          'notes': result['notes'] ?? '',
-          'entries': result['entries'] ?? [],
-        });
+      controller.addOrUpdateMeal({
+        'id': result['id'] ?? '',
+        'mealName': result['mealName'] ?? '',
+        'totalCalories': result['totalCalories'] ?? 0,
+        'totalProtein': result['totalProtein'] ?? 0,
+        'totalCarbs': result['totalCarbs'] ?? 0,
+        'totalFat': result['totalFat'] ?? 0,
+        'entriesCount': result['entriesCount'] ?? 0,
+        'mealType': result['mealType'] ?? '',
+        'date': result['date'] ?? '',
+        'notes': result['notes'] ?? '',
+        'entries': result['entries'] ?? [],
       });
     } else if (result == true) {
       // Fallback: Refresh if result is just true
-      _fetchMyMeals();
+      controller.fetchMyMeals();
     }
   }
 
-  void _onEditMeal(Map<String, dynamic> meal) async {
+  void _onEditMeal(BuildContext context, Map<String, dynamic> meal) async {
     // Parse entries from the meal data
     final entries = meal['entries'] as List<dynamic>? ?? [];
     final items = entries.map((entry) {
@@ -422,8 +110,8 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
       CupertinoPageRoute(
         builder: (context) => CreateMealScreen(
           mealData: mealData,
-          userId: widget.userId,
-          mealType: meal['mealType'] ?? widget.mealType,
+          userId: controller.userId,
+          mealType: meal['mealType'] ?? controller.mealType,
           isEdit: true,
           mealId: meal['id'],
         ),
@@ -432,27 +120,53 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
     
     // Optimistically update the meal if result contains updated meal data
     if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        final index = _myMeals.indexWhere((m) => m['id'] == meal['id']);
-        if (index != -1) {
-          _myMeals[index] = {
-            'id': result['id'] ?? '',
-            'mealName': result['mealName'] ?? '',
-            'totalCalories': result['totalCalories'] ?? 0,
-            'totalProtein': result['totalProtein'] ?? 0,
-            'totalCarbs': result['totalCarbs'] ?? 0,
-            'totalFat': result['totalFat'] ?? 0,
-            'entriesCount': result['entriesCount'] ?? 0,
-            'mealType': result['mealType'] ?? '',
-            'date': result['date'] ?? '',
-            'notes': result['notes'] ?? '',
-            'entries': result['entries'] ?? [],
-          };
-        }
+      controller.addOrUpdateMeal({
+        'id': result['id'] ?? '',
+        'mealName': result['mealName'] ?? '',
+        'totalCalories': result['totalCalories'] ?? 0,
+        'totalProtein': result['totalProtein'] ?? 0,
+        'totalCarbs': result['totalCarbs'] ?? 0,
+        'totalFat': result['totalFat'] ?? 0,
+        'entriesCount': result['entriesCount'] ?? 0,
+        'mealType': result['mealType'] ?? '',
+        'date': result['date'] ?? '',
+        'notes': result['notes'] ?? '',
+        'entries': result['entries'] ?? [],
       });
     } else if (result == true) {
       // Fallback: Refresh if result is just true
-      _fetchMyMeals();
+      controller.fetchMyMeals();
+    }
+  }
+
+  void _onEditFood(BuildContext context, Map<String, dynamic> food) async {
+    final result = await Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) => CreateFoodScreen(
+          isEditing: true,
+          foodData: food,
+        ),
+      ),
+    );
+    
+    // Optimistically update the food if result contains updated food data
+    if (result != null && result is Map<String, dynamic>) {
+      controller.addOrUpdateFood({
+        '_id': result['_id'] ?? '',
+        'name': result['name'] ?? '',
+        'calories': result['calories'] ?? 0,
+        'description': result['description'] ?? '',
+        'servingSize': result['servingSize'] ?? '',
+        'servingPerContainer': result['servingPerContainer'] ?? '',
+        'protein': result['protein'] ?? 0,
+        'carbohydrates': result['carbohydrates'] ?? 0,
+        'totalFat': result['totalFat'] ?? 0,
+        'createdBy': result['createdBy'] ?? '',
+        'createdAt': result['createdAt'] ?? '',
+      });
+    } else if (result == true) {
+      // Fallback: Refresh if result is just true
+      controller.fetchMyFoods();
     }
   }
 
@@ -509,56 +223,113 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
             ),
             
             // Search Bar (only show for non-Direct Input tabs)
-            if (_selectedTabIndex != 4) ...[
-              const SizedBox(height: 20),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: CupertinoColors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFE8E8E8),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.06),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                      spreadRadius: 0,
-                    ),
-                    BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.03),
-                      blurRadius: 5,
-                      offset: const Offset(0, 1),
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: CupertinoTextField(
-                        controller: _searchController,
-                        placeholder: 'Chicken br',
-                        placeholderStyle: const TextStyle(
-                          color: Color(0xFF999999),
-                          fontSize: 16,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: CupertinoColors.black,
-                        ),
-                        decoration: const BoxDecoration(),
-                        padding: EdgeInsets.zero,
+            Obx(() {
+              final currentTab = controller.selectedTabIndex.value;
+              if (currentTab == 4) {
+                return const SizedBox(height: 20);
+              }
+              
+              // Use different controller based on tab
+              final isMyMealsTab = currentTab == 1;
+              final isMyFoodsTab = currentTab == 2;
+              final isSavedScansTab = currentTab == 3;
+              
+              final searchCtrl = isMyMealsTab 
+                  ? controller.mealsSearchController 
+                  : isMyFoodsTab 
+                      ? controller.foodsSearchController 
+                      : isSavedScansTab
+                          ? controller.scannedMealsSearchController
+                          : controller.searchController;
+              
+              final placeholder = isMyMealsTab 
+                  ? 'Search meals...' 
+                  : isMyFoodsTab 
+                      ? 'Search foods...' 
+                      : isSavedScansTab
+                          ? 'Search scanned meals...'
+                          : 'Chicken br';
+              
+              final showClearButton = isMyMealsTab || isMyFoodsTab || isSavedScansTab;
+              
+              return Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE8E8E8),
+                        width: 1.5,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: CupertinoColors.black.withOpacity(0.06),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                          spreadRadius: 0,
+                        ),
+                        BoxShadow(
+                          color: CupertinoColors.black.withOpacity(0.03),
+                          blurRadius: 5,
+                          offset: const Offset(0, 1),
+                          spreadRadius: 0,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ] else
-              const SizedBox(height: 20),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          CupertinoIcons.search,
+                          size: 20,
+                          color: Color(0xFF999999),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: CupertinoTextField(
+                            controller: searchCtrl,
+                            placeholder: placeholder,
+                            placeholderStyle: const TextStyle(
+                              color: Color(0xFF999999),
+                              fontSize: 16,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: CupertinoColors.black,
+                            ),
+                            decoration: const BoxDecoration(),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                        if (showClearButton)
+                          ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: searchCtrl,
+                            builder: (context, value, child) {
+                              if (value.text.isEmpty) return const SizedBox.shrink();
+                              return GestureDetector(
+                                onTap: () {
+                                  searchCtrl.clear();
+                                },
+                                child: const Padding(
+                                  padding: EdgeInsets.only(left: 8),
+                                  child: Icon(
+                                    CupertinoIcons.clear_circled_solid,
+                                    size: 20,
+                                    color: Color(0xFF999999),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }),
             
             // Tab Content
             Expanded(
@@ -616,13 +387,13 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                   
                   // Suggestions List
                   Expanded(
-                    child: _isLoadingSuggestions
+                    child: Obx(() => controller.isLoadingSuggestions.value
                         ? ListView.separated(
                             itemCount: 8,
                             separatorBuilder: (context, index) => const SizedBox(height: 16),
                             itemBuilder: (context, index) => _buildShimmerItem(),
                           )
-                        : _suggestions.isEmpty
+                        : controller.suggestions.isEmpty
                             ? const Center(
                                 child: Text(
                                   'No suggestions available',
@@ -633,20 +404,21 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                                 ),
                               )
                             : ListView.separated(
-                                itemCount: _suggestions.length,
+                                itemCount: controller.suggestions.length,
                                 separatorBuilder: (context, index) => const SizedBox(height: 16),
                                 itemBuilder: (context, index) {
-                                  final suggestion = _suggestions[index];
+                                  final suggestion = controller.suggestions[index];
                                   return GestureDetector(
-                                    onTap: () => _onAddFood(index),
+                                    onTap: () => _onAddFood(context, index),
                                     child: _buildSuggestionItem(
                                       title: suggestion['name'],
                                       calories: suggestion['calories'],
-                                      onAdd: () => _onAddFood(index),
+                                      onAdd: () => _onAddFood(context, index),
                                     ),
                                   );
                                 },
                               ),
+                    ),
                   ),
                 ],
               ),
@@ -666,14 +438,14 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
             children: [
               // Meals List
               Expanded(
-                child: _isLoadingMyMeals
+                child: Obx(() => controller.isLoadingMyMeals.value
                     ? ListView.separated(
                         padding: const EdgeInsets.only(bottom: 100),
                         itemCount: 8,
                         separatorBuilder: (context, index) => const SizedBox(height: 16),
                         itemBuilder: (context, index) => _buildShimmerItem(),
                       )
-                    : _myMeals.isEmpty
+                    : controller.myMeals.isEmpty
                         ? const Center(
                             child: Text(
                               'No meals saved yet',
@@ -685,17 +457,19 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                           )
                         : ListView.separated(
                             padding: const EdgeInsets.only(bottom: 100),
-                            itemCount: _myMeals.length,
+                            itemCount: controller.myMeals.length,
                             separatorBuilder: (context, index) => const SizedBox(height: 16),
                             itemBuilder: (context, index) {
-                              final meal = _myMeals[index];
+                              final meal = controller.myMeals[index];
                               return _buildMealItem(
+                                context: context,
                                 title: meal['mealName'],
                                 calories: (meal['totalCalories'] as num).toInt(),
-                                onTap: () => _onEditMeal(meal),
+                                onTap: () => _onEditMeal(context, meal),
                               );
                             },
                           ),
+                ),
               ),
             ],
           ),
@@ -706,7 +480,9 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: _buildBottomBar(),
+          child: Builder(
+            builder: (context) => _buildBottomBar(context),
+          ),
         ),
       ],
     );
@@ -772,6 +548,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
   }
 
   Widget _buildMealItem({
+    required BuildContext context,
     required String title,
     required int calories,
     VoidCallback? onTap,
@@ -846,64 +623,76 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
   }
 
   Widget _buildFoodItem({
+    required BuildContext context,
     required String title,
     required int calories,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CupertinoColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE8E8E8),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: CupertinoColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE8E8E8),
+            width: 1.5,
           ),
-          BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Flame icon
-          Image.asset('assets/icons/flame_black.png', width: 16, height: 16),
-          const SizedBox(width: 8),
-          
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: CupertinoColors.black,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$calories calories',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF666666),
-                  ),
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: CupertinoColors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+              spreadRadius: 0,
             ),
-          ),
-        ],
+            BoxShadow(
+              color: CupertinoColors.black.withOpacity(0.03),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Flame icon
+            Image.asset('assets/icons/flame_black.png', width: 16, height: 16),
+            const SizedBox(width: 8),
+            
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: CupertinoColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$calories calories',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF666666),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Arrow icon
+            const Icon(
+              CupertinoIcons.chevron_right,
+              size: 16,
+              color: Color(0xFF999999),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -980,19 +769,17 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
   }
 
   Widget _buildCustomTabBar() {
-    return SingleChildScrollView(
+    return Obx(() => SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: _tabs.asMap().entries.map((entry) {
           final index = entry.key;
           final tab = entry.value;
-          final isSelected = index == _selectedTabIndex;
+          final isSelected = index == controller.selectedTabIndex.value;
           
           return GestureDetector(
             onTap: () {
-              setState(() {
-                _selectedTabIndex = index;
-              });
+              controller.selectedTabIndex.value = index;
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
@@ -1017,24 +804,28 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
           );
         }).toList(),
       ),
-    );
+    ));
   }
 
   Widget _buildTabContent() {
-    switch (_selectedTabIndex) {
-      case 0:
-        return _buildAllTab();
-      case 1:
-        return _buildMyMealsTab();
-      case 2:
-        return _buildMyFoodsTab();
-      case 3:
-        return _buildEmptyTab('Saved Scans');
-      case 4:
-        return _buildDirectInputTab();
-      default:
-        return _buildAllTab();
-    }
+    return Obx(() {
+      switch (controller.selectedTabIndex.value) {
+        case 0:
+          return _buildAllTab();
+        case 1:
+          return _buildMyMealsTab();
+        case 2:
+          return _buildMyFoodsTab();
+        case 3:
+          return Builder(
+            builder: (context) => _buildEmptyTab(context, 'Saved Scans'),
+          );
+        case 4:
+          return _buildDirectInputTab();
+        default:
+          return _buildAllTab();
+      }
+    });
   }
 
   Widget _buildMyFoodsTab() {
@@ -1046,14 +837,14 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
             children: [
               // Foods List
               Expanded(
-                child: _isLoadingMyFoods
+                child: Obx(() => controller.isLoadingMyFoods.value
                     ? ListView.separated(
                         padding: const EdgeInsets.only(bottom: 100),
                         itemCount: 8,
                         separatorBuilder: (context, index) => const SizedBox(height: 16),
                         itemBuilder: (context, index) => _buildShimmerItem(),
                       )
-                    : _myFoods.isEmpty
+                    : controller.myFoods.isEmpty
                         ? const Center(
                             child: Text(
                               'No foods created yet',
@@ -1065,16 +856,19 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                           )
                         : ListView.separated(
                             padding: const EdgeInsets.only(bottom: 100),
-                            itemCount: _myFoods.length,
+                            itemCount: controller.myFoods.length,
                             separatorBuilder: (context, index) => const SizedBox(height: 16),
                             itemBuilder: (context, index) {
-                              final food = _myFoods[index];
+                              final food = controller.myFoods[index];
                               return _buildFoodItem(
+                                context: context,
                                 title: food['name'],
                                 calories: (food['calories'] as num).toInt(),
+                                onTap: () => _onEditFood(context, food),
                               );
                             },
                           ),
+                ),
               ),
             ],
           ),
@@ -1110,19 +904,35 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                 ),
               ],
             ),
-            child: GestureDetector(
-              onTap: () async {
-                final result = await Navigator.of(context).push(
-                  CupertinoPageRoute(
-                    builder: (context) => const CreateFoodScreen(),
-                  ),
-                );
-                
-                // Refresh my foods if a food was saved
-                if (result == true) {
-                  _fetchMyFoods();
-                }
-              },
+            child: Builder(
+              builder: (context) => GestureDetector(
+                onTap: () async {
+                  final result = await Navigator.of(context).push(
+                    CupertinoPageRoute(
+                      builder: (context) => const CreateFoodScreen(),
+                    ),
+                  );
+                  
+                  // Optimistically add the new food if result contains food data
+                  if (result != null && result is Map<String, dynamic>) {
+                    controller.addOrUpdateFood({
+                      '_id': result['_id'] ?? '',
+                      'name': result['name'] ?? '',
+                      'calories': result['calories'] ?? 0,
+                      'description': result['description'] ?? '',
+                      'servingSize': result['servingSize'] ?? '',
+                      'servingPerContainer': result['servingPerContainer'] ?? '',
+                      'protein': result['protein'] ?? 0,
+                      'carbohydrates': result['carbohydrates'] ?? 0,
+                      'totalFat': result['totalFat'] ?? 0,
+                      'createdBy': result['createdBy'] ?? '',
+                      'createdAt': result['createdAt'] ?? '',
+                    });
+                  } else if (result == true) {
+                    // Fallback: Refresh if result is just true
+                    controller.fetchMyFoods();
+                  }
+                },
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1157,81 +967,84 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                     color: CupertinoColors.white,
                   ),
                 ),
-              ),
-            ),
-          ),
-        ),
+              ), // Close inner Container
+              ), // Close GestureDetector
+            ), // Close Builder
+          ), // Close outer Container
+        ), // Close Positioned
       ],
     );
   }
 
-  Widget _buildEmptyTab(String tabName) {
+  Widget _buildEmptyTab(BuildContext context, String tabName) {
     // Special handling for Saved Scans
     if (tabName == 'Saved Scans') {
-      if (_isLoadingScannedMeals) {
-        // Loading state
-        return Container(
-          margin: const EdgeInsets.all(20),
-          child: ListView.separated(
-            itemCount: 4,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _buildShimmerMealCard(),
-          ),
-        );
-      } else if (_scannedMeals.isEmpty) {
-        // Empty state
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(flex: 2),
-            const SizedBox(
-              width: 242,
-              child: Text(
-                'Your saved scans will appear here',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color(0xB21E1822),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
+      return Obx(() {
+        if (controller.isLoadingScannedMeals.value) {
+          // Loading state
+          return Container(
+            margin: const EdgeInsets.all(20),
+            child: ListView.separated(
+              itemCount: 4,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) => _buildShimmerMealCard(),
+            ),
+          );
+        } else if (controller.scannedMeals.isEmpty) {
+          // Empty state
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(flex: 2),
+              const SizedBox(
+                width: 242,
+                child: Text(
+                  'Your saved scans will appear here',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xB21E1822),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(13),
-              child: Image.asset(
-                'assets/images/saved_scans_empty.png',
-                width: 285,
-                height: 133,
-                fit: BoxFit.cover,
+              const SizedBox(height: 24),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(13),
+                child: Image.asset(
+                  'assets/images/saved_scans_empty.png',
+                  width: 285,
+                  height: 133,
+                  fit: BoxFit.cover,
+                ),
               ),
+              const Spacer(flex: 3),
+            ],
+          );
+        } else {
+          // Display scanned meals
+          return Container(
+            margin: const EdgeInsets.all(20),
+            child: ListView.separated(
+              itemCount: controller.scannedMeals.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final meal = controller.scannedMeals[index];
+                return _buildScannedMealCard(meal);
+              },
             ),
-            const Spacer(flex: 3),
-          ],
-        );
-      } else {
-        // Display scanned meals
-        return Container(
-          margin: const EdgeInsets.all(20),
-          child: ListView.separated(
-            itemCount: _scannedMeals.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final meal = _scannedMeals[index];
-              return _buildScannedMealCard(meal);
-            },
-          ),
-        );
-      }
+          );
+        }
+      });
     }
     
     // Default empty state for other tabs
     return Stack(
       children: [
-        Center(
+        const Center(
           child: Text(
-            '$tabName content coming soon',
-            style: const TextStyle(
+            'Saved Scans content coming soon',
+            style: TextStyle(
               fontSize: 16,
               color: Color(0xFF999999),
             ),
@@ -1242,7 +1055,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: _buildBottomBar(),
+          child: _buildBottomBar(context),
         ),
       ],
     );
@@ -1294,7 +1107,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                     ],
                   ),
                   child: CupertinoTextField(
-                    controller: _foodNameController,
+                    controller: controller.foodNameController,
                     placeholder: 'Edit Name',
                     placeholderStyle: const TextStyle(
                       color: Color(0xFF999999),
@@ -1308,7 +1121,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                     ),
                     decoration: const BoxDecoration(),
                     padding: EdgeInsets.zero,
-                    suffix: Icon(
+                    suffix: const Icon(
                       CupertinoIcons.pencil,
                       size: 20,
                       color: Color(0xFF666666),
@@ -1359,7 +1172,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                             ),
                             const SizedBox(height: 4),
                             CupertinoTextField(
-                              controller: _caloriesController,
+                              controller: controller.caloriesController,
                               placeholder: '512',
                               keyboardType: TextInputType.number,
                               style: const TextStyle(
@@ -1383,42 +1196,45 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                 ),
                 
                 // Macros Row
-                Row(
-                  children: [
-                    // Carbohydrates
-                    Expanded(
-                      child: _buildMacroCard('Carbs', _carbsValue, 'assets/icons/carbs.png', CupertinoColors.systemOrange, () {
-                        _editMacro('Carbs', 'assets/icons/carbs.png', CupertinoColors.systemOrange, _carbsValue, (value) {
-                          setState(() {
-                            _carbsValue = value;
-                          });
-                        });
-                      }),
+                Obx(() {
+                  // Access observables directly in Obx scope
+                  final carbs = controller.carbsValue.value;
+                  final protein = controller.proteinValue.value;
+                  final fats = controller.fatsValue.value;
+                  
+                  return Builder(
+                    builder: (context) => Row(
+                      children: [
+                        // Carbohydrates
+                        Expanded(
+                          child: _buildMacroCard(context, 'Carbs', carbs, 'assets/icons/carbs.png', CupertinoColors.systemOrange, () {
+                            _editMacro(context, 'Carbs', 'assets/icons/carbs.png', CupertinoColors.systemOrange, carbs, (value) {
+                              controller.carbsValue.value = value;
+                            });
+                          }),
+                        ),
+                        const SizedBox(width: 12),
+                        // Protein
+                        Expanded(
+                          child: _buildMacroCard(context, 'Protein', protein, 'assets/icons/drumstick.png', CupertinoColors.systemBlue, () {
+                            _editMacro(context, 'Protein', 'assets/icons/drumstick.png', CupertinoColors.systemBlue, protein, (value) {
+                              controller.proteinValue.value = value;
+                            });
+                          }),
+                        ),
+                        const SizedBox(width: 12),
+                        // Fats
+                        Expanded(
+                          child: _buildMacroCard(context, 'Fats', fats, 'assets/icons/fat.png', CupertinoColors.systemRed, () {
+                            _editMacro(context, 'Fats', 'assets/icons/fat.png', CupertinoColors.systemRed, fats, (value) {
+                              controller.fatsValue.value = value;
+                            });
+                          }),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    // Protein
-                    Expanded(
-                      child: _buildMacroCard('Protein', _proteinValue, 'assets/icons/drumstick.png', CupertinoColors.systemBlue, () {
-                        _editMacro('Protein', 'assets/icons/drumstick.png', CupertinoColors.systemBlue, _proteinValue, (value) {
-                          setState(() {
-                            _proteinValue = value;
-                          });
-                        });
-                      }),
-                    ),
-                    const SizedBox(width: 12),
-                    // Fats
-                    Expanded(
-                      child: _buildMacroCard('Fats', _fatsValue, 'assets/icons/fat.png', CupertinoColors.systemRed, () {
-                        _editMacro('Fats', 'assets/icons/fat.png', CupertinoColors.systemRed, _fatsValue, (value) {
-                          setState(() {
-                            _fatsValue = value;
-                          });
-                        });
-                      }),
-                    ),
-                  ],
-                ),
+                  );
+                }),
                 
                 const SizedBox(height: 24),
                 
@@ -1434,46 +1250,48 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                         color: CupertinoColors.black,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        _showAddDirectInputIngredientDialog();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFFE8E8E8),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: CupertinoColors.black.withOpacity(0.06),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                              spreadRadius: 0,
+                    Builder(
+                      builder: (context) => GestureDetector(
+                        onTap: () {
+                          _showAddDirectInputIngredientDialog(context);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(0xFFE8E8E8),
+                              width: 1.5,
                             ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Add More',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                            boxShadow: [
+                              BoxShadow(
+                                color: CupertinoColors.black.withOpacity(0.06),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Add More',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.black,
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Icon(
+                                CupertinoIcons.pencil,
+                                size: 14,
                                 color: CupertinoColors.black,
                               ),
-                            ),
-                            SizedBox(width: 4),
-                            Icon(
-                              CupertinoIcons.pencil,
-                              size: 14,
-                              color: CupertinoColors.black,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -1481,70 +1299,89 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                 ),
                 
                 // Ingredients List
-                if (_directInputIngredients.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  ..._directInputIngredients.map((ingredient) => _buildDirectInputIngredientCard(ingredient)).toList(),
-                ],
+                Obx(() {
+                  // Access observable's length to trigger reactivity
+                  final hasIngredients = controller.directInputIngredients.isNotEmpty;
+                  final ingredientsList = controller.directInputIngredients.toList();
+                  
+                  return Builder(
+                    builder: (context) => hasIngredients
+                        ? Column(
+                            children: [
+                              const SizedBox(height: 16),
+                              ...ingredientsList.map((ingredient) => _buildDirectInputIngredientCard(context, ingredient)).toList(),
+                            ],
+                          )
+                        : const SizedBox.shrink(),
+                  );
+                }),
                 
                 const SizedBox(height: 16),
                 
                 // Amount Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Amount',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: CupertinoColors.black,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        _showAmountInputSheet();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFFE8E8E8),
-                            width: 1.5,
+                Obx(() {
+                  // Access observable directly in Obx scope
+                  final amount = controller.amountValue.value;
+                  
+                  return Builder(
+                    builder: (context) => Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Amount',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: CupertinoColors.black,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: CupertinoColors.black.withOpacity(0.06),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                              spreadRadius: 0,
-                            ),
-                          ],
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '$_amountValue',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: CupertinoColors.black,
+                        GestureDetector(
+                          onTap: () {
+                            _showAmountInputSheet(context);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: const Color(0xFFE8E8E8),
+                                width: 1.5,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: CupertinoColors.black.withOpacity(0.06),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                  spreadRadius: 0,
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              CupertinoIcons.pencil,
-                              size: 14,
-                              color: CupertinoColors.black,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '$amount',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: CupertinoColors.black,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  CupertinoIcons.pencil,
+                                  size: 14,
+                                  color: CupertinoColors.black,
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                }),
                 
                 const SizedBox(height: 100), // Space for bottom button
               ],
@@ -1559,16 +1396,16 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
           right: 0,
           child: Container(
             padding: const EdgeInsets.all(20),
-            child: GestureDetector(
-              onTap: _isSavingDirectInput ? null : _saveDirectInputFood,
+            child: Obx(() => GestureDetector(
+              onTap: controller.isSavingDirectInput.value ? null : controller.saveDirectInputFood,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: _isSavingDirectInput ? CupertinoColors.systemGrey : CupertinoColors.black,
+                  color: controller.isSavingDirectInput.value ? CupertinoColors.systemGrey : CupertinoColors.black,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: _isSavingDirectInput
+                child: controller.isSavingDirectInput.value
                     ? const Center(
                         child: CupertinoActivityIndicator(
                           color: CupertinoColors.white,
@@ -1584,14 +1421,14 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                         ),
                       ),
               ),
-            ),
+            )),
           ),
         ),
       ],
     );
   }
 
-  void _editMacro(String name, String iconAsset, Color color, int currentValue, Function(int) onChanged) {
+  void _editMacro(BuildContext context, String name, String iconAsset, Color color, int currentValue, Function(int) onChanged) {
     Navigator.of(context).push(
       CupertinoPageRoute(
         builder: (context) => EditMacroScreen(
@@ -1605,8 +1442,8 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
     );
   }
 
-  void _showAmountInputSheet() {
-    final TextEditingController controller = TextEditingController(text: _amountValue.toString());
+  void _showAmountInputSheet(BuildContext context) {
+    final TextEditingController amountController = TextEditingController(text: controller.amountValue.value.toString());
     
     showCupertinoModalPopup(
       context: context,
@@ -1635,7 +1472,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
             
             // Text Field
             CupertinoTextField(
-              controller: controller,
+              controller: amountController,
               keyboardType: TextInputType.number,
               placeholder: 'Enter amount',
               style: const TextStyle(fontSize: 16),
@@ -1670,11 +1507,9 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                   child: CupertinoButton(
                     color: CupertinoColors.black,
                     onPressed: () {
-                      final value = int.tryParse(controller.text);
+                      final value = int.tryParse(amountController.text);
                       if (value != null && value > 0) {
-                        setState(() {
-                          _amountValue = value;
-                        });
+                        controller.amountValue.value = value;
                       }
                       Navigator.of(context).pop();
                     },
@@ -1692,7 +1527,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
     );
   }
 
-  Widget _buildMacroCard(String label, int amount, String icon, Color color, VoidCallback onTap) {
+  Widget _buildMacroCard(BuildContext context, String label, int amount, String icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1766,14 +1601,14 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: CupertinoColors.white,
-        border: Border(
+        border: const Border(
           top: BorderSide(
-            color: const Color(0xFFE8E8E8),
+            color: Color(0xFFE8E8E8),
             width: 1,
           ),
         ),
@@ -1797,32 +1632,30 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
           final result = await Navigator.of(context).push(
             CupertinoPageRoute(
               builder: (context) => CreateMealScreen(
-                userId: widget.userId,
-                mealType: widget.mealType,
+                userId: controller.userId,
+                mealType: controller.mealType,
               ),
             ),
           );
           
           // Optimistically add the new meal if result contains meal data
           if (result != null && result is Map<String, dynamic>) {
-            setState(() {
-              _myMeals.insert(0, {
-                'id': result['id'] ?? '',
-                'mealName': result['mealName'] ?? '',
-                'totalCalories': result['totalCalories'] ?? 0,
-                'totalProtein': result['totalProtein'] ?? 0,
-                'totalCarbs': result['totalCarbs'] ?? 0,
-                'totalFat': result['totalFat'] ?? 0,
-                'entriesCount': result['entriesCount'] ?? 0,
-                'mealType': result['mealType'] ?? '',
-                'date': result['date'] ?? '',
-                'notes': result['notes'] ?? '',
-                'entries': result['entries'] ?? [],
-              });
+            controller.addOrUpdateMeal({
+              'id': result['id'] ?? '',
+              'mealName': result['mealName'] ?? '',
+              'totalCalories': result['totalCalories'] ?? 0,
+              'totalProtein': result['totalProtein'] ?? 0,
+              'totalCarbs': result['totalCarbs'] ?? 0,
+              'totalFat': result['totalFat'] ?? 0,
+              'entriesCount': result['entriesCount'] ?? 0,
+              'mealType': result['mealType'] ?? '',
+              'date': result['date'] ?? '',
+              'notes': result['notes'] ?? '',
+              'entries': result['entries'] ?? [],
             });
           } else if (result == true) {
             // Fallback: Refresh if result is just true
-            _fetchMyMeals();
+            controller.fetchMyMeals();
           }
         },
         child: Container(
@@ -2082,7 +1915,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
     );
   }
 
-  Widget _buildDirectInputIngredientCard(dynamic ingredient) {
+  Widget _buildDirectInputIngredientCard(BuildContext context, dynamic ingredient) {
     final name = ingredient['name'] ?? '';
     final quantity = ingredient['quantity']?.toString() ?? '';
     final unit = ingredient['unit'] ?? '';
@@ -2093,7 +1926,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
     
     return GestureDetector(
       onTap: () {
-        _showAddDirectInputIngredientDialog(existingIngredient: ingredient);
+        _showAddDirectInputIngredientDialog(context, existingIngredient: ingredient);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -2141,9 +1974,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {
-                    setState(() {
-                      _directInputIngredients.remove(ingredient);
-                    });
+                    controller.removeDirectInputIngredient(ingredient);
                   },
                   child: const Icon(
                     CupertinoIcons.xmark_circle_fill,
@@ -2196,7 +2027,7 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
     );
   }
 
-  void _showAddDirectInputIngredientDialog({dynamic existingIngredient}) {
+  void _showAddDirectInputIngredientDialog(BuildContext context, {dynamic existingIngredient}) {
     final bool isEditing = existingIngredient != null;
     
     final TextEditingController nameController = TextEditingController(
@@ -2304,18 +2135,13 @@ class _LogFoodScreenState extends State<LogFoodScreen> {
                             : 0,
                       };
 
-                      setState(() {
-                        if (isEditing) {
-                          // Find and update the existing ingredient
-                          final index = _directInputIngredients.indexOf(existingIngredient);
-                          if (index != -1) {
-                            _directInputIngredients[index] = ingredientData;
-                          }
-                        } else {
-                          // Add new ingredient
-                          _directInputIngredients.add(ingredientData);
-                        }
-                      });
+                      if (isEditing) {
+                        // Find and update the existing ingredient
+                        controller.updateDirectInputIngredient(existingIngredient, ingredientData);
+                      } else {
+                        // Add new ingredient
+                        controller.addDirectInputIngredient(ingredientData);
+                      }
 
                       Navigator.of(context).pop();
                     },

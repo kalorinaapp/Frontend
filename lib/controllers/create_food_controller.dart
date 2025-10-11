@@ -9,6 +9,10 @@ class CreateFoodController extends GetxController {
   
   // Loading state
   final isSaving = false.obs;
+  
+  // Edit mode
+  final isEditing = false.obs;
+  String? foodId;
 
   // Basic info controllers
   final nameController = TextEditingController();
@@ -34,6 +38,87 @@ class CreateFoodController extends GetxController {
   final vitaminCController = TextEditingController();
   final calciumController = TextEditingController();
   final ironController = TextEditingController();
+  
+  // Initialize with food data for editing
+  void initializeWithFoodData(Map<String, dynamic> foodData, bool editing) {
+    isEditing.value = editing;
+    foodId = foodData['_id'];
+    
+    nameController.text = foodData['name'] ?? '';
+    descriptionController.text = foodData['description'] ?? '';
+    servingSizeController.text = foodData['servingSize'] ?? '1tbsp';
+    servingPerContainerController.text = foodData['servingPerContainer'] ?? '1';
+    
+    if (foodData['calories'] != null) {
+      caloriesController.text = foodData['calories'].toString();
+    }
+    
+    if (foodData['protein'] != null) {
+      proteinController.text = foodData['protein'].toString();
+    }
+    
+    if (foodData['carbohydrates'] != null) {
+      carbsController.text = foodData['carbohydrates'].toString();
+    }
+    
+    if (foodData['totalFat'] != null) {
+      totalFatController.text = foodData['totalFat'].toString();
+    }
+    
+    if (foodData['saturatedFat'] != null) {
+      saturatedFatController.text = foodData['saturatedFat'].toString();
+    }
+    
+    if (foodData['polyunsaturatedFat'] != null) {
+      polyunsaturatedFatController.text = foodData['polyunsaturatedFat'].toString();
+    }
+    
+    if (foodData['monounsaturatedFat'] != null) {
+      monounsaturatedFatController.text = foodData['monounsaturatedFat'].toString();
+    }
+    
+    if (foodData['transFat'] != null) {
+      transFatController.text = foodData['transFat'].toString();
+    }
+    
+    if (foodData['cholesterol'] != null) {
+      cholesterolController.text = foodData['cholesterol'].toString();
+    }
+    
+    if (foodData['sodium'] != null) {
+      sodiumController.text = foodData['sodium'].toString();
+    }
+    
+    if (foodData['potassium'] != null) {
+      potassiumController.text = foodData['potassium'].toString();
+    }
+    
+    if (foodData['sugar'] != null) {
+      sugarController.text = foodData['sugar'].toString();
+    }
+    
+    if (foodData['fiber'] != null) {
+      fiberController.text = foodData['fiber'].toString();
+    }
+    
+    if (foodData['vitaminA'] != null) {
+      vitaminAController.text = foodData['vitaminA'].toString();
+    }
+    
+    if (foodData['vitaminC'] != null) {
+      vitaminCController.text = foodData['vitaminC'].toString();
+    }
+    
+    if (foodData['calcium'] != null) {
+      calciumController.text = foodData['calcium'].toString();
+    }
+    
+    if (foodData['iron'] != null) {
+      ironController.text = foodData['iron'].toString();
+    }
+    
+    update(); // Force UI update
+  }
 
   @override
   void onClose() {
@@ -81,111 +166,178 @@ class CreateFoodController extends GetxController {
       return;
     }
 
-    // if (caloriesController.text.trim().isEmpty) {
-    //   _showErrorDialog('Please enter calories');
-    //   return;
-    // }
-
-    // final calories = int.tryParse(caloriesController.text.trim());
-    // if (calories == null || calories < 0) {
-    //   _showErrorDialog('Please enter a valid calories value');
-    //   return;
-    // }
-
     isSaving.value = true;
 
     try {
       final service = FoodService();
-      final response = await service.saveFood(
-        name: nameController.text.trim(),
-        calories: caloriesController.text.trim().isNotEmpty 
-            ? int.tryParse(caloriesController.text.trim()) 
-            : null,
-        description: descriptionController.text.trim().isNotEmpty 
-            ? descriptionController.text.trim() 
-            : null,
-        servingSize: servingSizeController.text.trim().isNotEmpty 
-            ? servingSizeController.text.trim() 
-            : null,
-        servingPerContainer: servingPerContainerController.text.trim().isNotEmpty 
-            ? servingPerContainerController.text.trim() 
-            : null,
-        protein: proteinController.text.trim().isNotEmpty 
-            ? double.tryParse(proteinController.text.trim()) 
-            : null,
-        carbohydrates: carbsController.text.trim().isNotEmpty 
-            ? double.tryParse(carbsController.text.trim()) 
-            : null,
-        totalFat: totalFatController.text.trim().isNotEmpty 
-            ? double.tryParse(totalFatController.text.trim()) 
-            : null,
-        saturatedFat: saturatedFatController.text.trim().isNotEmpty 
-            ? double.tryParse(saturatedFatController.text.trim()) 
-            : null,
-        polyunsaturatedFat: polyunsaturatedFatController.text.trim().isNotEmpty 
-            ? double.tryParse(polyunsaturatedFatController.text.trim()) 
-            : null,
-        monounsaturatedFat: monounsaturatedFatController.text.trim().isNotEmpty 
-            ? double.tryParse(monounsaturatedFatController.text.trim()) 
-            : null,
-        transFat: transFatController.text.trim().isNotEmpty 
-            ? double.tryParse(transFatController.text.trim()) 
-            : null,
-        cholesterol: cholesterolController.text.trim().isNotEmpty 
-            ? double.tryParse(cholesterolController.text.trim()) 
-            : null,
-        sodium: sodiumController.text.trim().isNotEmpty 
-            ? double.tryParse(sodiumController.text.trim()) 
-            : null,
-        potassium: potassiumController.text.trim().isNotEmpty 
-            ? double.tryParse(potassiumController.text.trim()) 
-            : null,
-        sugar: sugarController.text.trim().isNotEmpty 
-            ? double.tryParse(sugarController.text.trim()) 
-            : null,
-        fiber: fiberController.text.trim().isNotEmpty 
-            ? double.tryParse(fiberController.text.trim()) 
-            : null,
-        vitaminA: vitaminAController.text.trim().isNotEmpty 
-            ? double.tryParse(vitaminAController.text.trim()) 
-            : null,
-        vitaminC: vitaminCController.text.trim().isNotEmpty 
-            ? double.tryParse(vitaminCController.text.trim()) 
-            : null,
-        calcium: calciumController.text.trim().isNotEmpty 
-            ? double.tryParse(calciumController.text.trim()) 
-            : null,
-        iron: ironController.text.trim().isNotEmpty 
-            ? double.tryParse(ironController.text.trim()) 
-            : null,
-        isCustom: true,
-        createdBy: AppConstants.userId,
-      );
+      Map<String, dynamic>? response;
+      
+      if (isEditing.value && foodId != null) {
+        // Update existing food
+        response = await service.updateFood(
+          foodId: foodId!,
+          name: nameController.text.trim().isNotEmpty 
+              ? nameController.text.trim() 
+              : null,
+          calories: caloriesController.text.trim().isNotEmpty 
+              ? int.tryParse(caloriesController.text.trim()) 
+              : null,
+          description: descriptionController.text.trim().isNotEmpty 
+              ? descriptionController.text.trim() 
+              : null,
+          servingSize: servingSizeController.text.trim().isNotEmpty 
+              ? servingSizeController.text.trim() 
+              : null,
+          servingPerContainer: servingPerContainerController.text.trim().isNotEmpty 
+              ? servingPerContainerController.text.trim() 
+              : null,
+          protein: proteinController.text.trim().isNotEmpty 
+              ? double.tryParse(proteinController.text.trim()) 
+              : null,
+          carbohydrates: carbsController.text.trim().isNotEmpty 
+              ? double.tryParse(carbsController.text.trim()) 
+              : null,
+          totalFat: totalFatController.text.trim().isNotEmpty 
+              ? double.tryParse(totalFatController.text.trim()) 
+              : null,
+          saturatedFat: saturatedFatController.text.trim().isNotEmpty 
+              ? double.tryParse(saturatedFatController.text.trim()) 
+              : null,
+          polyunsaturatedFat: polyunsaturatedFatController.text.trim().isNotEmpty 
+              ? double.tryParse(polyunsaturatedFatController.text.trim()) 
+              : null,
+          monounsaturatedFat: monounsaturatedFatController.text.trim().isNotEmpty 
+              ? double.tryParse(monounsaturatedFatController.text.trim()) 
+              : null,
+          transFat: transFatController.text.trim().isNotEmpty 
+              ? double.tryParse(transFatController.text.trim()) 
+              : null,
+          cholesterol: cholesterolController.text.trim().isNotEmpty 
+              ? double.tryParse(cholesterolController.text.trim()) 
+              : null,
+          sodium: sodiumController.text.trim().isNotEmpty 
+              ? double.tryParse(sodiumController.text.trim()) 
+              : null,
+          potassium: potassiumController.text.trim().isNotEmpty 
+              ? double.tryParse(potassiumController.text.trim()) 
+              : null,
+          sugar: sugarController.text.trim().isNotEmpty 
+              ? double.tryParse(sugarController.text.trim()) 
+              : null,
+          fiber: fiberController.text.trim().isNotEmpty 
+              ? double.tryParse(fiberController.text.trim()) 
+              : null,
+          vitaminA: vitaminAController.text.trim().isNotEmpty 
+              ? double.tryParse(vitaminAController.text.trim()) 
+              : null,
+          vitaminC: vitaminCController.text.trim().isNotEmpty 
+              ? double.tryParse(vitaminCController.text.trim()) 
+              : null,
+          calcium: calciumController.text.trim().isNotEmpty 
+              ? double.tryParse(calciumController.text.trim()) 
+              : null,
+          iron: ironController.text.trim().isNotEmpty 
+              ? double.tryParse(ironController.text.trim()) 
+              : null,
+        );
+      } else {
+        // Create new food
+        response = await service.saveFood(
+          name: nameController.text.trim(),
+          calories: caloriesController.text.trim().isNotEmpty 
+              ? int.tryParse(caloriesController.text.trim()) 
+              : null,
+          description: descriptionController.text.trim().isNotEmpty 
+              ? descriptionController.text.trim() 
+              : null,
+          servingSize: servingSizeController.text.trim().isNotEmpty 
+              ? servingSizeController.text.trim() 
+              : null,
+          servingPerContainer: servingPerContainerController.text.trim().isNotEmpty 
+              ? servingPerContainerController.text.trim() 
+              : null,
+          protein: proteinController.text.trim().isNotEmpty 
+              ? double.tryParse(proteinController.text.trim()) 
+              : null,
+          carbohydrates: carbsController.text.trim().isNotEmpty 
+              ? double.tryParse(carbsController.text.trim()) 
+              : null,
+          totalFat: totalFatController.text.trim().isNotEmpty 
+              ? double.tryParse(totalFatController.text.trim()) 
+              : null,
+          saturatedFat: saturatedFatController.text.trim().isNotEmpty 
+              ? double.tryParse(saturatedFatController.text.trim()) 
+              : null,
+          polyunsaturatedFat: polyunsaturatedFatController.text.trim().isNotEmpty 
+              ? double.tryParse(polyunsaturatedFatController.text.trim()) 
+              : null,
+          monounsaturatedFat: monounsaturatedFatController.text.trim().isNotEmpty 
+              ? double.tryParse(monounsaturatedFatController.text.trim()) 
+              : null,
+          transFat: transFatController.text.trim().isNotEmpty 
+              ? double.tryParse(transFatController.text.trim()) 
+              : null,
+          cholesterol: cholesterolController.text.trim().isNotEmpty 
+              ? double.tryParse(cholesterolController.text.trim()) 
+              : null,
+          sodium: sodiumController.text.trim().isNotEmpty 
+              ? double.tryParse(sodiumController.text.trim()) 
+              : null,
+          potassium: potassiumController.text.trim().isNotEmpty 
+              ? double.tryParse(potassiumController.text.trim()) 
+              : null,
+          sugar: sugarController.text.trim().isNotEmpty 
+              ? double.tryParse(sugarController.text.trim()) 
+              : null,
+          fiber: fiberController.text.trim().isNotEmpty 
+              ? double.tryParse(fiberController.text.trim()) 
+              : null,
+          vitaminA: vitaminAController.text.trim().isNotEmpty 
+              ? double.tryParse(vitaminAController.text.trim()) 
+              : null,
+          vitaminC: vitaminCController.text.trim().isNotEmpty 
+              ? double.tryParse(vitaminCController.text.trim()) 
+              : null,
+          calcium: calciumController.text.trim().isNotEmpty 
+              ? double.tryParse(calciumController.text.trim()) 
+              : null,
+          iron: ironController.text.trim().isNotEmpty 
+              ? double.tryParse(ironController.text.trim()) 
+              : null,
+          isCustom: true,
+          createdBy: AppConstants.userId,
+        );
+      }
 
       isSaving.value = false;
 
-      if (response != null && response['food'] != null) {
-        _showSuccessDialog();
+      if (response != null && (response['food'] != null || response['message'] != null)) {
+        // Return the updated/created food data
+        final foodData = response['food'];
+        _showSuccessDialog(
+          isEditing.value ? 'Food updated successfully!' : 'Food saved successfully!',
+          foodData,
+        );
       } else {
-        _showErrorDialog('Failed to save food');
+        _showErrorDialog(isEditing.value ? 'Failed to update food' : 'Failed to save food');
       }
     } catch (e) {
       isSaving.value = false;
-      _showErrorDialog('Error saving food: $e');
+      _showErrorDialog('Error ${isEditing.value ? 'updating' : 'saving'} food: $e');
     }
   }
 
-  void _showSuccessDialog() {
+  void _showSuccessDialog(String message, dynamic foodData) {
     Get.dialog(
       CupertinoAlertDialog(
         title: const Text('Success'),
-        content: const Text('Food saved successfully!'),
+        content: Text(message),
         actions: [
           CupertinoDialogAction(
             child: const Text('OK'),
             onPressed: () {
               Get.back(); // Close dialog
-              Get.back(result: true); // Go back with success flag
+              Get.back(result: foodData); // Go back with the food data
             },
           ),
         ],

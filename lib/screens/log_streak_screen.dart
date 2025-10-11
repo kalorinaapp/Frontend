@@ -21,20 +21,6 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
     // _loadStreaksForMonth();
   }
 
-  Future<void> _loadStreaksForMonth() async {
-    final DateTime now = DateTime.now();
-    final DateTime firstOfMonth = DateTime(now.year, now.month, 1);
-    final DateTime lastOfMonth = DateTime(now.year, now.month + 1, 0);
-    
-    // Load both streak entries and history
-    await Future.wait([
-      streakService.getStreaksForDateRange(
-        startDate: firstOfMonth.toLocal(),
-        endDate: lastOfMonth.toLocal(),
-      ),
-      streakService.getStreakHistory(),
-    ]);
-  }
 
   Map<String, int> _getStreaksFromBackend() {
     // Get streak data from backend API
