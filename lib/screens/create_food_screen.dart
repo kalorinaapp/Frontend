@@ -70,7 +70,21 @@ class _CreateFoodView extends StatelessWidget {
                     ),
                   )),
                   const Spacer(),
-                  const SizedBox(width: 24), // Balance the back button
+                  Obx(() => controller.isEditing.value
+                      ? GestureDetector(
+                          onTap: () {
+                            controller.showOptionsMenu();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            child: const Icon(
+                              CupertinoIcons.ellipsis_vertical,
+                              size: 24,
+                              color: CupertinoColors.black,
+                            ),
+                          ),
+                        )
+                      : const SizedBox(width: 24)), // Balance the back button
                 ],
               ),
             ),

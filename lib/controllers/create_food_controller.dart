@@ -447,5 +447,188 @@ class CreateFoodController extends GetxController {
       enableDrag: true,
     );
   }
+
+  void showOptionsMenu() {
+    Get.bottomSheet(
+      CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Get.back();
+              showDeleteFoodConfirmation();
+            },
+            isDestructiveAction: true,
+            child: const Text('Delete Food'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () {
+            Get.back();
+          },
+          child: const Text(
+            'Cancel',
+            style: TextStyle(
+              color: CupertinoColors.black,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void showDeleteFoodConfirmation() {
+    Get.dialog(
+      Center(
+        child: Container(
+          width: 320,
+          margin: const EdgeInsets.symmetric(horizontal: 30),
+          decoration: BoxDecoration(
+            color: CupertinoColors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                // Header with title and close button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Delete Food?',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => Get.back(),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: CupertinoColors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.xmark_circle,
+                          color: CupertinoColors.black,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Subtitle
+                const Text(
+                  'This food will be permanently deleted',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: CupertinoColors.systemGrey,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                // Buttons
+                Row(
+                  children: [
+                    // No button
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Get.back(),
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.white,
+                            border: Border.all(
+                              color: CupertinoColors.systemGrey3,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'No',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: CupertinoColors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Yes button
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Get.back();
+                          deleteFood();
+                        },
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCD5C5C),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Yes',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: CupertinoColors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  Future<void> deleteFood() async {
+    if (foodId == null || foodId!.isEmpty) {
+      _showErrorDialog('Missing food ID');
+      return;
+    }
+
+    isSaving.value = true;
+
+    try {
+      final service = FoodService();
+      final response = await service.deleteFood(foodId: foodId!);
+
+      isSaving.value = false;
+
+      if (response != null && response['message'] != null) {
+        // Show success and navigate back with delete flag
+        Get.back(result: 'deleted');
+      } else {
+        _showErrorDialog('Failed to delete food');
+      }
+    } catch (e) {
+      isSaving.value = false;
+      _showErrorDialog('Error deleting food: $e');
+    }
+  }
 }
 

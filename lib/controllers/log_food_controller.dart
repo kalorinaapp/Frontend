@@ -533,6 +533,14 @@ class LogFoodController extends GetxController {
     }
   }
 
+  void removeMeal(String mealId) {
+    myMeals.removeWhere((m) => m['id'] == mealId);
+  }
+
+  void removeFood(String foodId) {
+    myFoods.removeWhere((f) => f['_id'] == foodId);
+  }
+
   void addDirectInputIngredient(Map<String, dynamic> ingredient) {
     directInputIngredients.add(ingredient);
   }

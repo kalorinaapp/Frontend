@@ -96,6 +96,21 @@ class _CreateMealScreenState extends State<CreateMealScreen> {
                       color: CupertinoColors.black,
                     ),
                   ),
+                  const Spacer(),
+                  if (widget.isEdit)
+                    GestureDetector(
+                      onTap: () {
+                        _showOptionsMenu();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(
+                          CupertinoIcons.ellipsis_vertical,
+                          size: 24,
+                          color: CupertinoColors.black,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -587,6 +602,203 @@ class _CreateMealScreenState extends State<CreateMealScreen> {
         ],
       ),
     );
+  }
+
+  void _showOptionsMenu() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _showDeleteMealConfirmation();
+            },
+            isDestructiveAction: true,
+            child: const Text('Delete Meal'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text(
+            'Cancel',
+            style: TextStyle(
+              color: CupertinoColors.black,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteMealConfirmation() {
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Center(
+          child: Container(
+            width: 320,
+            margin: const EdgeInsets.symmetric(horizontal: 30),
+            decoration: BoxDecoration(
+              color: CupertinoColors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // Header with title and close button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Delete Meal?',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: CupertinoColors.black,
+                        ),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: const BoxDecoration(
+                            color: CupertinoColors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.xmark_circle,
+                            color: CupertinoColors.black,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Subtitle
+                  const Text(
+                    'This meal will be permanently deleted',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: CupertinoColors.systemGrey,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // Buttons
+                  Row(
+                    children: [
+                      // No button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.white,
+                              border: Border.all(
+                                color: CupertinoColors.systemGrey3,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'No',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Yes button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            _deleteMeal();
+                          },
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFCD5C5C),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Yes',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteMeal() async {
+    if (widget.mealId == null || widget.mealId!.isEmpty) {
+      _showErrorDialog('Missing meal ID');
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final service = MealsService();
+      final response = await service.deleteMeal(mealId: widget.mealId!);
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+
+        if (response != null && response['success'] == true) {
+          // Show success and navigate back with delete flag
+          Navigator.of(context).pop('deleted');
+        } else {
+          _showErrorDialog('Failed to delete meal');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+        _showErrorDialog('Error deleting meal: $e');
+      }
+    }
   }
 
   void _editMacro(String name, String iconAsset, Color color, int currentValue, Function(int) onChanged) {

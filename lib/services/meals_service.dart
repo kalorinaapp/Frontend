@@ -138,6 +138,7 @@ class MealsService {
     required String mealName,
     required List<Map<String, dynamic>> entries,
     String? notes,
+    bool? isScanned,
   }) async {
     Map<String, dynamic>? parsed;
     
@@ -149,6 +150,7 @@ class MealsService {
       'entries': entries,
       'notes': notes ?? '',
       'isCompleted': true,
+      if (isScanned != null) 'isScanned': isScanned,
     };
 
     await putAPI(
@@ -228,6 +230,32 @@ class MealsService {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
         } catch (e) {
           debugPrint('MealsService searchScannedMeals parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> deleteMeal({
+    required String mealId,
+  }) async {
+    Map<String, dynamic>? parsed;
+
+    await deleteAPI(
+      methodName: 'api/meals/$mealId',
+      param: {},
+      callback: (resp) async {
+        try {
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+          
+          // If parsing succeeded but response indicates failure, set to null
+          if (parsed != null && parsed!['success'] == false) {
+            debugPrint('MealsService delete error: ${resp.response}');
+            parsed = null;
+          }
+        } catch (e) {
+          debugPrint('MealsService delete parse error: $e');
           parsed = null;
         }
       },

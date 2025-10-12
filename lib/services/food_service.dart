@@ -239,5 +239,31 @@ class FoodService {
     );
     return parsed;
   }
+
+  Future<Map<String, dynamic>?> deleteFood({
+    required String foodId,
+  }) async {
+    Map<String, dynamic>? parsed;
+
+    await deleteAPI(
+      methodName: 'api/foods/$foodId',
+      param: {},
+      callback: (resp) async {
+        try {
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+          
+          // If parsing succeeded but response indicates failure, set to null
+          if (parsed != null && parsed!['message'] == null) {
+            debugPrint('FoodService delete error: ${resp.response}');
+            parsed = null;
+          }
+        } catch (e) {
+          debugPrint('FoodService delete parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
 }
 

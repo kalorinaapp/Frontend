@@ -8,6 +8,7 @@ import '../controllers/log_food_controller.dart';
 import 'create_meal_screen.dart';
 import 'create_food_screen.dart';
 import 'edit_macro_screen.dart';
+import 'meal_details_screen.dart';
 
 class LogFoodScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
@@ -118,8 +119,12 @@ class _LogFoodView extends StatelessWidget {
       ),
     );
     
-    // Optimistically update the meal if result contains updated meal data
-    if (result != null && result is Map<String, dynamic>) {
+    // Handle result
+    if (result == 'deleted') {
+      // Meal was deleted, remove from list
+      controller.removeMeal(meal['id']);
+    } else if (result != null && result is Map<String, dynamic>) {
+      // Optimistically update the meal if result contains updated meal data
       controller.addOrUpdateMeal({
         'id': result['id'] ?? '',
         'mealName': result['mealName'] ?? '',
@@ -148,6 +153,12 @@ class _LogFoodView extends StatelessWidget {
         ),
       ),
     );
+    
+    // Handle deletion
+    if (result == 'deleted') {
+      controller.removeFood(food['_id'] ?? '');
+      return;
+    }
     
     // Optimistically update the food if result contains updated food data
     if (result != null && result is Map<String, dynamic>) {
@@ -1030,7 +1041,9 @@ class _LogFoodView extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final meal = controller.scannedMeals[index];
-                return _buildScannedMealCard(meal);
+                return Builder(
+                  builder: (context) => _buildScannedMealCard(context, meal),
+                );
               },
             ),
           );
@@ -1712,7 +1725,7 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildScannedMealCard(Map<String, dynamic> meal) {
+  Widget _buildScannedMealCard(BuildContext context, Map<String, dynamic> meal) {
     final calories = (meal['totalCalories'] as num).toInt();
     final protein = (meal['totalProtein'] as num).toInt();
     final fat = (meal['totalFat'] as num).toInt();
@@ -1729,7 +1742,15 @@ class _LogFoodView extends StatelessWidget {
       } catch (_) {}
     }
 
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (context) => MealDetailsScreen(mealData: meal),
+          ),
+        );
+      },
+      child: Container(
       width: double.infinity,
       height: 120,
       decoration: const BoxDecoration(
@@ -1857,6 +1878,7 @@ class _LogFoodView extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
