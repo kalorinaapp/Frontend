@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../l10n/app_localizations.dart' show AppLocalizations;
 import '../onboarding/screens/stage4_personalization/settings_page.dart' show SettingsPage;
+import '../providers/health_provider.dart' show HealthProvider;
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
 import 'dashboard_screen.dart';
@@ -33,6 +34,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final HealthProvider healthProvider = HealthProvider();
   final List<Widget> _screens = [];
   bool _showAddModal = false;
   final ImagePicker _picker = ImagePicker();
@@ -68,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
         dailyProgress: _dailyProgress,
       ),
       LogScreen(themeProvider: widget.themeProvider),
-      ProgressScreen(themeProvider: widget.themeProvider), // Analytics
+      ProgressScreen(themeProvider: widget.themeProvider, healthProvider: healthProvider), // Analytics
       SettingsPage(
         themeProvider: widget.themeProvider,
       ), // Settings
