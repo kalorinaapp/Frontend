@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
+import 'authentication/user.controller.dart' show UserController;
 import 'l10n/app_localizations.dart' show AppLocalizations;
 import 'onboarding_screen.dart' show OnboardingScreen;
 import 'providers/theme_provider.dart';
@@ -59,6 +60,10 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
       }
       if (userId != null && userId.isNotEmpty) {
         AppConstants.userId = userId;
+        final userCtrl = Get.isRegistered<UserController>()
+            ? Get.find<UserController>()
+            : Get.put(UserController(), permanent: true);
+        await userCtrl.getUserData(AppConstants.userId);
       }
       // Optionally persist extra metadata for diagnostics
       if (email != null && email.isNotEmpty) {
@@ -82,6 +87,7 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
       });
     }
   }
+
 
   // Helper method to get initial screen data
   Future<Map<String, dynamic>> getInitialScreenData() async {

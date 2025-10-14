@@ -1,10 +1,43 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import '../network/http_helper.dart';
+import '../network/http_helper.dart' show multiGetAPINew;
+import '../utils/network.dart' show multiPostAPINew;
 
 class ProgressService {
   const ProgressService();
 
+  Future<Map<String, dynamic>?> uploadProgressPhotos({
+    required List<String> base64Images,
+    double? weight,
+    String unit = 'kg',
+    String? notes,
+    String? takenAtIsoLocal,
+  }) async {
+    Map<String, dynamic>? parsed;
+
+    final Map<String, dynamic> body = {
+      'imageData': base64Images, // backend can accept list; if single, server can handle first
+    };
+    if (weight != null) body['weight'] = weight;
+    if (unit.isNotEmpty) body['unit'] = unit;
+    if (notes != null && notes.isNotEmpty) body['notes'] = notes;
+    if (takenAtIsoLocal != null && takenAtIsoLocal.isNotEmpty) body['takenAt'] = takenAtIsoLocal;
+
+    await multiPostAPINew(
+      methodName: 'api/progress/photos',
+      param: body,
+      callback: (resp) async {
+        try {
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('ProgressService upload parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+
+    return parsed;
+  }
   Future<Map<String, dynamic>?> fetchDailyProgress({
     required String dateYYYYMMDD,
   }) async {
@@ -25,6 +58,70 @@ class ProgressService {
     );
     return parsed;
   }
+
+  Future<Map<String, dynamic>?> fetchProgressPhotos({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    Map<String, dynamic>? parsed;
+    await multiGetAPINew(
+      methodName: 'api/progress/photos',
+      query: {
+        'page': page.toString(),
+        'limit': limit.toString(),
+      },
+      callback: (resp) async {
+        try {
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('ProgressService fetch photos parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> fetchWeightHistory({
+    int page = 1,
+    int limit = 30,
+  }) async {
+    Map<String, dynamic>? parsed;
+    await multiGetAPINew(
+      methodName: 'api/progress/weight/history',
+      query: {
+        'page': page.toString(),
+        'limit': limit.toString(),
+      },
+      callback: (resp) async {
+        try {
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('ProgressService history parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> fetchWeightSummary() async {
+    Map<String, dynamic>? parsed;
+    await multiGetAPINew(
+      methodName: 'api/progress/weight/summary',
+      callback: (resp) async {
+        try {
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('ProgressService summary parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
 }
+
+
 
 

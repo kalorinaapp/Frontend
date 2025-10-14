@@ -281,7 +281,7 @@ class UserController extends GetxController {
     isLoading.value = true;
     errorMessage.value = '';
     isSuccess.value = false;
-    userData.clear();
+    // Do not clear userData here; keep current values to avoid UI flicker
 
     bool result = false;
     await putAPI(
@@ -292,18 +292,25 @@ class UserController extends GetxController {
         final decoded = response.response;
         try {
           final json = decoded is String ? jsonDecode(decoded) : decoded;
+          print('json: ${json}');
           if (json['success'] == true) {
+            
             isSuccess.value = true;
-            final user = json['data'] ?? {};
-            userData.assignAll(user);
+            final dynamic payload = json['data'] ?? json['user'];
+            if (payload is Map<String, dynamic>) {
+              userData.assignAll(payload);
+            }
             // Save to shared prefs
-            UserPrefs.saveUserData(
-              name: user['name'] ?? '',
-              email: user['email'] ?? '',
-              token: AppConstants.authToken, // No token in update response
-              refreshToken: AppConstants.authToken, // No refreshToken in update response
-              id: user['_id'] ?? '',
-            );
+            try {
+              final Map<String, dynamic> u = (payload is Map<String, dynamic>) ? payload : <String, dynamic>{};
+              UserPrefs.saveUserData(
+                name: u['name'] ?? (u['firstName'] != null || u['lastName'] != null ? '${u['firstName'] ?? ''} ${u['lastName'] ?? ''}'.trim() : ''),
+                email: u['email'] ?? '',
+                token: AppConstants.authToken, // No token in update response
+                refreshToken: AppConstants.authToken, // No refreshToken in update response
+                id: u['_id'] ?? u['id'] ?? '',
+              );
+            } catch (_) {}
             result = true;
           } else {
             errorMessage.value = json['message'] ?? 'Update failed.';
@@ -372,14 +379,15 @@ class UserController extends GetxController {
         try {
           final json = decoded is String ? jsonDecode(decoded) : decoded;
           print('json: ${json}');
-          if (json['success'] == true && json['data'] != null) {
+          if (json['success'] == true) {
             print('json: ${json}');
             isSuccess.value = true;
-            final dynamic data = json['data'];
-            if (data is List) {
+            final dynamic payload = json['data'] ?? json['user'];
+
+            if (payload is List) {
               // Handle array payloads by selecting matching user or first
               Map<String, dynamic>? selected;
-              for (final item in data) {
+              for (final item in payload) {
                 final Map<String, dynamic> u = Map<String, dynamic>.from(item);
                 final id = (u['_id'] ?? u['id'] ?? '').toString();
                 if (id == userId) {
@@ -387,20 +395,22 @@ class UserController extends GetxController {
                   break;
                 }
               }
-              selected ??= (data.isNotEmpty
-                  ? Map<String, dynamic>.from(data.first)
+              selected ??= (payload.isNotEmpty
+                  ? Map<String, dynamic>.from(payload.first)
                   : <String, dynamic>{});
               userData.assignAll(selected);
-            } else if (data is Map<String, dynamic>) {
-              userData.assignAll(data);
+              result = true;
+            } else if (payload is Map<String, dynamic>) {
+              userData.assignAll(payload);
+              result = true;
+            } else {
+              // No recognizable payload, keep previous state
+              result = false;
             }
 
             print('userData: ${userData}');
-
-            result = true;
           } else {
-            errorMessage.value =
-                json['message'] ?? 'Failed to fetch user data.';
+            errorMessage.value = json['message'] ?? 'Failed to fetch user data.';
           }
         } catch (e) {
           errorMessage.value = 'Invalid server response.';
