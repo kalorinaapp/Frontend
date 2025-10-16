@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:math';
 import '../../../providers/theme_provider.dart';
-import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
 
 class CalorieTransferPage extends StatefulWidget {

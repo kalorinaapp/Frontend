@@ -1,11 +1,17 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../providers/language_provider.dart';
+import '../../../providers/health_provider.dart';
 import '../../../screens/appearance_screen.dart' show AppearanceScreen;
 import '../../../screens/language_selection_screen.dart' show LanguageSelectionScreen;
 import '../../../screens/set_goals_screen.dart' show SetGoalsScreen;
 import '../../../utils/theme_helper.dart';
+import '../../../authentication/user.controller.dart';
+import '../../../constants/app_constants.dart';
+import '../../../utils/user.prefs.dart';
+import '../../../onboarding_screen.dart';
 
 class SettingsPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -91,19 +97,13 @@ class _CardShell extends StatelessWidget {
   }
 }
 
-class _UserCard extends StatefulWidget {
+class _UserCard extends StatelessWidget {
   final String avatarAsset;
   const _UserCard({required this.avatarAsset});
 
-  @override
-  State<_UserCard> createState() => _UserCardState();
-}
-
-class _UserCardState extends State<_UserCard> {
-  String userName = 'User Name';
-
-  void _showUsernameDialog() {
-    String tempUsername = userName;
+  void _showUsernameDialog(BuildContext context, UserController userController, String currentName) {
+    final TextEditingController controller = TextEditingController(text: currentName);
+    
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
@@ -111,7 +111,7 @@ class _UserCardState extends State<_UserCard> {
           content: Padding(
             padding: const EdgeInsets.only(top: 20),
             child: CupertinoTextField(
-              controller: TextEditingController(text: tempUsername),
+              controller: controller,
               placeholder: 'Enter username',
               style: const TextStyle(fontSize: 16),
               padding: const EdgeInsets.all(12),
@@ -119,9 +119,7 @@ class _UserCardState extends State<_UserCard> {
                 color: CupertinoColors.systemGrey6,
                 borderRadius: BorderRadius.circular(8),
               ),
-              onChanged: (value) {
-                tempUsername = value;
-              },
+              autofocus: true,
             ),
           ),
           actions: [
@@ -131,11 +129,23 @@ class _UserCardState extends State<_UserCard> {
             ),
             CupertinoDialogAction(
               child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
-              onPressed: () {
-                if (tempUsername.isNotEmpty) {
-                  setState(() {
-                    userName = tempUsername;
-                  });
+              onPressed: () async {
+                final newName = controller.text.trim();
+                if (newName.isNotEmpty) {
+                  final parts = newName.split(' ');
+                  final firstName = parts.isNotEmpty ? parts[0] : '';
+                  final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+                  
+                  await userController.updateUser(
+                    AppConstants.userId,
+                    {
+                      'firstName': firstName,
+                      'lastName': lastName,
+                    },
+                    context,
+                    Get.find<ThemeProvider>(),
+                    Get.find<LanguageProvider>(),
+                  );
                 }
                 Navigator.of(context).pop();
               },
@@ -148,31 +158,40 @@ class _UserCardState extends State<_UserCard> {
 
   @override
   Widget build(BuildContext context) {
+    final userController = Get.find<UserController>();
+    
     return _CardShell(
-      child: GestureDetector(
-        onTap: _showUsernameDialog,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Image.asset(widget.avatarAsset, width: 35, height: 35),
-            Row(
-              children: [
-                Text(
-                  userName,
-                  style: ThemeHelper.textStyleWithColorAndSize(
-                    ThemeHelper.body1,
-                    ThemeHelper.textSecondary,
-                    16,
+      child: Obx(() {
+        final firstName = userController.userData['firstName'] ?? '';
+        final lastName = userController.userData['lastName'] ?? '';
+        final fullName = '$firstName $lastName'.trim();
+        final displayName = fullName.isNotEmpty ? fullName : 'User Name';
+        
+        return GestureDetector(
+          onTap: () => _showUsernameDialog(context, userController, displayName),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Image.asset(avatarAsset, width: 35, height: 35),
+              Row(
+                children: [
+                  Text(
+                    displayName,
+                    style: ThemeHelper.textStyleWithColorAndSize(
+                      ThemeHelper.body1,
+                      ThemeHelper.textSecondary,
+                      16,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8.0),
-                const Icon(CupertinoIcons.pencil, size: 18, color: CupertinoColors.systemGrey),
-              ],
-            ),
-            const SizedBox(width: 8.0),
-          ],
-        ),
-      ),
+                  const SizedBox(width: 8.0),
+                  const Icon(CupertinoIcons.pencil, size: 18, color: CupertinoColors.systemGrey),
+                ],
+              ),
+              const SizedBox(width: 8.0),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
@@ -211,27 +230,22 @@ class _InviteCard extends StatelessWidget {
   }
 }
 
-class _PersonalDetailsCard extends StatefulWidget {
+class _PersonalDetailsCard extends StatelessWidget {
   const _PersonalDetailsCard();
 
-  @override
-  State<_PersonalDetailsCard> createState() => _PersonalDetailsCardState();
-}
+  Future<void> _updateUserField(String field, dynamic value) async {
+    final userController = Get.find<UserController>();
+    await userController.updateUser(
+      AppConstants.userId,
+      {field: value},
+      Get.context!,
+      Get.find<ThemeProvider>(),
+      Get.find<LanguageProvider>(),
+    );
+  }
 
-class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
-  bool addBurnedCalories = false;
-  bool rolloverCalories = true;
-  
-  // User data
-  String userName = 'User Name';
-  double weight = 70.0; // kg
-  double height = 172.0; // cm
-  int steps = 10000;
-  String gender = 'Female';
-  DateTime birthday = DateTime(2002, 9, 4);
-
-  void _showWeightDialog() {
-    double tempWeight = weight;
+  void _showWeightDialog(BuildContext context, double currentWeight) {
+    double tempWeight = currentWeight;
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -272,10 +286,8 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
                       CupertinoButton(
                         padding: EdgeInsets.zero,
                         child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
-                        onPressed: () {
-                          setState(() {
-                            weight = tempWeight;
-                          });
+                        onPressed: () async {
+                          await _updateUserField('weight', tempWeight);
                           Navigator.of(context).pop();
                         },
                       ),
@@ -335,8 +347,8 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
     );
   }
 
-  void _showHeightDialog() {
-    double tempHeight = height;
+  void _showHeightDialog(BuildContext context, double currentHeight) {
+    double tempHeight = currentHeight;
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -377,10 +389,8 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
                       CupertinoButton(
                         padding: EdgeInsets.zero,
                         child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
-                        onPressed: () {
-                          setState(() {
-                            height = tempHeight;
-                          });
+                        onPressed: () async {
+                          await _updateUserField('height', tempHeight);
                           Navigator.of(context).pop();
                         },
                       ),
@@ -440,8 +450,8 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
     );
   }
 
-  void _showStepsDialog() {
-    int tempSteps = steps;
+  void _showStepsDialog(BuildContext context, int currentSteps) {
+    int tempSteps = currentSteps;
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -483,9 +493,8 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
                         padding: EdgeInsets.zero,
                         child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
                         onPressed: () {
-                          setState(() {
-                            steps = tempSteps;
-                          });
+                          final healthProvider = Get.find<HealthProvider>();
+                          healthProvider.setStepsGoal(tempSteps);
                           Navigator.of(context).pop();
                         },
                       ),
@@ -545,7 +554,7 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
     );
   }
 
-  void _showGenderDialog() {
+  void _showGenderDialog(BuildContext context) {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
@@ -555,28 +564,15 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
           actions: [
             CupertinoDialogAction(
               child: const Text('Male', style: TextStyle(color: CupertinoColors.black)),
-              onPressed: () {
-                setState(() {
-                  gender = 'Male';
-                });
+              onPressed: () async {
+                await _updateUserField('gender', 'male');
                 Navigator.of(context).pop();
               },
             ),
             CupertinoDialogAction(
               child: const Text('Female', style: TextStyle(color: CupertinoColors.black)),
-              onPressed: () {
-                setState(() {
-                  gender = 'Female';
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-            CupertinoDialogAction(
-              child: const Text('Other', style: TextStyle(color: CupertinoColors.black)),
-              onPressed: () {
-                setState(() {
-                  gender = 'Other';
-                });
+              onPressed: () async {
+                await _updateUserField('gender', 'female');
                 Navigator.of(context).pop();
               },
             ),
@@ -590,8 +586,8 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
     );
   }
 
-  void _showBirthdayDialog() {
-    DateTime tempBirthday = birthday;
+  void _showBirthdayDialog(BuildContext context, DateTime currentBirthday) {
+    DateTime tempBirthday = currentBirthday;
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -632,10 +628,14 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
                       CupertinoButton(
                         padding: EdgeInsets.zero,
                         child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
-                        onPressed: () {
-                          setState(() {
-                            birthday = tempBirthday;
-                          });
+                        onPressed: () async {
+                          // Calculate age from birthday
+                          final now = DateTime.now();
+                          final age = now.year - tempBirthday.year - 
+                            ((now.month > tempBirthday.month || 
+                              (now.month == tempBirthday.month && now.day >= tempBirthday.day)) ? 0 : 1);
+                          
+                          await _updateUserField('age', age);
                           Navigator.of(context).pop();
                         },
                       ),
@@ -645,7 +645,7 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
                 Expanded(
                   child: CupertinoDatePicker(
                     mode: CupertinoDatePickerMode.date,
-                    initialDateTime: birthday,
+                    initialDateTime: currentBirthday,
                     maximumDate: DateTime.now(),
                     minimumDate: DateTime(1900),
                     onDateTimeChanged: (DateTime newDate) {
@@ -705,6 +705,9 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
 
   @override
   Widget build(BuildContext context) {
+    final userController = Get.find<UserController>();
+    final healthProvider = Get.find<HealthProvider>();
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
@@ -722,78 +725,83 @@ class _PersonalDetailsCardState extends State<_PersonalDetailsCard> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/icons/personal_details.png', width: 18, height: 18),
-              const SizedBox(width: 8),
-              Text(
-                'Personal Details',
-                style: ThemeHelper.textStyleWithColorAndSize(
-                  ThemeHelper.body1,
-                  ThemeHelper.textPrimary,
-                  16,
-                ).copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _row('Weight', '${weight.round()} kg', _showWeightDialog),
-          _row('Height', '${height.round()} cm', _showHeightDialog),
-          _row('Birthday', '${birthday.day.toString().padLeft(2, '0')}/${birthday.month.toString().padLeft(2, '0')}/${birthday.year}', _showBirthdayDialog),
-          _row('Gender', gender, _showGenderDialog),
-          _row('Steps', '$steps', _showStepsDialog),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Add Burned Calories',
+      child: Obx(() {
+        final weight = (userController.userData['weight'] as num?)?.toDouble() ?? 70.0;
+        final height = (userController.userData['height'] as num?)?.toDouble() ?? 170.0;
+        final age = userController.userData['age'] as int? ?? 24;
+        final gender = (userController.userData['gender'] as String? ?? 'male').capitalize ?? 'Male';
+        final stepsGoal = healthProvider.stepsGoal;
+        final addBurnedCalories = userController.userData['addBurnedCaloriesToGoal'] ?? false;
+        
+        // Calculate birthday from age (approximate)
+        final now = DateTime.now();
+        final birthday = DateTime(now.year - age, now.month, now.day);
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/icons/personal_details.png', width: 18, height: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Personal Details',
                   style: ThemeHelper.textStyleWithColorAndSize(
                     ThemeHelper.body1,
                     ThemeHelper.textPrimary,
-                    14,
+                    16,
+                  ).copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _row('Weight', '${weight.round()} kg', () => _showWeightDialog(context, weight)),
+            _row('Height', '${height.round()} cm', () => _showHeightDialog(context, height)),
+            _row('Birthday', '${birthday.day.toString().padLeft(2, '0')}/${birthday.month.toString().padLeft(2, '0')}/${birthday.year}', () => _showBirthdayDialog(context, birthday)),
+            _row('Gender', gender, () => _showGenderDialog(context)),
+            _row('Steps', '$stepsGoal', () => _showStepsDialog(context, stepsGoal)),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Rollover up to 200 Left Over Calories From Yesterday',
+                    style: ThemeHelper.textStyleWithColorAndSize(
+                      ThemeHelper.body1,
+                      ThemeHelper.textPrimary,
+                      14,
+                    ),
                   ),
                 ),
-              ),
-              CupertinoSwitch(
-                value: addBurnedCalories,
-                activeColor: CupertinoColors.black,
-                onChanged: (v) => setState(() => addBurnedCalories = v),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            height: 1, 
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 0),
-            color: ThemeHelper.divider,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Rollover up to 200 Left Over Calories From Yesterday',
-                  style: ThemeHelper.textStyleWithColorAndSize(
-                    ThemeHelper.body1,
-                    ThemeHelper.textPrimary,
-                    14,
+                CupertinoSwitch(
+                  value: addBurnedCalories,
+                  activeColor: CupertinoColors.black,
+                  onChanged: (v) => _updateUserField('rolloverLeftOverCalories', v),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Add Burned Calories',
+                    style: ThemeHelper.textStyleWithColorAndSize(
+                      ThemeHelper.body1,
+                      ThemeHelper.textPrimary,
+                      14,
+                    ),
                   ),
                 ),
-              ),
-              CupertinoSwitch(
-                value: rolloverCalories,
-                activeColor: CupertinoColors.black,
-                onChanged: (v) => setState(() => rolloverCalories = v),
-              ),
-            ],
-          ),
-        ],
-      ),
+                CupertinoSwitch(
+                  value: addBurnedCalories,
+                  activeColor: CupertinoColors.black,
+                  onChanged: (v) => _updateUserField('addBurnedCaloriesToGoal', v),
+                ),
+              ],
+            ),
+          ],
+        );
+      }),
     );
   }
 }
@@ -1005,16 +1013,6 @@ class _SettingsListCard extends StatelessWidget {
 
 
   void _handleLogout(BuildContext context) {
-
-
-    
-    // TODO: Implement actual account deletion logic
-    // This would typically involve:
-    // 1. Calling an API to delete the account
-    // 2. Clearing local storage/cache
-    // 3. Navigating back to login/onboarding screen
-    
-    // For now, just show a confirmation
     showCupertinoDialog(
       context: context,
       barrierDismissible: true,
@@ -1048,23 +1046,23 @@ class _SettingsListCard extends StatelessWidget {
                         ),
                       ),
                       CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: const BoxDecoration(
-                          color: CupertinoColors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          weight: 30.0,
-                          CupertinoIcons.xmark_circle,
-                          color: CupertinoColors.black,
-                          size: 24,
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: const BoxDecoration(
+                            color: CupertinoColors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            weight: 30.0,
+                            CupertinoIcons.xmark_circle,
+                            color: CupertinoColors.black,
+                            size: 24,
+                          ),
                         ),
                       ),
-                    ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -1112,14 +1110,37 @@ class _SettingsListCard extends StatelessWidget {
                       // Yes button
                       Expanded(
                         child: GestureDetector(
-                          onTap: () {
+                          onTap: () async {
                             Navigator.of(context).pop();
-                            _handleDeleteAccount(context);
+                            
+                            // Clear UserController data
+                            final userController = Get.find<UserController>();
+                            userController.userData.clear();
+                            
+                            // Clear SharedPreferences
+                            await UserPrefs.clearUserData();
+                            
+                            // Clear AppConstants
+                            AppConstants.userId = '';
+                            AppConstants.authToken = '';
+                            AppConstants.userEmail = '';
+                            AppConstants.userName = '';
+                            AppConstants.refreshToken = '';
+                            
+                            // Navigate to onboarding screen and remove all previous routes
+                            Navigator.of(context).pushAndRemoveUntil(
+                              CupertinoPageRoute(
+                                builder: (context) => OnboardingScreen(
+                                  themeProvider: Get.find<ThemeProvider>(),
+                                ),
+                              ),
+                              (route) => false, // Remove all previous routes
+                            );
                           },
                           child: Container(
                             height: 48,
                             decoration: BoxDecoration(
-                              color: CupertinoColors.black, // Matching the red color from screenshot
+                              color: CupertinoColors.black,
                               borderRadius: BorderRadius.circular(24),
                             ),
                             child: const Center(
@@ -1142,10 +1163,8 @@ class _SettingsListCard extends StatelessWidget {
             ),
           ),
         );
-     
-  });
-
-// ... existing code ...
+      },
+    );
   }
 
   Widget _tile(String title, String icon, {bool isLast = false}) {
@@ -1153,7 +1172,7 @@ class _SettingsListCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            SvgPicture.asset(icon, width: 24, height: 24),
+            Image.asset(icon, width: 16, height: 16),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -1188,40 +1207,40 @@ class _SettingsListCard extends StatelessWidget {
 
               Navigator.push(context, CupertinoPageRoute(builder: (context) =>  SetGoalsScreen()));
             },
-            child: _tile('Adjust Macronutrients', 'assets/icons/adjust_controls.svg'),
+            child: _tile('Adjust Macronutrients', 'assets/icons/adjust.png'),
           ),
           GestureDetector(
             onTap: () {
               Navigator.push(context, CupertinoPageRoute(builder: (context) =>  AppearanceScreen()));
             },
-            child: _tile('Appearance', 'assets/icons/appearance_gear.svg')),
+            child: _tile('Appearance', 'assets/icons/appearance.png')),
           GestureDetector(
           onTap: () {
             Navigator.push(context, CupertinoPageRoute(builder: (context) =>  LanguageSelectionScreen()));
           },
-          child: _tile('Language', 'assets/icons/language_translate.svg')),
+          child: _tile('Language', 'assets/icons/language.png')),
           GestureDetector(
             onTap: _launchEmail,
-            child: _tile('Support', 'assets/icons/support_mail.svg'),
+            child: _tile('Support', 'assets/icons/support.png'),
           ),
           GestureDetector(
             onTap: _launchPrivacyPolicy,
-            child: _tile('Privacy Policy', 'assets/icons/privacy_shield.svg'),
+            child: _tile('Privacy Policy', 'assets/icons/privacy.png'),
           ),
           GestureDetector(
             onTap: _launchTermsAndConditions,
-            child: _tile('Terms and Conditions', 'assets/icons/terms_document.svg'),
+            child: _tile('Terms and Conditions', 'assets/icons/terms.png'),
           ),
           GestureDetector(
             onTap: () => _handleDeleteAccount(context),
-            child: _tile('Delete Account', 'assets/icons/delete_account.svg'),
+            child: _tile('Delete Account', 'assets/icons/delete_account.png'),
           ),
           const SizedBox(height: 20),
           GestureDetector(
             onTap: () {
               _handleLogout(context);
             },
-            child: _tile('Logout', 'assets/icons/logout_door.svg', isLast: true)),
+            child: _tile('Logout', 'assets/icons/logout.png', isLast: true)),
         ],
       ),
     );

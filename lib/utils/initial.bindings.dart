@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../authentication/user.controller.dart' show UserController;
 import '../onboarding/controller/onboarding.controller.dart' show OnboardingController;
+import '../providers/health_provider.dart' show HealthProvider;
 import '../providers/language_provider.dart' show LanguageProvider;
 import '../providers/theme_provider.dart' show ThemeProvider;
 
@@ -12,6 +13,7 @@ class InitialBindings extends Bindings {
     Get.put(LanguageProvider());
     Get.put(UserController());
     Get.put(OnboardingController());
+    Get.put(HealthProvider());
     // LanguageProvider is now registered in main.dart to ensure same instance
     // This ensures both the main app and GetX use the same provider instance
   }

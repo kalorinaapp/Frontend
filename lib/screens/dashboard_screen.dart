@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart' show AppLocalizations;
 import '../providers/theme_provider.dart';
 import '../services/streak_service.dart';
 import 'log_streak_screen.dart' show LogStreakScreen;
+import 'set_goals_screen.dart' show SetGoalsScreen;
 
 enum StreakStatus {
   completed,
@@ -569,131 +570,139 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
 
   Widget _buildCompactMacroCard(String label, int current, int total, Color color) {
     double progress = current / total;
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(
-        color: CupertinoColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Progress circle
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Container(
-              width: 48,
-              height: 48,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Progress circle
-                  CustomPaint(
-                    size: Size(48, 48),
-                    painter: CircleProgressPainter(
-                      progress: progress,
-                      color: color,
-                      strokeWidth: 4,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SetGoalsScreen()),
+        );
+      },
+      child: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: CupertinoColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: CupertinoColors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Progress circle
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Container(
+                width: 48,
+                height: 48,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Progress circle
+                    CustomPaint(
+                      size: Size(48, 48),
+                      painter: CircleProgressPainter(
+                        progress: progress,
+                        color: color,
+                        strokeWidth: 4,
+                      ),
                     ),
-                  ),
-                  // Center icon based on label
-                  _getIconForMacro(label),
-                ],
+                    // Center icon based on label
+                    _getIconForMacro(label),
+                  ],
+                ),
               ),
             ),
-          ),
-          // Table-like container with label and amount
-          Expanded(
-            child: Container(
-              height: 80,
-              margin: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: CupertinoColors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.black.withOpacity(0.03),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Label as table header with gray background
-                  Container(
-                    width: double.infinity,
-                    height: 28,
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemGrey6,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      ),
+            // Table-like container with label and amount
+            Expanded(
+              child: Container(
+                height: 80,
+                margin: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CupertinoColors.black.withOpacity(0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
                     ),
-                    child: Center(
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: CupertinoColors.systemGrey,
-                          letterSpacing: 0.1,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Values as table content with white background
-                  Expanded(
-                    child: Container(
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Label as table header with gray background
+                    Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(10),
+                      height: 28,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: CupertinoColors.systemGrey6,
                         borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(12),
-                          bottomRight: Radius.circular(12),
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
                         ),
                       ),
                       child: Center(
-                        child: RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '$current',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: CupertinoColors.black,
-                                ),
-                              ),
-                              TextSpan(
-                                text: '/$total',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              ),
-                            ],
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: CupertinoColors.systemGrey,
+                            letterSpacing: 0.1,
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    // Values as table content with white background
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.white,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                        ),
+                        child: Center(
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '$current',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: CupertinoColors.black,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: '/$total',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: CupertinoColors.systemGrey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

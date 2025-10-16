@@ -1,10 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_constants.dart' show AppConstants;
 import '../services/meals_service.dart';
 import 'ingredient_details_screen.dart';
+import 'edit_meal_name_screen.dart';
+import 'edit_macro_screen.dart';
 
 class MealDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> mealData;
@@ -140,7 +143,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                   children: [
                     // const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () => _showEditMealNameSheet(context),
+                      onTap: () => _navigateToEditMealName(context),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -560,7 +563,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
 
   Widget _buildMacroCard(BuildContext context, String label, String value, String iconAsset) {
     return GestureDetector(
-      onTap: () => _showEditMacroSheet(context, label, value),
+      onTap: () => _navigateToEditMacro(context, label, value, iconAsset),
       child: Container(
         decoration: BoxDecoration(
           color: CupertinoColors.white,
@@ -889,174 +892,61 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     );
   }
 
-  void _showEditMacroSheet(BuildContext context, String label, String currentValue) {
-    final TextEditingController controller = TextEditingController(text: currentValue.replaceAll(' g', ''));
+  void _navigateToEditMacro(BuildContext context, String label, String currentValue, String iconAsset) {
+    final int initialValue = int.tryParse(currentValue.replaceAll(' g', '')) ?? 0;
     
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) => Container(
-        height: 300,
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              'Enter $label',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.black,
-              ),
-            ),
-            const SizedBox(height: 20),
-            
-            CupertinoTextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              placeholder: 'Enter $label',
-              style: const TextStyle(fontSize: 16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: const Color(0xFFE8E8E8),
-                  width: 1.5,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.all(12),
-              autofocus: true,
-            ),
-            
-            const Spacer(),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: CupertinoButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: CupertinoColors.systemGrey),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: CupertinoButton(
-                    color: CupertinoColors.black,
-                    onPressed: () async {
-                      final newValue = int.tryParse(controller.text) ?? 0;
-                      setState(() {
-                        if (label == 'Carbs') {
-                          _currentMealData['totalCarbs'] = newValue;
-                        } else if (label == 'Protein') {
-                          _currentMealData['totalProtein'] = newValue;
-                        } else if (label == 'Fats') {
-                          _currentMealData['totalFat'] = newValue;
-                        }
-                      });
-                      Navigator.of(context).pop();
-                      await _updateMeal();
-                    },
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(color: CupertinoColors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+    // Determine color based on macro type
+    Color color;
+    if (label == 'Carbs') {
+      color = CupertinoColors.systemOrange;
+    } else if (label == 'Protein') {
+      color = CupertinoColors.systemBlue;
+    } else if (label == 'Fats') {
+      color = CupertinoColors.systemRed;
+    } else {
+      color = CupertinoColors.systemGrey;
+    }
+    
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) => EditMacroScreen(
+          macroName: label,
+          iconAsset: iconAsset,
+          color: color,
+          initialValue: initialValue,
+          onValueChanged: (newValue) async {
+            setState(() {
+              if (label == 'Carbs') {
+                _currentMealData['totalCarbs'] = newValue;
+              } else if (label == 'Protein') {
+                _currentMealData['totalProtein'] = newValue;
+              } else if (label == 'Fats') {
+                _currentMealData['totalFat'] = newValue;
+              }
+            });
+            await _updateMeal();
+          },
         ),
       ),
     );
   }
 
-  void _showEditMealNameSheet(BuildContext context) {
+  Future<void> _navigateToEditMealName(BuildContext context) async {
     final mealName = (_currentMealData['mealName'] as String?)?.trim() ?? '';
-    final TextEditingController controller = TextEditingController(text: mealName);
     
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) => Container(
-        height: 300,
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-        ),
-        child: Column(
-          children: [
-            const Text(
-              'Enter Meal Name',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.black,
-              ),
-            ),
-            const SizedBox(height: 20),
-            
-            CupertinoTextField(
-              controller: controller,
-              placeholder: 'Enter meal name',
-              style: const TextStyle(fontSize: 16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: const Color(0xFFE8E8E8),
-                  width: 1.5,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.all(12),
-              autofocus: true,
-            ),
-            
-            const Spacer(),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: CupertinoButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: CupertinoColors.systemGrey),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: CupertinoButton(
-                    color: CupertinoColors.black,
-                    onPressed: () async {
-                      final newMealName = controller.text.trim();
-                      if (newMealName.isNotEmpty) {
-                        setState(() {
-                          _currentMealData['mealName'] = newMealName;
-                        });
-                        Navigator.of(context).pop();
-                        await _updateMeal();
-                      }
-                    },
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(color: CupertinoColors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+    final newName = await Navigator.push<String>(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => EditMealNameScreen(currentName: mealName),
       ),
     );
+    
+    if (newName != null && newName.isNotEmpty) {
+      setState(() {
+        _currentMealData['mealName'] = newName;
+      });
+      await _updateMeal();
+    }
   }
 
   void _showAddIngredientSheet(BuildContext context) {

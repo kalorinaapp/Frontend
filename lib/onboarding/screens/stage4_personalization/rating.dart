@@ -8,7 +8,6 @@ import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart' show OnboardingController;
 import '../../../providers/language_provider.dart';
-import '../../../l10n/app_localizations.dart';
 
 class RatingPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -284,8 +283,6 @@ class _RatingPageState extends State<RatingPage>
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    
     return ListenableBuilder(
       listenable: widget.themeProvider,
       builder: (context, child) {

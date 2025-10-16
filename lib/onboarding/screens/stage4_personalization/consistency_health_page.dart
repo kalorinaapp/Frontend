@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
-import '../../controller/onboarding.controller.dart';
 
 class ConsistencyHealthPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -16,14 +14,6 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-
-  late OnboardingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<OnboardingController>();
-  }
 
   @override
   Widget build(BuildContext context) {

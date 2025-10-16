@@ -93,20 +93,6 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
     }
   }
 
-  // Get personalized progress description based on weight category
-  String _getPersonalizedProgressDescription() {
-    final double currentWeight = _getCurrentWeight();
-    
-    if (currentWeight < 60) {
-      return 'During the first few days, your body is adapting and your metabolism is finding its rhythm. Based on Kalorina\'s data, by around day 10, fat burning starts to accelerate and your progress really starts to show!';
-    } else if (currentWeight < 80) {
-      return 'During the first few days, your body is adapting and your metabolism is finding its rhythm. Based on Kalorina\'s data, by around day 10, fat burning starts to accelerate and your progress really starts to show!';
-    } else if (currentWeight < 100) {
-      return 'Your body will need time to adjust to the new routine. During the first week, focus on building healthy habits. Based on Kalorina\'s data, by around day 10, you\'ll start seeing consistent progress!';
-    } else {
-      return 'Your journey to better health starts with small, consistent changes. During the first few days, your body is adapting. Based on Kalorina\'s data, by around day 10, you\'ll begin to see meaningful progress!';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,59 +192,4 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
     );
   }
 
-  Widget _buildProgressChart() {
-    return Column(
-      children: [
-        // Chart bars
-        SizedBox(
-          height: 120,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildBar(height: 40, color: CupertinoColors.systemGrey4),
-              _buildBar(height: 60, color: CupertinoColors.systemGrey4),
-              _buildBar(height: 80, color: CupertinoColors.systemGrey4),
-              _buildBar(height: 120, color: CupertinoColors.systemOrange),
-            ],
-          ),
-        ),
-        
-        const SizedBox(height: 12),
-        
-        // Chart labels
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildLabel('Day 3'),
-            _buildLabel('Day 7'),
-            _buildLabel('Day 10'),
-            _buildLabel('Day 30'),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBar({required double height, required Color color}) {
-    return Container(
-      width: 30,
-      height: height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: ThemeHelper.body1.copyWith(
-        color: CupertinoColors.black,
-        fontSize: 14,
-        fontWeight: FontWeight.normal,
-      ),
-    );
-  }
 }

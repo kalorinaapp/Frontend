@@ -1,11 +1,16 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../l10n/app_localizations.dart' show AppLocalizations;
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
+import '../providers/health_provider.dart';
 import '../utils/theme_helper.dart';
+import '../constants/app_constants.dart';
+import '../authentication/user.controller.dart';
 import 'health_consistency_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
   final LanguageProvider languageProvider;
 
@@ -16,11 +21,36 @@ class ProfileScreen extends StatelessWidget {
   });
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  late UserController userController;
+  late HealthProvider healthProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    userController = Get.find<UserController>();
+    healthProvider = Get.find<HealthProvider>();
+  }
+
+  Future<void> _updateUserField(String field, dynamic value) async {
+    await userController.updateUser(
+      AppConstants.userId,
+      {field: value},
+      context,
+      widget.themeProvider,
+      widget.languageProvider,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
     return ListenableBuilder(
-      listenable: Listenable.merge([themeProvider, languageProvider]),
+      listenable: Listenable.merge([widget.themeProvider, widget.languageProvider]),
       builder: (context, child) {
         return CupertinoPageScaffold(
           backgroundColor: ThemeHelper.background,
@@ -41,11 +71,197 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           child: SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 20),
+                  
+                  // User Profile Section
+                  Obx(() {
+                    final firstName = userController.userData['firstName'] ?? '';
+                    final lastName = userController.userData['lastName'] ?? '';
+                    final fullName = '$firstName $lastName'.trim();
+                    final email = userController.userData['email'] ?? '';
+                    
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: CupertinoColors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          // Profile Avatar
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemGrey5,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                fullName.isNotEmpty ? fullName[0].toUpperCase() : 'U',
+                                style: const TextStyle(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  color: CupertinoColors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Name
+                          GestureDetector(
+                            onTap: () => _showEditNameDialog(fullName),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  fullName.isNotEmpty ? fullName : 'Set Name',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: CupertinoColors.black,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(CupertinoIcons.pencil, size: 16, color: CupertinoColors.systemGrey),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          // Email
+                          Text(
+                            email,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: CupertinoColors.systemGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Personal Info Section
+                  Text(
+                    'Personal Information',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: CupertinoColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Personal Info Cards
+                  Obx(() => _buildInfoCard(
+                    icon: 'assets/icons/weights.png',
+                    title: 'Weight',
+                    value: '${userController.userData['weight'] ?? '-'} kg',
+                    onTap: () => _showEditDialog('Weight', 'weight', userController.userData['weight']),
+                  )),
+                  const SizedBox(height: 12),
+                  
+                  Obx(() => _buildInfoCard(
+                    icon: 'assets/icons/up.png',
+                    title: 'Height',
+                    value: '${userController.userData['height'] ?? '-'} cm',
+                    onTap: () => _showEditDialog('Height', 'height', userController.userData['height']),
+                  )),
+                  const SizedBox(height: 12),
+                  
+                  Obx(() {
+                    final age = userController.userData['age'];
+                    return _buildInfoCard(
+                      icon: 'assets/icons/profile.png',
+                      title: 'Age',
+                      value: age != null ? '$age years' : '-',
+                      onTap: () => _showEditDialog('Age', 'age', age),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  
+                  Obx(() {
+                    final gender = userController.userData['gender'] ?? '-';
+                    return _buildInfoCard(
+                      icon: gender == 'male' ? 'assets/icons/male.png' : 'assets/icons/female.png',
+                      title: 'Gender',
+                      value: gender.toString().capitalize ?? '-',
+                      onTap: () => _showGenderDialog(),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  
+                  Obx(() {
+                    final stepsGoal = healthProvider.stepsGoal;
+                    return _buildInfoCard(
+                      icon: 'assets/icons/steps.png',
+                      title: 'Daily Steps Goal',
+                      value: '$stepsGoal steps',
+                      onTap: () => _showEditDialog('Steps Goal', 'stepsGoal', stepsGoal),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  
+                  // Add Burned Calories Toggle
+                  Obx(() {
+                    final addBurnedCalories = userController.userData['addBurnedCaloriesToGoal'] ?? false;
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: CupertinoColors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Image.asset('assets/icons/flame_black.png', width: 24, height: 24),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              'Add Burned Calories to Goal',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: CupertinoColors.black,
+                              ),
+                            ),
+                          ),
+                          CupertinoSwitch(
+                            activeColor: CupertinoColors.black,
+                            value: addBurnedCalories,
+                            onChanged: (value) {
+                              _updateUserField('addBurnedCaloriesToGoal', value);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  
+                  const SizedBox(height: 40),
+                  
                   const SizedBox(height: 20),
                   
                   // Language Section
@@ -118,7 +334,7 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.of(context).push(
                         CupertinoPageRoute(
                           builder: (context) => HealthConsistencyScreen(
-                            themeProvider: themeProvider,
+                            themeProvider: widget.themeProvider,
                           ),
                         ),
                       );
@@ -155,11 +371,203 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildInfoCard({
+    required String icon,
+    required String title,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: CupertinoColors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: CupertinoColors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Image.asset(icon, width: 24, height: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: CupertinoColors.systemGrey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: CupertinoColors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              CupertinoIcons.pencil,
+              color: CupertinoColors.systemGrey,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditNameDialog(String currentName) {
+    final TextEditingController controller = TextEditingController(text: currentName);
+    
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Edit Name'),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: CupertinoTextField(
+            controller: controller,
+            placeholder: 'Enter your name',
+            autofocus: true,
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () async {
+              final newName = controller.text.trim();
+              if (newName.isNotEmpty) {
+                final parts = newName.split(' ');
+                final firstName = parts.isNotEmpty ? parts[0] : '';
+                final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+                
+                await userController.updateUser(
+                  AppConstants.userId,
+                  {
+                    'firstName': firstName,
+                    'lastName': lastName,
+                  },
+                  context,
+                  widget.themeProvider,
+                  widget.languageProvider,
+                );
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditDialog(String fieldName, String fieldKey, dynamic currentValue) {
+    final TextEditingController controller = TextEditingController(
+      text: currentValue?.toString() ?? '',
+    );
+    
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text('Edit $fieldName'),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: CupertinoTextField(
+            controller: controller,
+            placeholder: 'Enter $fieldName',
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            autofocus: true,
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () async {
+              final valueText = controller.text.trim();
+              if (valueText.isNotEmpty) {
+                final numValue = num.tryParse(valueText);
+                if (numValue != null) {
+                  if (fieldKey == 'stepsGoal') {
+                    healthProvider.setStepsGoal(numValue.toInt());
+                  } else {
+                    await _updateUserField(fieldKey, numValue);
+                  }
+                }
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGenderDialog() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Select Gender'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () async {
+                await _updateUserField('gender', 'male');
+                Navigator.of(context).pop();
+              },
+              child: const Text('Male'),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () async {
+                await _updateUserField('gender', 'female');
+                Navigator.of(context).pop();
+              },
+              child: const Text('Female'),
+            ),
+          ],
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLanguageOption(BuildContext context, String languageCode, String languageName) {
-    final isSelected = languageProvider.currentLocale.languageCode == languageCode;
+    final isSelected = widget.languageProvider.currentLocale.languageCode == languageCode;
     
     return GestureDetector(
-      onTap: () => languageProvider.changeLanguage(languageCode),
+      onTap: () => widget.languageProvider.changeLanguage(languageCode),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),

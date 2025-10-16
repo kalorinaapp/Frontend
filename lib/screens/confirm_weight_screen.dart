@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import '../services/progress_service.dart';
 import 'progress_photos_screen.dart' show ProgressPhotosScreen, ProgressPhotoItem;
+import '../utils/user.prefs.dart' show UserPrefs;
 
 class ConfirmWeightScreen extends StatefulWidget {
   final String weightLabel; // e.g. "64.7 kg"
@@ -187,6 +188,7 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
                       );
                       final bool ok = (res != null && (res['success'] == true || res['message'] == 'ok'));
                       if (ok) {
+                        await UserPrefs.setLastWeighInNow();
                         // Build photo items with simple label
                         final String dateLabel = _formatDateLabel(DateTime.now());
                         final String label = ((weight ?? 0) > 0) ? '${weight!.toStringAsFixed(1)} kg - $dateLabel' : dateLabel;

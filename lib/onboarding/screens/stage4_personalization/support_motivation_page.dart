@@ -1,9 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
-import '../../../utils/theme_helper.dart';
-import '../../controller/onboarding.controller.dart';
 
 class SupportMotivationPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -18,14 +15,6 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-
-  late OnboardingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<OnboardingController>();
-  }
 
   @override
   Widget build(BuildContext context) {

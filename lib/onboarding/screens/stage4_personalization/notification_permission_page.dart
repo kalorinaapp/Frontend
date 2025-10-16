@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../providers/theme_provider.dart';
-import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
 
 class NotificationPermissionPage extends StatefulWidget {

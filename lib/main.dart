@@ -9,6 +9,7 @@ import 'l10n/app_localizations.dart' show AppLocalizations;
 import 'onboarding_screen.dart' show OnboardingScreen;
 import 'providers/theme_provider.dart';
 import 'providers/language_provider.dart';
+import 'utils/app.initilizations.dart' show AppInitializationMethods;
 import 'utils/initial.bindings.dart' show InitialBindings;
 import 'utils/theme_helper.dart';
 import 'constants/app_constants.dart' show AppConstants;
@@ -19,6 +20,9 @@ void main() async {
     url: 'https://yfhumomhyxutkofmlalo.supabase.co', 
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaHVtb21oeXh1dGtvZm1sYWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2OTc1MDQsImV4cCI6MjA2NzI3MzUwNH0.QtQkjJVrSnKm81Fv3SD6QVGPs_ZnRTfRB_F7yKoFQNg'
   );
+
+    final appInitializationMethods = AppInitializationMethods();
+  await appInitializationMethods.initialize();
   runApp(const CalorieAIApp());
 }
 
@@ -43,6 +47,9 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
   Future<void> _initializeProviders() async {
     themeProvider = ThemeProvider();
     languageProvider = LanguageProvider();
+
+
+
     
     // Wait for language to load from SharedPreferences
     await languageProvider.initialize();

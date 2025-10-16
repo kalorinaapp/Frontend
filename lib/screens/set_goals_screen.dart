@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
+import 'package:get/get.dart';
+import '../automatic_generation_pageview.dart' show AutomaticGenerationPageview;
 import '../utils/theme_helper.dart' show ThemeHelper;
+import '../providers/theme_provider.dart' show ThemeProvider;
 
 class SetGoalsScreen extends StatefulWidget {
   // final ThemeProvider themeProvider;
@@ -80,7 +83,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                   _buildMacroCard(
                     'Kalorije',
                     _caloriesController,
-                    'flame', // Your asset placeholder
+                    'assets/icons/apple.png', // Your asset placeholder
                   ),
                   
                   const SizedBox(height: 16),
@@ -89,7 +92,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                   _buildMacroCard(
                     'Ugljikohidrati',
                     _carbsController,
-                    'wheat', // Your asset placeholder
+                    'assets/icons/carbs.png', // Your asset placeholder
                   ),
                   
                   const SizedBox(height: 16),
@@ -98,7 +101,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                   _buildMacroCard(
                     'Proteini',
                     _proteinController,
-                    'protein', // Your asset placeholder
+                    'assets/icons/drumstick.png', // Your asset placeholder
                   ),
                   
                   const SizedBox(height: 16),
@@ -107,7 +110,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                   _buildMacroCard(
                     'Masti',
                     _fatsController,
-                    'fat', // Your asset placeholder
+                    'assets/icons/fat.png', // Your asset placeholder
                   ),
                   
                   const SizedBox(height: 60),
@@ -154,6 +157,10 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                       color: CupertinoColors.white,
                       borderRadius: BorderRadius.circular(16),
                       onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => AutomaticGenerationPageview(themeProvider: Get.find<ThemeProvider>())),
+                        );
                         // Handle AI generation
                       },
                       child: Text(
@@ -228,10 +235,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                     
                     // Icon placeholder - you will replace with your assets
                     Center(
-                      child: Text(
-                        _getIconPlaceholder(assetName),
-                        style: TextStyle(fontSize: 20),
-                      ),
+                      child: Image.asset(assetName, width: assetName == 'assets/icons/apple.png' ? 36 : 24, height: assetName == 'assets/icons/apple.png' ? 36 : 24),
                     ),
                   ],
                 ),
@@ -243,18 +247,4 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
     );
   }
 
-  String _getIconPlaceholder(String assetName) {
-    switch (assetName) {
-      case 'flame':
-        return '🔥';
-      case 'wheat':
-        return '🌾';
-      case 'protein':
-        return '💧';
-      case 'fat':
-        return '🔴';
-      default:
-        return '📊';
-    }
-  }
 }

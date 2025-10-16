@@ -11,6 +11,7 @@ import '../authentication/user.controller.dart' show UserController;
 import '../constants/app_constants.dart' show AppConstants;
 import 'desired_weight_update_screen.dart' show DesiredWeightUpdateScreen;
 import '../services/progress_service.dart';
+import '../utils/user.prefs.dart' show UserPrefs;
 
 class ProgressScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
@@ -104,7 +105,33 @@ class ProgressScreen extends StatelessWidget {
   }
 }
 
-class _HeaderBadge extends StatelessWidget {
+class _HeaderBadge extends StatefulWidget {
+  @override
+  State<_HeaderBadge> createState() => _HeaderBadgeState();
+}
+
+class _HeaderBadgeState extends State<_HeaderBadge> {
+  int _daysRemaining = 7;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final int rem = await UserPrefs.daysUntilNextWeighIn(cadenceDays: 7);
+    if (!mounted) return;
+    setState(() {
+      _daysRemaining = rem;
+    });
+  }
+
+  String _label() {
+    if (_daysRemaining <= 0) return 'Weigh-in due';
+    return 'Next weigh-in: ${_daysRemaining}d';
+    }
+
   @override
   Widget build(BuildContext context) {
     return Align(
@@ -119,7 +146,7 @@ class _HeaderBadge extends StatelessWidget {
           ],
         ),
         child: Text(
-          'Next weigh-in: 7d',
+          _label(),
           style: ThemeHelper.textStyleWithColor(ThemeHelper.footnote, Colors.white),
         ),
       ),
