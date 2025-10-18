@@ -21,16 +21,16 @@ class AppLocalizationsSr extends AppLocalizations {
   String get settings => 'Postavke';
 
   @override
-  String get calories => 'Kalorije';
+  String get calories => 'калорије';
 
   @override
-  String get carbs => 'Ugljikohidrati';
+  String get carbs => 'Угљени Хидрати';
 
   @override
-  String get protein => 'Proteini';
+  String get protein => 'Протеини';
 
   @override
-  String get fats => 'Masti';
+  String get fats => 'Масти';
 
   @override
   String get setYourGoals => 'Postavi Svoje Ciljeve';
@@ -234,7 +234,7 @@ class AppLocalizationsSr extends AppLocalizations {
       'Gentle reminders keep you consistent.';
 
   @override
-  String get language => 'Jezik';
+  String get language => 'Језик';
 
   @override
   String get english => 'English';
@@ -311,4 +311,576 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get yesStillDoing => 'Da, i još uvek to radim.';
+
+  @override
+  String get logStreak => 'Log Streak';
+
+  @override
+  String get caloriesMoreToGo => 'Calories more to go!';
+
+  @override
+  String get todaysLunchTotals => 'Today\'s lunch totals';
+
+  @override
+  String get mealTotals => 'Meal totals';
+
+  @override
+  String get consistencyMatters =>
+      'Consistency matters for achieving your goals!';
+
+  @override
+  String get continueButton => 'Continue';
+
+  @override
+  String get kalorina => 'Kalorina';
+
+  @override
+  String get exercise => 'Exercise';
+
+  @override
+  String get cardio => 'Cardio';
+
+  @override
+  String get cardioSubtitle =>
+      'Log runs, cycling, HIIT, or any endurance activity';
+
+  @override
+  String get weightTraining => 'Weight Training';
+
+  @override
+  String get weightTrainingSubtitle =>
+      'Track gym sessions, sets, and strength exercises';
+
+  @override
+  String get describeExercise => 'Describe Exercise';
+
+  @override
+  String get describeExerciseSubtitle => 'Let AI calculate calories burned';
+
+  @override
+  String get directInput => 'Директан Унос';
+
+  @override
+  String get directInputSubtitle => 'Type in calories burned yourself';
+
+  @override
+  String get food => 'Food';
+
+  @override
+  String get myMeals => 'Моји Оброци';
+
+  @override
+  String get myMealsSubtitle =>
+      'Track gym sessions, sets, and strength exercises';
+
+  @override
+  String get myFoods => 'Моја Храна';
+
+  @override
+  String get myFoodsSubtitle => 'Let AI calculate calories burned';
+
+  @override
+  String get savedScans => 'Сачувани Скенови';
+
+  @override
+  String get savedScansSubtitle => 'Type in calories burned yourself';
+
+  @override
+  String get directInputFood => 'Direct Input';
+
+  @override
+  String get directInputFoodSubtitle => 'Type in what you ate yourself';
+
+  @override
+  String get howDoesItWork => 'How does it work?';
+
+  @override
+  String get currentStreak => 'Current streak';
+
+  @override
+  String get longestStreak => 'Longest streak';
+
+  @override
+  String get day => 'day';
+
+  @override
+  String get days => 'days';
+
+  @override
+  String get successfulDay => 'Successful day';
+
+  @override
+  String get failedDay => 'Failed day';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get error => 'Error';
+
+  @override
+  String get success => 'Success';
+
+  @override
+  String get info => 'Info';
+
+  @override
+  String get failedToCreateStreak => 'Failed to create streak';
+
+  @override
+  String get streakUndoneFor => 'Streak undone for';
+
+  @override
+  String get noStreakToUndoFor => 'No streak to undo for';
+
+  @override
+  String get howDoesItWorkTitle => 'How does it work?';
+
+  @override
+  String get howDoesItWorkDescription =>
+      'Every day, you can log your fire to reflect on whether you felt like you truly achieved what you wanted.';
+
+  @override
+  String get successfulDescription =>
+      'Successful → You reached your daily goal or feel satisfied with your progress.';
+
+  @override
+  String get failedDescription =>
+      'Failed → You didn\'t meet your goal or the day didn\'t go as planned.';
+
+  @override
+  String get streakExplanation =>
+      'Your fires build streaks that show your consistency. The longer you log honestly, the clearer you\'ll see your real progress.';
+
+  @override
+  String get logExercise => 'Пријави вежбу';
+
+  @override
+  String get weightTrainingTab => 'Тренинг са теговима';
+
+  @override
+  String get describeTab => 'Опиши';
+
+  @override
+  String get directInputTab => 'Директан унос';
+
+  @override
+  String get low => 'Низак';
+
+  @override
+  String get medium => 'Средњи';
+
+  @override
+  String get high => 'Висок';
+
+  @override
+  String get intensity => 'Интензитет';
+
+  @override
+  String get duration => 'Трајање';
+
+  @override
+  String get fifteenMin => '15 мин';
+
+  @override
+  String get thirtyMin => '30 мин';
+
+  @override
+  String get fortyFiveMin => '45 мин';
+
+  @override
+  String get sixtyMin => '60 мин';
+
+  @override
+  String get logging => 'Пријављивање...';
+
+  @override
+  String get add => 'Додај';
+
+  @override
+  String get aiPowered => 'Покреће ИА';
+
+  @override
+  String get explainWorkoutPlaceholder => 'Објасни трајање вежбе, напор, итд.';
+
+  @override
+  String get workoutExample =>
+      'Пример: \"Тренинг горњег дела тела, 45 мин, средњи напор\"';
+
+  @override
+  String get estimating => 'Процена...';
+
+  @override
+  String get aiEstimate => 'ИА процена';
+
+  @override
+  String get whyThisEstimate => 'Зашто ова процена';
+
+  @override
+  String get typeCaloriesBurned => 'Унеси спаљене калорије сам';
+
+  @override
+  String get zeroPlaceholder => '0';
+
+  @override
+  String get nearSprintingDescription => 'Готово спринт, тешко одржати дуго';
+
+  @override
+  String get steadyRunDescription => 'Стабилно трчање, подношљив напор';
+
+  @override
+  String get briskWalkDescription => 'Брза шетња, удобно дисање';
+
+  @override
+  String get heavyWeightsDescription =>
+      'Тешки тегови, близу максималног напора';
+
+  @override
+  String get moderateWeightsDescription => 'Умерени тегови, знојење';
+
+  @override
+  String get lightWeightsDescription => 'Лаки тегови, без знојења';
+
+  @override
+  String get logFood => 'Забележи Храну';
+
+  @override
+  String get all => 'Све';
+
+  @override
+  String get searchMeals => 'Претражи оброке...';
+
+  @override
+  String get searchFoods => 'Претражи храну...';
+
+  @override
+  String get searchScannedMeals => 'Претражи скениране оброке...';
+
+  @override
+  String get chickenBr => 'Пиле br';
+
+  @override
+  String get suggestions => 'Предлози';
+
+  @override
+  String get noSuggestionsAvailable => 'Нема доступних предлога';
+
+  @override
+  String get noMealsSavedYet => 'Још нема сачуваних оброка';
+
+  @override
+  String get noFoodsCreatedYet => 'Још нема створене хране';
+
+  @override
+  String get createFood => 'Створи Храну';
+
+  @override
+  String get yourSavedScansWillAppearHere =>
+      'Ваши сачувани скенови ће се појавити овде';
+
+  @override
+  String get savedScansContentComingSoon => 'Садржај сачуваних скенова ускоро';
+
+  @override
+  String get editName => 'Уреди Име';
+
+  @override
+  String get caloriesLabel => 'Калорије';
+
+  @override
+  String get caloriesPlaceholder => '512';
+
+  @override
+  String get ingredients => 'Састојци';
+
+  @override
+  String get addMore => 'Додај Више';
+
+  @override
+  String get amount => 'Количина';
+
+  @override
+  String get saveFood => 'Сачувај Храну';
+
+  @override
+  String get createAMeal => 'Створи Оброк';
+
+  @override
+  String get enterAmount => 'Унеси Количину';
+
+  @override
+  String get enterAmountPlaceholder => 'Унеси количину';
+
+  @override
+  String get cancel => 'Откажи';
+
+  @override
+  String get save => 'Сачувај';
+
+  @override
+  String get name => 'Име *';
+
+  @override
+  String get enterIngredientName => 'Унеси име састојка';
+
+  @override
+  String get quantityUnit => 'Количина и Јединица';
+
+  @override
+  String get amountPlaceholder => 'Количина';
+
+  @override
+  String get unitPlaceholder => 'Јединица (г, шоља, кашика)';
+
+  @override
+  String get nutritionOptional => 'Исхрана (Опционо)';
+
+  @override
+  String get caloriesPlaceholder2 => 'Калорије';
+
+  @override
+  String get proteinG => 'Протеини (г)';
+
+  @override
+  String get carbsG => 'Угљени Хидрати (г)';
+
+  @override
+  String get fatG => 'Масти (г)';
+
+  @override
+  String get editIngredient => 'Уреди Састојак';
+
+  @override
+  String get addIngredient => 'Додај Састојак';
+
+  @override
+  String get scannedMeal => 'Скениран Оброк';
+
+  @override
+  String get setName => 'Постави Име';
+
+  @override
+  String get personalInformation => 'Личне Информације';
+
+  @override
+  String get weight => 'Тежина';
+
+  @override
+  String get height => 'Висина';
+
+  @override
+  String get age => 'Доб';
+
+  @override
+  String get gender => 'Пол';
+
+  @override
+  String get dailyStepsGoal => 'Дневни циљ корака';
+
+  @override
+  String get addBurnedCaloriesToGoal => 'Додај Спаљене Калорије у Циљ';
+
+  @override
+  String get account => 'Налог';
+
+  @override
+  String get manageYourProfileAndAccountSettings =>
+      'Управљај својим профилом и подешавањима налога';
+
+  @override
+  String get healthTracking => 'Праћење Здравља';
+
+  @override
+  String get viewYourHealthConsistencyAndProgress =>
+      'Погледај своју здравствену доследност и напредак';
+
+  @override
+  String get notifications => 'Обавештења';
+
+  @override
+  String get configureYourNotificationPreferences =>
+      'Конфигуриши своје поставке обавештења';
+
+  @override
+  String get about => 'О Апликацији';
+
+  @override
+  String get appVersionAndInformation => 'Верзија апликације и информације';
+
+  @override
+  String get enterYourName => 'Унеси своје име';
+
+  @override
+  String get selectGender => 'Одабери Пол';
+
+  @override
+  String get male => 'Мушки';
+
+  @override
+  String get female => 'Женски';
+
+  @override
+  String get years => 'година';
+
+  @override
+  String get steps => 'корака';
+
+  @override
+  String get progress => 'Напредак';
+
+  @override
+  String get myWeight => 'Моја Тежина';
+
+  @override
+  String get logWeight => 'Пријави Тежину';
+
+  @override
+  String get targetWeight => 'Циљна Тежина';
+
+  @override
+  String get update => 'Ажурирај';
+
+  @override
+  String get toTargetWeight => 'До циљне тежине';
+
+  @override
+  String get weightGoalProgress => 'Напредак Циља Тежине';
+
+  @override
+  String get thirtyDays => '30 Дана';
+
+  @override
+  String get ninetyDays => '90 Дана';
+
+  @override
+  String get sixMonths => '6 Месеци';
+
+  @override
+  String get oneYear => '1 Година';
+
+  @override
+  String get allTime => 'Све Време';
+
+  @override
+  String get start => 'Почетак';
+
+  @override
+  String get now => 'Сада';
+
+  @override
+  String get avgDailyProgress => 'Просечни дневни напредак';
+
+  @override
+  String get avgDailyLost => 'Просечно дневно изгубљено';
+
+  @override
+  String get avgDailyGained => 'Просечно дневно добијено';
+
+  @override
+  String get addProgressPhoto => 'Додај Фотографију Напретка';
+
+  @override
+  String get camera => 'Камера';
+
+  @override
+  String get progressPhotos => 'Фотографије Напретка';
+
+  @override
+  String get seeProgress => 'Види напредак';
+
+  @override
+  String get uploadPhoto => 'Учитај Фотографију';
+
+  @override
+  String get upload => 'Учитај';
+
+  @override
+  String get stepsToday => 'Кораци Данас';
+
+  @override
+  String get tapToEnableHealthPermissions =>
+      'Додирни за омогућавање здравствених дозвола';
+
+  @override
+  String get addBurnedCaloriesToDailyGoal =>
+      'Додај спаљене калорије у дневни циљ';
+
+  @override
+  String get caloriesBurned => 'Спаљене Калорије';
+
+  @override
+  String get kg => 'кг';
+
+  @override
+  String get sinceLastWeighIn => 'од последњег мерења';
+
+  @override
+  String get kgPerDay => 'кг/дан';
+
+  @override
+  String get kgToGo => 'кг до циља';
+
+  @override
+  String get greatJob => 'Одлично';
+
+  @override
+  String get youGained => 'Добио си';
+
+  @override
+  String get weighInDue => 'Мерење потребно';
+
+  @override
+  String nextWeighIn(Object days) {
+    return 'Следеће мерење: $daysд';
+  }
+
+  @override
+  String get enterUsername => 'Унесите корисничко име';
+
+  @override
+  String get birthday => 'Рођендан';
+
+  @override
+  String get personalDetails => 'Лични подаци';
+
+  @override
+  String get rolloverLeftOverCalories =>
+      'Преноси до 200 преосталих калорија од јуче';
+
+  @override
+  String get addBurnedCalories => 'Додај спаљене калорије';
+
+  @override
+  String get inviteFriends => 'Позови пријатеље';
+
+  @override
+  String get adjustMacronutrients => 'Прилагоди макронутријенте';
+
+  @override
+  String get support => 'Подршка';
+
+  @override
+  String get privacyPolicy => 'Политика приватности';
+
+  @override
+  String get termsAndConditions => 'Услови и одредбе';
+
+  @override
+  String get deleteAccount => 'Обриши налог';
+
+  @override
+  String get logout => 'Одјава';
+
+  @override
+  String get deleteAccountTitle => 'Обрисати налог?';
+
+  @override
+  String get accountWillBePermanentlyDeleted => 'Налог ће бити трајно обрисан';
+
+  @override
+  String get logoutTitle => 'Одјавити се?';
+
+  @override
+  String get areYouSureYouWantToLogOut =>
+      'Да ли сте сигурни да се желите одјавити?';
 }

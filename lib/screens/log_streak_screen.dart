@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 import '../services/streak_service.dart';
+import '../l10n/app_localizations.dart';
 
 class LogStreakScreen extends StatefulWidget {
   const LogStreakScreen({super.key});
@@ -32,11 +33,12 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final DateTime now = DateTime.now();
     final DateTime firstOfMonth = DateTime(now.year, now.month, 1);
     final DateTime firstOfNextMonth = DateTime(now.year, now.month + 1, 1);
     final int daysInMonth = firstOfNextMonth.difference(firstOfMonth).inDays;
-    final String monthTitle = DateFormat('LLLL, y').format(now); // e.g., September, 2025
+    final String monthTitle = DateFormat('LLLL, y', Localizations.localeOf(context).toString()).format(now); // e.g., September, 2025
     final int today = now.day;
 
     return CupertinoPageScaffold(
@@ -80,12 +82,12 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minSize: 24,
                     onPressed: () => _showHowItWorksDialog(context),
-                    child: const SizedBox(
+                    child: SizedBox(
                       width: 120,
                       child: Text(
-                        'How does it work?',
+                        l10n.howDoesItWork,
                         textAlign: TextAlign.right,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Color(0xB21E1822),
                           fontSize: 12,
                           fontFamily: 'Instrument Sans',
@@ -102,7 +104,7 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
             const SizedBox(height: 12),
              Center(
                child: Text(
-                 'Log Streak',
+                 l10n.logStreak,
                  textAlign: TextAlign.center,
                  style: const TextStyle(
                    color: Colors.black,
@@ -127,12 +129,12 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                   children: [
                     FractionallySizedBox(
                       widthFactor: 0.6,
-                      child: _summaryPill('🔥', 'Current streak: $currentStreak ${currentStreak == 1 ? 'day' : 'days'}'),
+                      child: _summaryPill('🔥', '${l10n.currentStreak}: $currentStreak ${currentStreak == 1 ? l10n.day : l10n.days}'),
                     ),
                     const SizedBox(height: 8),
                     FractionallySizedBox(
                       widthFactor: 0.6,
-                      child: _summaryPill('🏆', 'Longest streak: $longestStreak ${longestStreak == 1 ? 'day' : 'days'}'),
+                      child: _summaryPill('🏆', '${l10n.longestStreak}: $longestStreak ${longestStreak == 1 ? l10n.day : l10n.days}'),
                     ),
                   ],
                 );
@@ -224,6 +226,7 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
   }
 
   static void _showHowItWorksDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -241,10 +244,10 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Title - centered
-              const Center(
+              Center(
                 child: Text(
-                  'How does it work?',
-                  style: TextStyle(
+                  l10n.howDoesItWorkTitle,
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 24,
                     fontFamily: 'Instrument Sans',
@@ -254,9 +257,9 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
               ),
               const SizedBox(height: 24),
               // Content - left aligned
-              const Text(
-                'Every day, you can log your fire to reflect on whether you felt like you truly achieved what you wanted.',
-                style: TextStyle(
+              Text(
+                l10n.howDoesItWorkDescription,
+                style: const TextStyle(
                   color: Colors.black,
                   fontSize: 16,
                   fontFamily: 'Instrument Sans',
@@ -270,10 +273,10 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                 children: [
                   Image.asset('assets/icons/flame.png', width: 24, height: 24),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Successful → You reached your daily goal or feel satisfied with your progress.',
-                      style: TextStyle(
+                      l10n.successfulDescription,
+                      style: const TextStyle(
                         color: Colors.black,
                         fontSize: 16,
                         fontFamily: 'Instrument Sans',
@@ -290,10 +293,10 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                 children: [
                   Image.asset('assets/icons/flame_missed.png', width: 24, height: 24),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Failed → You didn\'t meet your goal or the day didn\'t go as planned.',
-                      style: TextStyle(
+                      l10n.failedDescription,
+                      style: const TextStyle(
                         color: Colors.black,
                         fontSize: 16,
                         fontFamily: 'Instrument Sans',
@@ -305,9 +308,9 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Your fires build streaks that show your consistency. The longer you log honestly, the clearer you\'ll see your real progress.',
-                style: TextStyle(
+              Text(
+                l10n.streakExplanation,
+                style: const TextStyle(
                   color: Colors.black,
                   fontSize: 16,
                   fontFamily: 'Instrument Sans',
@@ -347,7 +350,7 @@ class _MonthGrid extends StatelessWidget {
           final List<Widget> tiles = List.generate(daysInMonth, (i) {
             final int day = i + 1;
             final DateTime date = DateTime(monthStart.year, monthStart.month, day);
-            final String label = DateFormat('MMM d, y').format(date);
+            final String label = DateFormat('MMM d, y', Localizations.localeOf(context).toString()).format(date);
 
             // Get status from streak service
             _DayStatus status;
@@ -460,10 +463,11 @@ class _DayTile extends StatelessWidget {
   }
 
   void _showDayOptionsDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
           width: 60,
@@ -487,8 +491,8 @@ class _DayTile extends StatelessWidget {
               // Successful day option
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).pop();
-                  _handleStreakAction('Successful');
+                  Navigator.of(dialogContext).pop();
+                  _handleStreakAction('Successful', context);
                 },
                 child: Container(
                   width: double.infinity,
@@ -498,9 +502,9 @@ class _DayTile extends StatelessWidget {
                     children: [
                       Image.asset('assets/icons/flame.png', width: 24, height: 24),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Successful day',
-                        style: TextStyle(
+                      Text(
+                        l10n.successfulDay,
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 13,
                           fontFamily: 'Instrument Sans',
@@ -520,8 +524,8 @@ class _DayTile extends StatelessWidget {
               // Failed day option
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).pop();
-                  _handleStreakAction('Failed');
+                  Navigator.of(dialogContext).pop();
+                  _handleStreakAction('Failed', context);
                 },
                 child: Container(
                   width: double.infinity,
@@ -531,9 +535,9 @@ class _DayTile extends StatelessWidget {
                     children: [
                       Image.asset('assets/icons/flame_missed.png', width: 24, height: 24),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Failed day',
-                        style: TextStyle(
+                      Text(
+                        l10n.failedDay,
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 13,
                           fontFamily: 'Instrument Sans',
@@ -553,8 +557,8 @@ class _DayTile extends StatelessWidget {
               // Undo option
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).pop();
-                  _handleStreakAction('Undo');
+                  Navigator.of(dialogContext).pop();
+                  _handleStreakAction('Undo', context);
                 },
                 child: Container(
                   width: double.infinity,
@@ -564,9 +568,9 @@ class _DayTile extends StatelessWidget {
                     children: [
                        Image.asset('assets/icons/undo.png', width: 16, height: 16),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Undo',
-                        style: TextStyle(
+                      Text(
+                        l10n.undo,
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 13,
                           fontFamily: 'Instrument Sans',
@@ -584,7 +588,8 @@ class _DayTile extends StatelessWidget {
     );
   }
 
-  void _handleStreakAction(String action) async {
+  void _handleStreakAction(String action, BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     
     switch (action) {
@@ -609,10 +614,10 @@ class _DayTile extends StatelessWidget {
             streakService.streaksMap.remove(dateKey);
           }
           Get.snackbar(
-            'Error',
+            l10n.error,
             streakService.errorMessage.value.isNotEmpty 
                 ? streakService.errorMessage.value 
-                : 'Failed to create streak',
+                : l10n.failedToCreateStreak,
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.red.withOpacity(0.8),
             colorText: Colors.white,
@@ -644,10 +649,10 @@ class _DayTile extends StatelessWidget {
             streakService.streaksMap.remove(dateKey);
           }
           Get.snackbar(
-            'Error',
+            l10n.error,
             streakService.errorMessage.value.isNotEmpty 
                 ? streakService.errorMessage.value 
-                : 'Failed to create streak',
+                : l10n.failedToCreateStreak,
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.red.withOpacity(0.8),
             colorText: Colors.white,
@@ -675,8 +680,8 @@ class _DayTile extends StatelessWidget {
             // Refresh streak history after successful deletion
             await streakService.getStreakHistory();
             Get.snackbar(
-              'Success',
-              'Streak undone for ${DateFormat('MMM d, y').format(date)}',
+              l10n.success,
+              '${l10n.streakUndoneFor} ${DateFormat('MMM d, y', Localizations.localeOf(context).toString()).format(date)}',
               snackPosition: SnackPosition.BOTTOM,
               backgroundColor: Colors.green.withOpacity(0.8),
               colorText: Colors.white,
@@ -687,7 +692,7 @@ class _DayTile extends StatelessWidget {
               streakService.streaksMap[dateKey] = previousData;
             }
             Get.snackbar(
-              'Error',
+              l10n.error,
               streakService.errorMessage.value,
               snackPosition: SnackPosition.BOTTOM,
               backgroundColor: Colors.red.withOpacity(0.8),
@@ -696,8 +701,8 @@ class _DayTile extends StatelessWidget {
           }
         } else {
           Get.snackbar(
-            'Info',
-            'No streak to undo for ${DateFormat('MMM d, y').format(date)}',
+            l10n.info,
+            '${l10n.noStreakToUndoFor} ${DateFormat('MMM d, y', Localizations.localeOf(context).toString()).format(date)}',
             snackPosition: SnackPosition.BOTTOM,
           );
         }

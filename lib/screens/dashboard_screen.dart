@@ -198,8 +198,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           children: [
                             Image.asset('assets/icons/flame.png', width: 16, height: 16),
                             const SizedBox(width: 6),
-                            const Text(
-                              'Log Streak',
+                            Text(
+                              l10n.logStreak,
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -240,7 +240,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   children: weekDates.asMap().entries.map((entry) {
                     final index = entry.key;
                     final date = entry.value;
-                    return _buildDaySelector(date, index);
+                    return _buildDaySelector(date, index, l10n);
                   }).toList(),
                 )),
               ),
@@ -350,7 +350,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                   const SizedBox(width: 3),
                                   Flexible(
                                     child: Text(
-                                      '${(widget.dailyProgress?['calories']?['remaining'] ?? 0)} Calories more to go!',
+                                      '${(widget.dailyProgress?['calories']?['remaining'] ?? 0)} ${l10n.caloriesMoreToGo}',
                                       style: TextStyle(
                                         fontSize: 10,
                                         color: CupertinoColors.systemGrey,
@@ -374,24 +374,27 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       child: Column(
                         children: [
                           _buildCompactMacroCard(
-                            'Fats',
+                            l10n.fats,
                             ((widget.dailyProgress?['macros']?['fat']?['consumed'] ?? 0) as num).toInt(),
                             ((widget.dailyProgress?['macros']?['fat']?['goal'] ?? 0) as num).toInt(),
                             CupertinoColors.systemRed,
+                            l10n,
                           ),
                           const SizedBox(height: 12),
                           _buildCompactMacroCard(
-                            'Protein',
+                            l10n.protein,
                             ((widget.dailyProgress?['macros']?['protein']?['consumed'] ?? 0) as num).toInt(),
                             ((widget.dailyProgress?['macros']?['protein']?['goal'] ?? 0) as num).toInt(),
                             CupertinoColors.systemBlue,
+                            l10n,
                           ),
                           const SizedBox(height: 12),
                           _buildCompactMacroCard(
-                            'Carbohydrates',
+                            l10n.carbs,
                             ((widget.dailyProgress?['macros']?['carbs']?['consumed'] ?? 0) as num).toInt(),
                             ((widget.dailyProgress?['macros']?['carbs']?['goal'] ?? 0) as num).toInt(),
                             CupertinoColors.systemOrange,
+                            l10n,
                           ),
                         ],
                       ),
@@ -424,14 +427,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     ] else ...[
                       if (widget.isAnalyzing) _buildRecentlyLoggedCard(),
                       if (widget.selectedImage != null && !widget.isAnalyzing)
-                        _buildScannedFoodCard(),
+                        _buildScannedFoodCard(l10n),
                       if ((widget.todayMeals ?? []).isNotEmpty) ...[
                         Column(
-                          children: widget.todayMeals!.map((meal) => _buildMealTotalsCard(meal)).toList(),
+                          children: widget.todayMeals!.map((meal) => _buildMealTotalsCard(meal, l10n)).toList(),
                         ),
                         const SizedBox(height: 12),
                       ] else if (widget.todayTotals != null) ...[
-                        _buildTodayTotalsCard(),
+                        _buildTodayTotalsCard(l10n),
                         const SizedBox(height: 12),
                       ],
                       // Only show overall meal, not separate entries
@@ -466,7 +469,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       top: 180, // Higher position, around where calorie tracker is
                       left: 30,
                       right: 30,
-                      child: _buildStreakCard(),
+                      child: _buildStreakCard(l10n),
                     ),
                   ],
                 ],
@@ -478,13 +481,23 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
-  Widget _buildDaySelector(DateTime date, int dayIndex) {
+  Widget _buildDaySelector(DateTime date, int dayIndex, AppLocalizations l10n) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final isSelected = date.isAtSameMomentAs(today);
     
-    // Get day abbreviation (Mon, Tue, etc.)
-    final dayAbbr = DateFormat('E').format(date).substring(0, 3);
+    // Get localized day abbreviation
+    String dayAbbr;
+    switch (date.weekday) {
+      case 1: dayAbbr = l10n.monday; break;
+      case 2: dayAbbr = l10n.tuesday; break;
+      case 3: dayAbbr = l10n.wednesday; break;
+      case 4: dayAbbr = l10n.thursday; break;
+      case 5: dayAbbr = l10n.friday; break;
+      case 6: dayAbbr = l10n.saturday; break;
+      case 7: dayAbbr = l10n.sunday; break;
+      default: dayAbbr = DateFormat('E').format(date).substring(0, 3);
+    }
     
     // Get streak status from service
     final streakStatus = _getStreakStatusForDate(date, today);
@@ -556,19 +569,20 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   // Helper method to get icon for macro based on label
-  Widget _getIconForMacro(String label) {
-    if (label.toLowerCase().contains('carb')) {
+  Widget _getIconForMacro(String label, AppLocalizations l10n) {
+    // Check against localized labels
+    if (label == l10n.carbs || label.toLowerCase().contains('carb')) {
       return Image.asset('assets/icons/carbs.png', width: 16, height: 16);
-    } else if (label.toLowerCase().contains('protein')) {
+    } else if (label == l10n.protein || label.toLowerCase().contains('protein')) {
       return Image.asset('assets/icons/drumstick.png', width: 16, height: 16);
-    } else if (label.toLowerCase().contains('fat')) {
+    } else if (label == l10n.fats || label.toLowerCase().contains('fat')) {
       return Image.asset('assets/icons/fat.png', width: 16, height: 16);
     } else {
       return Icon(CupertinoIcons.circle_fill, size: 16, color: CupertinoColors.systemGrey);
     }
   }
 
-  Widget _buildCompactMacroCard(String label, int current, int total, Color color) {
+  Widget _buildCompactMacroCard(String label, int current, int total, Color color, AppLocalizations l10n) {
     double progress = current / total;
     return GestureDetector(
       onTap: () {
@@ -595,7 +609,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             // Progress circle
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Container(
+              child: SizedBox(
                 width: 48,
                 height: 48,
                 child: Stack(
@@ -611,7 +625,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       ),
                     ),
                     // Center icon based on label
-                    _getIconForMacro(label),
+                    _getIconForMacro(label, l10n),
                   ],
                 ),
               ),
@@ -788,7 +802,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
-  Widget _buildScannedFoodCard() {
+  Widget _buildScannedFoodCard(AppLocalizations l10n) {
     // Extract data from nested scan result structure
     final scanData = widget.scanResult?['scanResult'];
     final items = scanData?['items'] as List? ?? [];
@@ -920,13 +934,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                          children: [
                           _buildNutritionCard(
                             (widget.todayTotals?['totalCalories'] ?? calories).toString(),
-                            'Calories',
+                            l10n.calories,
                             'assets/icons/carbs.png',
                           ),
                            const SizedBox(height: 4),
                           _buildNutritionCard(
                             (widget.todayTotals?['totalProtein'] ?? totalProtein).toString(),
-                            'Protein',
+                            l10n.protein,
                             'assets/icons/drumstick.png',
                           ),
                          ],
@@ -937,13 +951,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                          children: [
                           _buildNutritionCard(
                             (widget.todayTotals?['totalFat'] ?? totalFat).toString(),
-                            'Fat',
+                            l10n.fats,
                             'assets/icons/fat.png',
                           ),
                            const SizedBox(height: 4),
                           _buildNutritionCard(
                             (widget.todayTotals?['totalCarbs'] ?? totalCarbs).toString(),
-                            'Carbs',
+                            l10n.carbs,
                             'assets/icons/carbs.png',
                           ),
                          ],
@@ -1032,7 +1046,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
 
   // Removed per-entry card rendering per requirement (overall meal only)
 
-  Widget _buildTodayTotalsCard() {
+  Widget _buildTodayTotalsCard(AppLocalizations l10n) {
     final totals = widget.todayTotals!;
     final calories = totals['totalCalories'] ?? 0;
     final protein = totals['totalProtein'] ?? 0;
@@ -1090,7 +1104,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     children: [
                       Expanded(
                         child: Text(
-                          'Today\'s lunch totals',
+                          l10n.todaysLunchTotals,
                           style: TextStyle(
                             color: const Color(0xFF1E1822),
                             fontSize: 14,
@@ -1133,17 +1147,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     children: [
                       Column(
                         children: [
-                          _buildNutritionCard(calories.toString(), 'Calories', 'assets/icons/carbs.png'),
+                          _buildNutritionCard(calories.toString(), l10n.calories, 'assets/icons/carbs.png'),
                           const SizedBox(height: 4),
-                          _buildNutritionCard(protein.toString(), 'Protein', 'assets/icons/drumstick.png'),
+                          _buildNutritionCard(protein.toString(), l10n.protein, 'assets/icons/drumstick.png'),
                         ],
                       ),
                       const SizedBox(width: 12),
                       Column(
                         children: [
-                          _buildNutritionCard(fat.toString(), 'Fat', 'assets/icons/fat.png'),
+                          _buildNutritionCard(fat.toString(), l10n.fats, 'assets/icons/fat.png'),
                           const SizedBox(height: 4),
-                          _buildNutritionCard(carbs.toString(), 'Carbs', 'assets/icons/carbs.png'),
+                          _buildNutritionCard(carbs.toString(), l10n.carbs, 'assets/icons/carbs.png'),
                         ],
                       ),
                     ],
@@ -1166,7 +1180,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
-  Widget _buildMealTotalsCard(Map<String, dynamic> meal) {
+  Widget _buildMealTotalsCard(Map<String, dynamic> meal, AppLocalizations l10n) {
     final calories = ((meal['totalCalories'] ?? 0) as num).toInt();
     final protein = ((meal['totalProtein'] ?? 0) as num).toInt();
     final fat = ((meal['totalFat'] ?? 0) as num).toInt();
@@ -1250,7 +1264,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     children: [
                       Expanded(
                         child: Text(
-                          mealName != null && mealName.isNotEmpty ? mealName : 'Meal totals',
+                          mealName != null && mealName.isNotEmpty ? mealName : l10n.mealTotals,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -1295,17 +1309,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     children: [
                       Column(
                         children: [
-                          _buildNutritionCard(calories.toString(), 'Calories', 'assets/icons/carbs.png'),
+                          _buildNutritionCard(calories.toString(), l10n.calories, 'assets/icons/carbs.png'),
                           const SizedBox(height: 4),
-                          _buildNutritionCard(protein.toString(), 'Protein', 'assets/icons/drumstick.png'),
+                          _buildNutritionCard(protein.toString(), l10n.protein, 'assets/icons/drumstick.png'),
                         ],
                       ),
                       const SizedBox(width: 12),
                       Column(
                         children: [
-                          _buildNutritionCard(fat.toString(), 'Fat', 'assets/icons/fat.png'),
+                          _buildNutritionCard(fat.toString(), l10n.fats, 'assets/icons/fat.png'),
                           const SizedBox(height: 4),
-                          _buildNutritionCard(carbs.toString(), 'Carbs', 'assets/icons/carbs.png'),
+                          _buildNutritionCard(carbs.toString(), l10n.carbs, 'assets/icons/carbs.png'),
                         ],
                       ),
                     ],
@@ -1328,7 +1342,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
-  Widget _buildStreakCard() {
+  Widget _buildStreakCard(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1354,7 +1368,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   Image.asset('assets/icons/apple.png', width: 24, height: 24),
                   const SizedBox(width: 6),
                   Text(
-                    'Kalorina',
+                    l10n.kalorina,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -1427,7 +1441,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           
           // Message text
           Text(
-            'Consistency matters for achieving your goals!',
+            l10n.consistencyMatters,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -1451,8 +1465,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   _showStreakCard = false;
                 });
               },
-              child: const Text(
-                'Continue',
+              child: Text(
+                l10n.continueButton,
                 style: TextStyle(
                   color: CupertinoColors.white,
                   fontSize: 16,

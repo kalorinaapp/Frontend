@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 
 import '../providers/theme_provider.dart' show ThemeProvider;
 import '../services/exercise_service.dart';
+import '../l10n/app_localizations.dart';
 
 class LogExerciseScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -21,7 +22,10 @@ class LogExerciseScreen extends StatefulWidget {
 class _LogExerciseScreenState extends State<LogExerciseScreen> {
   late int _selectedTabIndex;
   
-  final List<String> _tabs = ['Cardio', 'Weight Training', 'Describe', 'Direct Input'];
+  List<String> _getTabs(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [l10n.cardio, l10n.weightTrainingTab, l10n.describeTab, l10n.directInputTab];
+  }
   
   // Cardio tab state
   int _selectedIntensity = 1; // 0: Low, 1: Medium, 2: High
@@ -37,17 +41,27 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   bool _isEstimating = false;
   Map<String, dynamic>? _estimate;
   
-  final List<String> _intensityLabels = ['Low', 'Medium', 'High'];
-  final List<String> _intensityDescriptions = [
-    'Near sprinting, hard to sustain for long',
-    'Steady run, manageable effort',
-    'Brisk walk, comfortable breathing'
-  ];
-  final List<String> _weightIntensityDescriptions = [
-    'Heavy weights, close to max effort',
-    'Moderate weights, breaking a sweat',
-    'Light weights, no sweat',
-  ];
+  List<String> _getIntensityLabels(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [l10n.low, l10n.medium, l10n.high];
+  }
+  List<String> _getIntensityDescriptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      l10n.nearSprintingDescription,
+      l10n.steadyRunDescription,
+      l10n.briskWalkDescription
+    ];
+  }
+  
+  List<String> _getWeightIntensityDescriptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      l10n.heavyWeightsDescription,
+      l10n.moderateWeightsDescription,
+      l10n.lightWeightsDescription
+    ];
+  }
 
   @override
   void initState() {
@@ -115,6 +129,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.white,
@@ -136,9 +151,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                     ),
                   ),
                   const Spacer(),
-                  const Text(
-                    'Log Exercise',
-                    style: TextStyle(
+                  Text(
+                    l10n.logExercise,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: CupertinoColors.black,
@@ -179,10 +194,11 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   }
 
   Widget _buildCustomTabBar() {
+    final tabs = _getTabs(context);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: _tabs.asMap().entries.map((entry) {
+        children: tabs.asMap().entries.map((entry) {
           final index = entry.key;
           final tab = entry.value;
           final isSelected = index == _selectedTabIndex;
@@ -235,6 +251,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   }
 
   Widget _buildCardioTab() {
+    final l10n = AppLocalizations.of(context)!;
+    final intensityLabels = _getIntensityLabels(context);
+    final intensityDescriptions = _getIntensityDescriptions(context);
+    
     return Stack(
       children: [
         Container(
@@ -244,9 +264,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Intensity Section
-                const Text(
-                  'Intensity',
-                  style: TextStyle(
+                Text(
+                  l10n.intensity,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: CupertinoColors.black,
@@ -258,7 +278,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 // Intensity Options
                 Column(
                   children: [
-                    for (int i = 0; i < _intensityLabels.length; i++)
+                    for (int i = 0; i < intensityLabels.length; i++)
                       Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         child: GestureDetector(
@@ -299,8 +319,8 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                             child: Row(
                               children: [
                                 Text(
-                                  _intensityLabels[i],
-                                  style: TextStyle(
+                                  intensityLabels[i],
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: CupertinoColors.black,
@@ -309,8 +329,8 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    '- ${_intensityDescriptions[i]}',
-                                    style: TextStyle(
+                                    '- ${intensityDescriptions[i]}',
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       color: Color(0xFF666666),
                                     ),
@@ -327,9 +347,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 const SizedBox(height: 40),
                 
                 // Duration Section
-                const Text(
-                  'Duration',
-                  style: TextStyle(
+                Text(
+                  l10n.duration,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: CupertinoColors.black,
@@ -342,10 +362,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('15 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text('30 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text('45 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text('60 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text(l10n.fifteenMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text(l10n.thirtyMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text(l10n.fortyFiveMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text(l10n.sixtyMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -430,10 +450,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         CupertinoActivityIndicator(),
                         SizedBox(width: 8),
-                        Text('Logging...', style: TextStyle(color: Color(0xFF666666))),
+                        Text(l10n.logging, style: const TextStyle(color: Color(0xFF666666))),
                       ],
                     ),
                   ),
@@ -465,8 +485,11 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 });
                 final service = ExerciseService();
                 // API expects the tab name as the type (e.g., Cardio, Weight Training)
-                final type = _tabs[_selectedTabIndex];
-                final intensity = '${_intensityLabels[_selectedIntensity]} - ${_intensityDescriptions[_selectedIntensity]}';
+                final tabs = _getTabs(context);
+                final intensityLabels = _getIntensityLabels(context);
+                final intensityDescriptions = _getIntensityDescriptions(context);
+                final type = tabs[_selectedTabIndex];
+                final intensity = '${intensityLabels[_selectedIntensity]} - ${intensityDescriptions[_selectedIntensity]}';
                 final startedAt = DateTime.now().toIso8601String();
                 final res = await service.logExercise(
                   
@@ -488,7 +511,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: Text(
-                  _isLoggingCardio ? 'Logging...' : 'Add',
+                  _isLoggingCardio ? l10n.logging : l10n.add,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 16,
@@ -505,6 +528,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   }
 
   Widget _buildWeightTrainingTab() {
+    final l10n = AppLocalizations.of(context)!;
+    final intensityLabels = _getIntensityLabels(context);
+    final weightIntensityDescriptions = _getWeightIntensityDescriptions(context);
+    
     return Stack(
       children: [
         Container(
@@ -513,9 +540,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
-                  'Intensity',
-                  style: TextStyle(
+                Text(
+                  l10n.intensity,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: CupertinoColors.black,
@@ -525,7 +552,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 const SizedBox(height: 20),
                 Column(
                   children: [
-                    for (int i = 0; i < _intensityLabels.length; i++)
+                    for (int i = 0; i < intensityLabels.length; i++)
                       Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         child: GestureDetector(
@@ -566,8 +593,8 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                             child: Row(
                               children: [
                                 Text(
-                                  _intensityLabels[i],
-                                  style: TextStyle(
+                                  intensityLabels[i],
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: CupertinoColors.black,
@@ -576,7 +603,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    '- ${_weightIntensityDescriptions[i]}',
+                                    '- ${weightIntensityDescriptions[i]}',
                                     style: const TextStyle(
                                       fontSize: 14,
                                       color: Color(0xFF666666),
@@ -591,9 +618,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   ],
                 ),
                 const SizedBox(height: 40),
-                const Text(
-                  'Duration',
-                  style: TextStyle(
+                Text(
+                  l10n.duration,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: CupertinoColors.black,
@@ -603,11 +630,11 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text('15 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text('30 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text('45 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text('60 min', style: TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                  children: [
+                    Text(l10n.fifteenMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text(l10n.thirtyMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text(l10n.fortyFiveMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text(l10n.sixtyMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -687,10 +714,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         CupertinoActivityIndicator(),
                         SizedBox(width: 8),
-                        Text('Logging...', style: TextStyle(color: Color(0xFF666666))),
+                        Text(l10n.logging, style: const TextStyle(color: Color(0xFF666666))),
                       ],
                     ),
                   ),
@@ -720,8 +747,11 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 });
                 try {
                   final service = ExerciseService();
-                  final type = _tabs[_selectedTabIndex];
-                  final intensity = '${_intensityLabels[_selectedIntensity]} - ${_weightIntensityDescriptions[_selectedIntensity]}';
+                  final tabs = _getTabs(context);
+                  final intensityLabels = _getIntensityLabels(context);
+                  final weightIntensityDescriptions = _getWeightIntensityDescriptions(context);
+                  final type = tabs[_selectedTabIndex];
+                  final intensity = '${intensityLabels[_selectedIntensity]} - ${weightIntensityDescriptions[_selectedIntensity]}';
                   final startedAt = DateTime.now().toLocal().toIso8601String();
                   final res = await service.logExercise(
                     type: type,
@@ -753,7 +783,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Text(
-                _isLoggingCardio ? 'Logging...' : 'Add',
+                _isLoggingCardio ? l10n.logging : l10n.add,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 16,
@@ -772,6 +802,8 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   // Removed unused _buildEmptyTab
 
   Widget _buildDescribeTab() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return GestureDetector(
       onTap: () {
         // Dismiss keyboard when tapping outside
@@ -814,9 +846,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                         color: CupertinoColors.black,
                       ),
                       const SizedBox(width: 6),
-                      const Text(
-                        'AI Powered',
-                        style: TextStyle(
+                      Text(
+                        l10n.aiPowered,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: CupertinoColors.black,
@@ -855,7 +887,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   ),
                   child: CupertinoTextField(
                     controller: _describeController,
-                    placeholder: 'Explain workout duration, effort, etc.',
+                    placeholder: l10n.explainWorkoutPlaceholder,
                     maxLines: 1,
                     keyboardType: TextInputType.multiline,
                     textInputAction: TextInputAction.newline,
@@ -879,9 +911,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   child: SizedBox(
                     width: 300,
                     height: 40,
-                    child: const Text(
-                      'Example: "Upper body session, 45 mins, medium effort"',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.workoutExample,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF999999),
                       ),
@@ -898,10 +930,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                       padding: const EdgeInsets.only(bottom: 80),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          CupertinoActivityIndicator(),
-                          SizedBox(width: 8),
-                          Text('Estimating...', style: TextStyle(color: Color(0xFF666666))),
+                        children: [
+                          const CupertinoActivityIndicator(),
+                          const SizedBox(width: 8),
+                          Text(l10n.estimating, style: const TextStyle(color: Color(0xFF666666))),
                         ],
                       ),
                     ),
@@ -948,7 +980,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Text(
-                    _isEstimating ? 'Estimating...' : 'Add',
+                    _isEstimating ? l10n.estimating : l10n.add,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 16,
@@ -966,6 +998,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   }
 
   Widget _buildEstimateCard() {
+    final l10n = AppLocalizations.of(context)!;
     final est = _estimate ?? const {};
     final estimated = est['estimatedCalories']?.toString() ?? '0';
     final rationale = est['rationale'] as String? ?? 'No rationale provided.';
@@ -993,7 +1026,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
             children: [
               const Icon(CupertinoIcons.flame, size: 18, color: CupertinoColors.black),
               const SizedBox(width: 8),
-              const Text('AI Estimate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              Text(l10n.aiEstimate, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               const Spacer(),
               Text('$estimated kcal', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             ],
@@ -1016,7 +1049,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          const Text('Why this estimate', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(l10n.whyThisEstimate, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Text(rationale, style: const TextStyle(fontSize: 13, color: Color(0xFF666666), height: 1.3)),
         ],
@@ -1037,6 +1070,8 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   }
 
   Widget _buildDirectInputTab() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return GestureDetector(
       onTap: () {
         // Dismiss keyboard when tapping outside
@@ -1091,9 +1126,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Type in calories burned yourself',
-                            style: TextStyle(
+                          Text(
+                            l10n.typeCaloriesBurned,
+                            style: const TextStyle(
                               fontSize: 14,
                               color: Color(0xFF666666),
                             ),
@@ -1103,7 +1138,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                           // Calories input field
                           CupertinoTextField(
                             controller: _caloriesController,
-                            placeholder: '0',
+                            placeholder: l10n.zeroPlaceholder,
                             keyboardType: TextInputType.number,
                             style: const TextStyle(
                               fontSize: 16,
@@ -1173,7 +1208,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: Text(
-                  _isLoggingCardio ? 'Logging...' : 'Add',
+                  _isLoggingCardio ? l10n.logging : l10n.add,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 16,

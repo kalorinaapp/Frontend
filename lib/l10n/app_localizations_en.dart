@@ -21,10 +21,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
-  String get calories => 'Calories';
+  String get calories => 'calories';
 
   @override
-  String get carbs => 'Carbohydrates';
+  String get carbs => 'Carbs';
 
   @override
   String get protein => 'Protein';
@@ -311,4 +311,576 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yesStillDoing => 'Yes, and I\'m still doing it.';
+
+  @override
+  String get logStreak => 'Log Streak';
+
+  @override
+  String get caloriesMoreToGo => 'Calories more to go!';
+
+  @override
+  String get todaysLunchTotals => 'Today\'s lunch totals';
+
+  @override
+  String get mealTotals => 'Meal totals';
+
+  @override
+  String get consistencyMatters =>
+      'Consistency matters for achieving your goals!';
+
+  @override
+  String get continueButton => 'Continue';
+
+  @override
+  String get kalorina => 'Kalorina';
+
+  @override
+  String get exercise => 'Exercise';
+
+  @override
+  String get cardio => 'Cardio';
+
+  @override
+  String get cardioSubtitle =>
+      'Log runs, cycling, HIIT, or any endurance activity';
+
+  @override
+  String get weightTraining => 'Weight Training';
+
+  @override
+  String get weightTrainingSubtitle =>
+      'Track gym sessions, sets, and strength exercises';
+
+  @override
+  String get describeExercise => 'Describe Exercise';
+
+  @override
+  String get describeExerciseSubtitle => 'Let AI calculate calories burned';
+
+  @override
+  String get directInput => 'Direct Input';
+
+  @override
+  String get directInputSubtitle => 'Type in calories burned yourself';
+
+  @override
+  String get food => 'Food';
+
+  @override
+  String get myMeals => 'My Meals';
+
+  @override
+  String get myMealsSubtitle =>
+      'Track gym sessions, sets, and strength exercises';
+
+  @override
+  String get myFoods => 'My Foods';
+
+  @override
+  String get myFoodsSubtitle => 'Let AI calculate calories burned';
+
+  @override
+  String get savedScans => 'Saved Scans';
+
+  @override
+  String get savedScansSubtitle => 'Type in calories burned yourself';
+
+  @override
+  String get directInputFood => 'Direct Input';
+
+  @override
+  String get directInputFoodSubtitle => 'Type in what you ate yourself';
+
+  @override
+  String get howDoesItWork => 'How does it work?';
+
+  @override
+  String get currentStreak => 'Current streak';
+
+  @override
+  String get longestStreak => 'Longest streak';
+
+  @override
+  String get day => 'day';
+
+  @override
+  String get days => 'days';
+
+  @override
+  String get successfulDay => 'Successful day';
+
+  @override
+  String get failedDay => 'Failed day';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get error => 'Error';
+
+  @override
+  String get success => 'Success';
+
+  @override
+  String get info => 'Info';
+
+  @override
+  String get failedToCreateStreak => 'Failed to create streak';
+
+  @override
+  String get streakUndoneFor => 'Streak undone for';
+
+  @override
+  String get noStreakToUndoFor => 'No streak to undo for';
+
+  @override
+  String get howDoesItWorkTitle => 'How does it work?';
+
+  @override
+  String get howDoesItWorkDescription =>
+      'Every day, you can log your fire to reflect on whether you felt like you truly achieved what you wanted.';
+
+  @override
+  String get successfulDescription =>
+      'Successful → You reached your daily goal or feel satisfied with your progress.';
+
+  @override
+  String get failedDescription =>
+      'Failed → You didn\'t meet your goal or the day didn\'t go as planned.';
+
+  @override
+  String get streakExplanation =>
+      'Your fires build streaks that show your consistency. The longer you log honestly, the clearer you\'ll see your real progress.';
+
+  @override
+  String get logExercise => 'Log Exercise';
+
+  @override
+  String get weightTrainingTab => 'Weight Training';
+
+  @override
+  String get describeTab => 'Describe';
+
+  @override
+  String get directInputTab => 'Direct Input';
+
+  @override
+  String get low => 'Low';
+
+  @override
+  String get medium => 'Medium';
+
+  @override
+  String get high => 'High';
+
+  @override
+  String get intensity => 'Intensity';
+
+  @override
+  String get duration => 'Duration';
+
+  @override
+  String get fifteenMin => '15 min';
+
+  @override
+  String get thirtyMin => '30 min';
+
+  @override
+  String get fortyFiveMin => '45 min';
+
+  @override
+  String get sixtyMin => '60 min';
+
+  @override
+  String get logging => 'Logging...';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get aiPowered => 'AI Powered';
+
+  @override
+  String get explainWorkoutPlaceholder =>
+      'Explain workout duration, effort, etc.';
+
+  @override
+  String get workoutExample =>
+      'Example: \"Upper body session, 45 mins, medium effort\"';
+
+  @override
+  String get estimating => 'Estimating...';
+
+  @override
+  String get aiEstimate => 'AI Estimate';
+
+  @override
+  String get whyThisEstimate => 'Why this estimate';
+
+  @override
+  String get typeCaloriesBurned => 'Type in calories burned yourself';
+
+  @override
+  String get zeroPlaceholder => '0';
+
+  @override
+  String get nearSprintingDescription =>
+      'Near sprinting, hard to sustain for long';
+
+  @override
+  String get steadyRunDescription => 'Steady run, manageable effort';
+
+  @override
+  String get briskWalkDescription => 'Brisk walk, comfortable breathing';
+
+  @override
+  String get heavyWeightsDescription => 'Heavy weights, close to max effort';
+
+  @override
+  String get moderateWeightsDescription => 'Moderate weights, breaking a sweat';
+
+  @override
+  String get lightWeightsDescription => 'Light weights, no sweat';
+
+  @override
+  String get logFood => 'Log Food';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get searchMeals => 'Search meals...';
+
+  @override
+  String get searchFoods => 'Search foods...';
+
+  @override
+  String get searchScannedMeals => 'Search scanned meals...';
+
+  @override
+  String get chickenBr => 'Chicken br';
+
+  @override
+  String get suggestions => 'Suggestions';
+
+  @override
+  String get noSuggestionsAvailable => 'No suggestions available';
+
+  @override
+  String get noMealsSavedYet => 'No meals saved yet';
+
+  @override
+  String get noFoodsCreatedYet => 'No foods created yet';
+
+  @override
+  String get createFood => 'Create Food';
+
+  @override
+  String get yourSavedScansWillAppearHere =>
+      'Your saved scans will appear here';
+
+  @override
+  String get savedScansContentComingSoon => 'Saved Scans content coming soon';
+
+  @override
+  String get editName => 'Edit Name';
+
+  @override
+  String get caloriesLabel => 'Calories';
+
+  @override
+  String get caloriesPlaceholder => '512';
+
+  @override
+  String get ingredients => 'Ingredients';
+
+  @override
+  String get addMore => 'Add More';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get saveFood => 'Save Food';
+
+  @override
+  String get createAMeal => 'Create a Meal';
+
+  @override
+  String get enterAmount => 'Enter Amount';
+
+  @override
+  String get enterAmountPlaceholder => 'Enter amount';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get name => 'Name *';
+
+  @override
+  String get enterIngredientName => 'Enter ingredient name';
+
+  @override
+  String get quantityUnit => 'Quantity & Unit';
+
+  @override
+  String get amountPlaceholder => 'Amount';
+
+  @override
+  String get unitPlaceholder => 'Unit (g, cup, tbsp)';
+
+  @override
+  String get nutritionOptional => 'Nutrition (Optional)';
+
+  @override
+  String get caloriesPlaceholder2 => 'Calories';
+
+  @override
+  String get proteinG => 'Protein (g)';
+
+  @override
+  String get carbsG => 'Carbs (g)';
+
+  @override
+  String get fatG => 'Fat (g)';
+
+  @override
+  String get editIngredient => 'Edit Ingredient';
+
+  @override
+  String get addIngredient => 'Add Ingredient';
+
+  @override
+  String get scannedMeal => 'Scanned Meal';
+
+  @override
+  String get setName => 'Set Name';
+
+  @override
+  String get personalInformation => 'Personal Information';
+
+  @override
+  String get weight => 'Weight';
+
+  @override
+  String get height => 'Height';
+
+  @override
+  String get age => 'Age';
+
+  @override
+  String get gender => 'Gender';
+
+  @override
+  String get dailyStepsGoal => 'Daily Steps Goal';
+
+  @override
+  String get addBurnedCaloriesToGoal => 'Add Burned Calories to Goal';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get manageYourProfileAndAccountSettings =>
+      'Manage your profile and account settings';
+
+  @override
+  String get healthTracking => 'Health Tracking';
+
+  @override
+  String get viewYourHealthConsistencyAndProgress =>
+      'View your health consistency and progress';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get configureYourNotificationPreferences =>
+      'Configure your notification preferences';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get appVersionAndInformation => 'App version and information';
+
+  @override
+  String get enterYourName => 'Enter your name';
+
+  @override
+  String get selectGender => 'Select Gender';
+
+  @override
+  String get male => 'Male';
+
+  @override
+  String get female => 'Female';
+
+  @override
+  String get years => 'years';
+
+  @override
+  String get steps => 'steps';
+
+  @override
+  String get progress => 'Progress';
+
+  @override
+  String get myWeight => 'My Weight';
+
+  @override
+  String get logWeight => 'Log Weight';
+
+  @override
+  String get targetWeight => 'Target Weight';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get toTargetWeight => 'To target weight';
+
+  @override
+  String get weightGoalProgress => 'Weight Goal Progress';
+
+  @override
+  String get thirtyDays => '30 Days';
+
+  @override
+  String get ninetyDays => '90 Days';
+
+  @override
+  String get sixMonths => '6 Months';
+
+  @override
+  String get oneYear => '1 Year';
+
+  @override
+  String get allTime => 'All Time';
+
+  @override
+  String get start => 'Start';
+
+  @override
+  String get now => 'Now';
+
+  @override
+  String get avgDailyProgress => 'Avg daily progress';
+
+  @override
+  String get avgDailyLost => 'Avg daily lost';
+
+  @override
+  String get avgDailyGained => 'Avg daily gained';
+
+  @override
+  String get addProgressPhoto => 'Add Progress Photo';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get progressPhotos => 'Progress Photos';
+
+  @override
+  String get seeProgress => 'See progress';
+
+  @override
+  String get uploadPhoto => 'Upload Photo';
+
+  @override
+  String get upload => 'Upload';
+
+  @override
+  String get stepsToday => 'Steps Today';
+
+  @override
+  String get tapToEnableHealthPermissions => 'Tap to enable health permissions';
+
+  @override
+  String get addBurnedCaloriesToDailyGoal =>
+      'Add burned calories to daily goal';
+
+  @override
+  String get caloriesBurned => 'Calories Burned';
+
+  @override
+  String get kg => 'kg';
+
+  @override
+  String get sinceLastWeighIn => 'since last weigh in';
+
+  @override
+  String get kgPerDay => 'kg/day';
+
+  @override
+  String get kgToGo => 'kg to go';
+
+  @override
+  String get greatJob => 'Great Job';
+
+  @override
+  String get youGained => 'You gained';
+
+  @override
+  String get weighInDue => 'Weigh-in due';
+
+  @override
+  String nextWeighIn(Object days) {
+    return 'Next weigh-in: ${days}d';
+  }
+
+  @override
+  String get enterUsername => 'Enter username';
+
+  @override
+  String get birthday => 'Birthday';
+
+  @override
+  String get personalDetails => 'Personal Details';
+
+  @override
+  String get rolloverLeftOverCalories =>
+      'Rollover up to 200 Left Over Calories From Yesterday';
+
+  @override
+  String get addBurnedCalories => 'Add Burned Calories';
+
+  @override
+  String get inviteFriends => 'Invite Friends';
+
+  @override
+  String get adjustMacronutrients => 'Adjust Macronutrients';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get termsAndConditions => 'Terms and Conditions';
+
+  @override
+  String get deleteAccount => 'Delete Account';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get deleteAccountTitle => 'Delete Account?';
+
+  @override
+  String get accountWillBePermanentlyDeleted =>
+      'Account will be permanently deleted';
+
+  @override
+  String get logoutTitle => 'Log out?';
+
+  @override
+  String get areYouSureYouWantToLogOut => 'Are you sure you want to log out?';
 }

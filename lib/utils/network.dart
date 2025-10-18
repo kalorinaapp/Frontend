@@ -31,8 +31,8 @@ Map<String, String> getHeaders() {
 
 Future<bool> isInternetAvailable() async {
   try {
-    final result = await http.get(Uri.parse('https://www.google.com'));
-    // Utils.logger.f(result);
+    final result = await http.get(Uri.parse('https://www.yahoo.com'));
+    log("==result== $result");
     return result.statusCode == 200;
   } catch (_) {
     return false;

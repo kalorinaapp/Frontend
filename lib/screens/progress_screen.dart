@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'confirm_weight_screen.dart' show ConfirmWeightScreen;
 import '../providers/theme_provider.dart';
 import '../providers/health_provider.dart';
+import '../providers/language_provider.dart';
 import '../utils/theme_helper.dart';
 import 'package:get/get.dart';
 import '../authentication/user.controller.dart' show UserController;
@@ -12,6 +13,7 @@ import '../constants/app_constants.dart' show AppConstants;
 import 'desired_weight_update_screen.dart' show DesiredWeightUpdateScreen;
 import '../services/progress_service.dart';
 import '../utils/user.prefs.dart' show UserPrefs;
+import '../l10n/app_localizations.dart';
 
 class ProgressScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
@@ -21,9 +23,9 @@ class ProgressScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final addBurnedToGoal = ValueNotifier<bool>(false);
     // Ensure UserController is available (will throw if not previously put)
     final UserController userController = Get.find<UserController>();
+    final l10n = AppLocalizations.of(context)!;
     return ListenableBuilder(
       listenable: Listenable.merge([themeProvider, healthProvider]),
       builder: (context, child) {
@@ -39,7 +41,7 @@ class ProgressScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-              'Progress',
+              l10n.progress,
               style: ThemeHelper.textStyleWithColor(
                 ThemeHelper.title1,
                 ThemeHelper.textPrimary,
@@ -62,9 +64,9 @@ class ProgressScreen extends StatelessWidget {
                   w ??= AppConstants.userId.isNotEmpty ? null : null;
                   final String weightStr = (w == null || (w is String && w.isEmpty)) ? '-' : w.toString();
                   return _WeightTile(
-                    title: 'My Weight',
+                    title: l10n.myWeight,
                     value: '$weightStr kg',
-                    trailingLabel: 'Log Weight',
+                    trailingLabel: l10n.logWeight,
                     leadingIcon: 'assets/icons/export.png',
                     isUpdateTarget: false,
                   );
@@ -77,9 +79,9 @@ class ProgressScreen extends StatelessWidget {
                   tw ??= (userController.userData['user'] is Map) ? userController.userData['user']['targetWeight'] : null;
                   final String targetStr = (tw == null || (tw is String && tw.isEmpty)) ? '-' : tw.toString();
                   return _WeightTile(
-                    title: 'Target Weight',
+                    title: l10n.targetWeight,
                     value: '$targetStr kg',
-                    trailingLabel: 'Update',
+                    trailingLabel: l10n.update,
                     leadingIcon: 'assets/icons/trophy.png',
                     isUpdateTarget: true,
                   );
@@ -94,7 +96,7 @@ class ProgressScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 _StepsCard(healthProvider: healthProvider),
                 const SizedBox(height: 12),
-                _AddBurnedToGoalCard(addBurnedToGoal: addBurnedToGoal),
+                _AddBurnedToGoalCard(),
                 const SizedBox(height: 24),
               ],
             ),
@@ -128,8 +130,9 @@ class _HeaderBadgeState extends State<_HeaderBadge> {
   }
 
   String _label() {
-    if (_daysRemaining <= 0) return 'Weigh-in due';
-    return 'Next weigh-in: ${_daysRemaining}d';
+    final l10n = AppLocalizations.of(context)!;
+    if (_daysRemaining <= 0) return l10n.weighInDue;
+    return l10n.nextWeighIn(_daysRemaining);
     }
 
   @override
@@ -250,11 +253,12 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
               rtw ??= (uc.userData['user'] is Map) ? uc.userData['user']['targetWeight'] : null;
               final num? w = rw is num ? rw : num.tryParse('${rw ?? ''}');
               final num? tw = rtw is num ? rtw : num.tryParse('${rtw ?? ''}');
-              String progressText = 'To target weight';
+              final l10n = AppLocalizations.of(context)!;
+              String progressText = l10n.toTargetWeight;
               if (w != null && tw != null && w > 0) {
                 final diff = (w - tw).abs();
                 // Simple progress estimate: show remaining kg to target
-                progressText = '${diff.toStringAsFixed(1)} kg to target';
+                progressText = '${diff.toStringAsFixed(1)} kg ${l10n.toTargetWeight.toLowerCase()}';
               }
               return Text(
                 progressText,
@@ -280,10 +284,10 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
       final d = _lastWeight! - _prevWeight!;
       if (d != 0) {
         final sign = d > 0 ? '+' : '';
-        return '$sign${d.toStringAsFixed(1)} kg since last weigh in';
+        return '$sign${d.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
       }
     }
-    return '- kg since last weigh in';
+    return '- ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
   }
 }
 
@@ -367,9 +371,9 @@ class _WeightTile extends StatelessWidget {
               );
             },
             child: Row(
-              children: const [
+              children: [
                 Text(
-                  'Update',
+                  AppLocalizations.of(context)!.update,
                   style: TextStyle(color: Color(0x7F1E1822), fontSize: 10, fontWeight: FontWeight.w500),
                 ),
                 SizedBox(width: 6),
@@ -389,7 +393,10 @@ class _GoalProgressCard extends StatefulWidget {
 }
 
 class _GoalProgressCardState extends State<_GoalProgressCard> {
-  final List<String> _ranges = const ['30 Days', '90 Days', '6 Months', '1 Year', 'All Time'];
+  List<String> _getRanges(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [l10n.thirtyDays, l10n.ninetyDays, l10n.sixMonths, l10n.oneYear, l10n.allTime];
+  }
   int _selectedIndex = 0;
   final ProgressService _service = const ProgressService();
   double? _lastWeight;
@@ -490,17 +497,17 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Weight Goal Progress', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          Text(AppLocalizations.of(context)!.weightGoalProgress, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           const SizedBox(height: 16),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: List.generate(_ranges.length, (i) {
+              children: List.generate(_getRanges(context).length, (i) {
                 final bool selected = i == _selectedIndex;
                 return Padding(
-                  padding: EdgeInsets.only(right: i == _ranges.length - 1 ? 0 : 8),
+                  padding: EdgeInsets.only(right: i == _getRanges(context).length - 1 ? 0 : 8),
                   child: _chip(
-                    _ranges[i],
+                    _getRanges(context)[i],
                     selected: selected,
                     onTap: () => setState(() {
                       _selectedIndex = i;
@@ -513,8 +520,8 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
           ),
           const SizedBox(height: 24),
           _ChartPlaceholder(
-            leftLabel: _startLabelForRange(_selectedIndex),
-            rightLabel: _endLabelForRange(_selectedIndex),
+            leftLabel: _startLabelForRange(_selectedIndex, context),
+            rightLabel: _endLabelForRange(_selectedIndex, context),
             dataPoints: List<double>.from(_series),
           ),
           const SizedBox(height: 8),
@@ -528,8 +535,8 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
               print('delta: $delta');
             }
             final String subtitle = (delta != null && delta != 0)
-                ? '${delta > 0 ? '+' : ''}${delta.toStringAsFixed(1)} kg since last weigh in'
-                : '- kg since last weigh in';
+                ? '${delta > 0 ? '+' : ''}${delta.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}'
+                : '- ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
             return Text(
               subtitle,
               style: ThemeHelper.textStyleWithColor(ThemeHelper.footnote, Colors.black.withOpacity(0.5)),
@@ -569,7 +576,8 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
     return '$m ${d.day}';
   }
 
-  String _startLabelForRange(int index) {
+  String _startLabelForRange(int index, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     switch (index) {
       case 0: // 30 Days
@@ -583,15 +591,16 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
         final d = DateTime(now.year - 1, now.month, now.day);
         return _formatDate(d);
       case 4: // All Time
-        return 'Start';
+        return l10n.start;
       default:
         return _formatDate(now);
     }
   }
 
-  String _endLabelForRange(int index) {
+  String _endLabelForRange(int index, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
-    if (index == 4) return 'Now';
+    if (index == 4) return l10n.now;
     return _formatDate(now);
   }
 }
@@ -802,7 +811,7 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
   final ProgressService _service = const ProgressService();
   String _headline = 'Great job!';
   String _headlineDeltaText = '';
-  String _avgLabel = 'Avg daily progress';
+  String _avgLabel = '';
   String _avgText = '- kg/day';
   String _toGoText = '- kg to go';
   bool _loading = false;
@@ -868,19 +877,20 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
           final double avgProgress = progressTowardGoal / spannedDays;
 
           final bool lost = delta < 0;
-          final String deltaText = '${lost ? (-delta).toStringAsFixed(1) : delta.toStringAsFixed(1)} kg';
-          final String avgText = '${avgProgress >= 0 ? '+' : ''}${avgProgress.toStringAsFixed(2)} kg/day';
+          final String deltaText = '${lost ? (-delta).toStringAsFixed(1) : delta.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg}';
+          final String avgText = '${avgProgress >= 0 ? '+' : ''}${avgProgress.toStringAsFixed(2)} ${AppLocalizations.of(context)!.kgPerDay}';
 
           // target vs latest for "to go"
           final double latestWeight = (latest ?? (uc.userData['weight'] as num?)?.toDouble() ?? 0);
           final double toGo = (target != null && target > 0) ? (latestWeight - target) : 0;
 
+          final l10n = AppLocalizations.of(context)!;
           setState(() {
-            _headline = lost ? 'Great job! You lost ' : 'Great job! You gained ';
+            _headline = lost ? '${l10n.greatJob} You lost ' : '${l10n.greatJob} ${l10n.youGained} ';
             _headlineDeltaText = deltaText + ' this week';
-            _avgLabel = lost ? 'Avg daily lost' : 'Avg daily gained';
+            _avgLabel = lost ? l10n.avgDailyLost : l10n.avgDailyGained;
             _avgText = avgText;
-            _toGoText = '${toGo.abs().toStringAsFixed(1)} kg to go';
+            _toGoText = '${toGo.abs().toStringAsFixed(1)} ${l10n.kgToGo}';
           });
         }
       }
@@ -966,7 +976,7 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
     await showCupertinoModalPopup(
       context: context,
       builder: (ctx) => CupertinoActionSheet(
-        title: const Text('Add Progress Photo'),
+        title: Text(AppLocalizations.of(context)!.addProgressPhoto),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () async {
@@ -983,7 +993,7 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
                 ));
               }
             },
-            child: const Text('Camera', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w400)),
+            child: Text(AppLocalizations.of(context)!.camera, style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w400)),
           ),
           CupertinoActionSheetAction(
             onPressed: () async {
@@ -999,12 +1009,12 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
                 ));
               }
             },
-            child: const Text('Gallery', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w400)),
+            child: Text(AppLocalizations.of(context)!.gallery, style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w400)),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
+          child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
         ),
       ),
     );
@@ -1029,7 +1039,7 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Progress Photos', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                Text(AppLocalizations.of(context)!.progressPhotos, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                 if (_images.isNotEmpty)
                 Container(
                   width: 102,
@@ -1051,7 +1061,7 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
                       width: 77,
                       height: 15,
                       child: Text(
-                        'See progress',
+                        AppLocalizations.of(context)!.seeProgress,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.black.withOpacity(0.60),
@@ -1081,8 +1091,8 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Text('Upload Photo', style: TextStyle(fontSize: 12, color: Color(0xB21E1822))),
+                      children: [
+                        Text(AppLocalizations.of(context)!.uploadPhoto, style: TextStyle(fontSize: 12, color: Color(0xB21E1822))),
                         SizedBox(height: 4),
                         Text('+', style: TextStyle(fontSize: 22, color: Color(0xB21E1822))),
                       ],
@@ -1111,8 +1121,8 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Text('Upload', style: TextStyle(fontSize: 12, color: Color(0xB21E1822))),
+                        children: [
+                          Text(AppLocalizations.of(context)!.upload, style: TextStyle(fontSize: 12, color: Color(0xB21E1822))),
                           SizedBox(height: 4),
                           Icon(CupertinoIcons.add, size: 18, color: Color(0xB21E1822)),
                         ],
@@ -1177,15 +1187,15 @@ class _StepsCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Steps Today', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                Text(AppLocalizations.of(context)!.stepsToday, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 if (healthProvider.isLoading)
                   const Text('Loading...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600))
                 else if (!healthProvider.hasPermissions)
                   GestureDetector(
                     onTap: () => healthProvider.requestPermissions(),
-                    child: const Text(
-                      'Tap to enable health permissions',
+                    child: Text(
+                      AppLocalizations.of(context)!.tapToEnableHealthPermissions,
                       style: TextStyle(
                         color: Color(0xFFFE9D15),
                         fontSize: 14,
@@ -1224,6 +1234,12 @@ class _StepsCard extends StatelessWidget {
                       ),
                     ]),
                   ),
+                const SizedBox(height: 2),
+                // if (heightCm != null && weightKg != null)
+                //   Text(
+                //     '≈ ${estKcal} kcal',
+                //     style: const TextStyle(fontSize: 12, color: Color(0x7F1E1822), fontWeight: FontWeight.w600),
+                //   ),
               ],
             ),
           ),
@@ -1242,9 +1258,89 @@ class _StepsCard extends StatelessWidget {
   }
 }
 
-class _AddBurnedToGoalCard extends StatelessWidget {
-  final ValueNotifier<bool> addBurnedToGoal;
-  const _AddBurnedToGoalCard({required this.addBurnedToGoal});
+class _AddBurnedToGoalCard extends StatefulWidget {
+  @override
+  State<_AddBurnedToGoalCard> createState() => _AddBurnedToGoalCardState();
+}
+
+class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
+  final UserController _userController = Get.find<UserController>();
+  final ProgressService _progressService = const ProgressService();
+  
+  Map<String, dynamic>? _progressData;
+  bool _isLoadingProgress = false;
+
+  bool get _includeStepCaloriesInGoal {
+    return _userController.userData['includeStepCaloriesInGoal'] ?? false;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProgressData();
+  }
+
+  Future<void> _loadProgressData() async {
+    setState(() { _isLoadingProgress = true; });
+    
+    try {
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      final progress = await _progressService.fetchDailyProgress(dateYYYYMMDD: today);
+      
+      if (mounted && progress != null && progress['success'] == true) {
+        setState(() {
+          _progressData = progress['progress'];
+        });
+      }
+    } catch (e) {
+      // Silently handle errors
+    } finally {
+      if (mounted) setState(() { _isLoadingProgress = false; });
+    }
+  }
+
+  Future<void> _toggleIncludeStepCalories() async {
+    final bool newValue = !_includeStepCaloriesInGoal;
+    
+    // Update user data optimistically for immediate UI feedback
+    _userController.userData['includeStepCaloriesInGoal'] = newValue;
+    setState(() {});
+    
+    // Make API call in background
+    try {
+       _userController.updateUser(
+        _userController.userData['id'] ?? _userController.userData['_id'] ?? '',
+        {'includeStepCaloriesInGoal': newValue},
+        context,
+        Get.find<ThemeProvider>(),
+        Get.find<LanguageProvider>(),
+      );
+    } catch (e) {
+      // Silently handle errors - user can try again
+    }
+  }
+
+  String _getCaloriesBurnedText() {
+    if (_isLoadingProgress) return '...';
+    if (_progressData == null) return '0';
+    
+    // Get calories burned from steps only
+    final steps = _progressData!['steps'] as Map<String, dynamic>?;
+    final caloriesBurned = (steps?['caloriesBurned'] as int?) ?? 0;
+    
+    return caloriesBurned.toString();
+  }
+
+  String _getStepsText() {
+    if (_isLoadingProgress) return '...';
+    if (_progressData == null) return '0';
+    
+    final steps = _progressData!['steps'] as Map<String, dynamic>?;
+    final count = (steps?['count'] as int?) ?? 0;
+    
+    return count.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1262,27 +1358,30 @@ class _AddBurnedToGoalCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Add burned calories to daily goal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                Text(AppLocalizations.of(context)!.addBurnedCaloriesToDailyGoal, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _Badge(icon: "assets/icons/apple.png", title: '175', subtitle: 'Calories Burned'),
+                    _Badge(
+                      icon: "assets/icons/apple.png", 
+                      title: _getCaloriesBurnedText(),
+                      subtitle: AppLocalizations.of(context)!.caloriesBurned
+                    ),
                     const SizedBox(width: 8),
-                    _Badge(icon: "assets/icons/shoe.png", title: '+3565', subtitle: 'Steps'),
+                    _Badge(
+                      icon: "assets/icons/shoe.png", 
+                      title: _getStepsText(),
+                      subtitle: AppLocalizations.of(context)!.steps
+                    ),
                   ],
                 ),
               ],
             ),
           ),
-          ValueListenableBuilder<bool>(
-            valueListenable: addBurnedToGoal,
-            builder: (context, value, _) {
-              return CupertinoSwitch(
-                activeColor: CupertinoColors.black,
-                value: value,
-                onChanged: (v) => addBurnedToGoal.value = v,
-              );
-            },
+          CupertinoSwitch(
+            activeColor: CupertinoColors.black,
+            value: _includeStepCaloriesInGoal,
+            onChanged: (_) => _toggleIncludeStepCalories(),
           ),
         ],
       ),

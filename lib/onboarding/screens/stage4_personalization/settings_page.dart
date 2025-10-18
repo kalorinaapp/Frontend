@@ -12,6 +12,7 @@ import '../../../authentication/user.controller.dart';
 import '../../../constants/app_constants.dart';
 import '../../../utils/user.prefs.dart';
 import '../../../onboarding_screen.dart';
+import '../../../l10n/app_localizations.dart';
 
 class SettingsPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -39,6 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ListenableBuilder(
       listenable: widget.themeProvider,
       builder: (context, _) {
@@ -112,7 +114,7 @@ class _UserCard extends StatelessWidget {
             padding: const EdgeInsets.only(top: 20),
             child: CupertinoTextField(
               controller: controller,
-              placeholder: 'Enter username',
+              placeholder: AppLocalizations.of(context)!.enterUsername,
               style: const TextStyle(fontSize: 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -211,7 +213,7 @@ class _InviteCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Invite Friends',
+                AppLocalizations.of(context)!.inviteFriends,
                 style: ThemeHelper.textStyleWithColorAndSize(
                   ThemeHelper.body1,
                   ThemeHelper.textSecondary,
@@ -279,9 +281,9 @@ class _PersonalDetailsCard extends StatelessWidget {
                         child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
-                      const Text(
-                        'Weight',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+                      Text(
+                        AppLocalizations.of(context)!.weight,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
                       ),
                       CupertinoButton(
                         padding: EdgeInsets.zero,
@@ -382,9 +384,9 @@ class _PersonalDetailsCard extends StatelessWidget {
                         child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
-                      const Text(
-                        'Height',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+                      Text(
+                        AppLocalizations.of(context)!.height,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
                       ),
                       CupertinoButton(
                         padding: EdgeInsets.zero,
@@ -485,9 +487,9 @@ class _PersonalDetailsCard extends StatelessWidget {
                         child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
-                      const Text(
-                        'Daily Steps Goal',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+                      Text(
+                        AppLocalizations.of(context)!.dailyStepsGoal,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
                       ),
                       CupertinoButton(
                         padding: EdgeInsets.zero,
@@ -559,25 +561,25 @@ class _PersonalDetailsCard extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
-          title: const Text('Gender'),
+          title: Text(AppLocalizations.of(context)!.gender),
           content: const SizedBox(height: 20),
           actions: [
             CupertinoDialogAction(
-              child: const Text('Male', style: TextStyle(color: CupertinoColors.black)),
+              child: Text(AppLocalizations.of(context)!.male, style: const TextStyle(color: CupertinoColors.black)),
               onPressed: () async {
                 await _updateUserField('gender', 'male');
                 Navigator.of(context).pop();
               },
             ),
             CupertinoDialogAction(
-              child: const Text('Female', style: TextStyle(color: CupertinoColors.black)),
+              child: Text(AppLocalizations.of(context)!.female, style: const TextStyle(color: CupertinoColors.black)),
               onPressed: () async {
                 await _updateUserField('gender', 'female');
                 Navigator.of(context).pop();
               },
             ),
             CupertinoDialogAction(
-              child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
+              child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(color: CupertinoColors.black)),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -621,9 +623,9 @@ class _PersonalDetailsCard extends StatelessWidget {
                         child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
-                      const Text(
-                        'Birthday',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+                      Text(
+                        AppLocalizations.of(context)!.birthday,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
                       ),
                       CupertinoButton(
                         padding: EdgeInsets.zero,
@@ -746,7 +748,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                 Image.asset('assets/icons/personal_details.png', width: 18, height: 18),
                 const SizedBox(width: 8),
                 Text(
-                  'Personal Details',
+                  AppLocalizations.of(context)!.personalDetails,
                   style: ThemeHelper.textStyleWithColorAndSize(
                     ThemeHelper.body1,
                     ThemeHelper.textPrimary,
@@ -756,16 +758,16 @@ class _PersonalDetailsCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            _row('Weight', '${weight.round()} kg', () => _showWeightDialog(context, weight)),
-            _row('Height', '${height.round()} cm', () => _showHeightDialog(context, height)),
-            _row('Birthday', '${birthday.day.toString().padLeft(2, '0')}/${birthday.month.toString().padLeft(2, '0')}/${birthday.year}', () => _showBirthdayDialog(context, birthday)),
-            _row('Gender', gender, () => _showGenderDialog(context)),
-            _row('Steps', '$stepsGoal', () => _showStepsDialog(context, stepsGoal)),
+            _row(AppLocalizations.of(context)!.weight, '${weight.round()} kg', () => _showWeightDialog(context, weight)),
+            _row(AppLocalizations.of(context)!.height, '${height.round()} cm', () => _showHeightDialog(context, height)),
+            _row(AppLocalizations.of(context)!.birthday, '${birthday.day.toString().padLeft(2, '0')}/${birthday.month.toString().padLeft(2, '0')}/${birthday.year}', () => _showBirthdayDialog(context, birthday)),
+            _row(AppLocalizations.of(context)!.gender, gender, () => _showGenderDialog(context)),
+            _row(AppLocalizations.of(context)!.steps, '$stepsGoal', () => _showStepsDialog(context, stepsGoal)),
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    'Rollover up to 200 Left Over Calories From Yesterday',
+                    AppLocalizations.of(context)!.rolloverLeftOverCalories,
                     style: ThemeHelper.textStyleWithColorAndSize(
                       ThemeHelper.body1,
                       ThemeHelper.textPrimary,
@@ -784,7 +786,7 @@ class _PersonalDetailsCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Add Burned Calories',
+                    AppLocalizations.of(context)!.addBurnedCalories,
                     style: ThemeHelper.textStyleWithColorAndSize(
                       ThemeHelper.body1,
                       ThemeHelper.textPrimary,
@@ -902,7 +904,7 @@ class _SettingsListCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Delete Account?',
+                        AppLocalizations.of(context)!.deleteAccountTitle,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -932,7 +934,7 @@ class _SettingsListCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   // Subtitle
                   Text(
-                    'Account will be permanently deleted',
+                    AppLocalizations.of(context)!.accountWillBePermanentlyDeleted,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
@@ -1038,7 +1040,7 @@ class _SettingsListCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Log out?',
+                        AppLocalizations.of(context)!.logoutTitle,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -1068,7 +1070,7 @@ class _SettingsListCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   // Subtitle
                   Text(
-                    'Are you sure you want to log out?',
+                    AppLocalizations.of(context)!.areYouSureYouWantToLogOut,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
@@ -1207,40 +1209,40 @@ class _SettingsListCard extends StatelessWidget {
 
               Navigator.push(context, CupertinoPageRoute(builder: (context) =>  SetGoalsScreen()));
             },
-            child: _tile('Adjust Macronutrients', 'assets/icons/adjust.png'),
+            child: _tile(AppLocalizations.of(context)!.adjustMacronutrients, 'assets/icons/adjust.png'),
           ),
           GestureDetector(
             onTap: () {
               Navigator.push(context, CupertinoPageRoute(builder: (context) =>  AppearanceScreen()));
             },
-            child: _tile('Appearance', 'assets/icons/appearance.png')),
+            child: _tile(AppLocalizations.of(context)!.appearance, 'assets/icons/appearance.png')),
           GestureDetector(
           onTap: () {
             Navigator.push(context, CupertinoPageRoute(builder: (context) =>  LanguageSelectionScreen()));
           },
-          child: _tile('Language', 'assets/icons/language.png')),
+          child: _tile(AppLocalizations.of(context)!.language, 'assets/icons/language.png')),
           GestureDetector(
             onTap: _launchEmail,
-            child: _tile('Support', 'assets/icons/support.png'),
+            child: _tile(AppLocalizations.of(context)!.support, 'assets/icons/support.png'),
           ),
           GestureDetector(
             onTap: _launchPrivacyPolicy,
-            child: _tile('Privacy Policy', 'assets/icons/privacy.png'),
+            child: _tile(AppLocalizations.of(context)!.privacyPolicy, 'assets/icons/privacy.png'),
           ),
           GestureDetector(
             onTap: _launchTermsAndConditions,
-            child: _tile('Terms and Conditions', 'assets/icons/terms.png'),
+            child: _tile(AppLocalizations.of(context)!.termsAndConditions, 'assets/icons/terms.png'),
           ),
           GestureDetector(
             onTap: () => _handleDeleteAccount(context),
-            child: _tile('Delete Account', 'assets/icons/delete_account.png'),
+            child: _tile(AppLocalizations.of(context)!.deleteAccount, 'assets/icons/delete_account.png'),
           ),
           const SizedBox(height: 20),
           GestureDetector(
             onTap: () {
               _handleLogout(context);
             },
-            child: _tile('Logout', 'assets/icons/logout.png', isLast: true)),
+            child: _tile(AppLocalizations.of(context)!.logout, 'assets/icons/logout.png', isLast: true)),
         ],
       ),
     );

@@ -8,6 +8,9 @@ class UserPrefs {
   static const String keyRefreshToken = 'user_refresh_token';
   static const String keyId = 'user_id';
   static const String keyLastWeighInIso = 'last_weigh_in_iso';
+  static const String keyHealthPermsGranted = 'health_permissions_granted';
+  static const String keyLastStepsDate = 'last_steps_date';
+  static const String keyLastStepsValue = 'last_steps_value';
 
   static Future<void> saveUserData({
     required String name,
@@ -57,6 +60,9 @@ class UserPrefs {
     await prefs.remove(keyRefreshToken);
     await prefs.remove(keyId);
     await prefs.remove(keyLastWeighInIso);
+    await prefs.remove(keyHealthPermsGranted);
+    await prefs.remove(keyLastStepsDate);
+    await prefs.remove(keyLastStepsValue);
   }
 
   static bool isTokenInvalid(String? token) {
@@ -108,5 +114,30 @@ class UserPrefs {
     final int daysSince = now.difference(last).inDays;
     final int remaining = cadenceDays - daysSince;
     return remaining <= 0 ? 0 : remaining;
+  }
+
+  // Health permissions cache
+  static Future<void> setHealthPermissionsGranted(bool granted) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(keyHealthPermsGranted, granted);
+  }
+
+  static Future<bool> getHealthPermissionsGranted() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(keyHealthPermsGranted) ?? false;
+  }
+
+  // Steps sync cache
+  static Future<void> setLastSyncedSteps({required String dateYYYYMMDD, required int steps}) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(keyLastStepsDate, dateYYYYMMDD);
+    await prefs.setInt(keyLastStepsValue, steps);
+  }
+
+  static Future<(String?, int?)> getLastSyncedSteps() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? date = prefs.getString(keyLastStepsDate);
+    final int? steps = prefs.getInt(keyLastStepsValue);
+    return (date, steps);
   }
 }

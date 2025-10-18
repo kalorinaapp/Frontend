@@ -9,6 +9,7 @@ import 'create_meal_screen.dart';
 import 'create_food_screen.dart';
 import 'edit_macro_screen.dart';
 import 'meal_details_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class LogFoodScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
@@ -45,7 +46,10 @@ class _LogFoodView extends StatelessWidget {
   
   const _LogFoodView({required this.controller});
   
-  final List<String> _tabs = const ['All', 'My Meals', 'My Foods', 'Saved Scans', 'Direct Input'];
+  List<String> _getTabs(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [l10n.all, l10n.myMeals, l10n.myFoods, l10n.savedScans, l10n.directInput];
+  }
 
   void _onAddFood(BuildContext context, int index) async {
     // Navigate to create meal screen with meal data
@@ -183,6 +187,8 @@ class _LogFoodView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.white,
       child: SafeArea(
@@ -203,9 +209,9 @@ class _LogFoodView extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  const Text(
-                    'Log Food',
-                    style: TextStyle(
+                  Text(
+                    l10n.logFood,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: CupertinoColors.black,
@@ -222,7 +228,7 @@ class _LogFoodView extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 8),
               child: Column(
                 children: [
-                  _buildCustomTabBar(),
+                  _buildCustomTabBar(context),
                   // Full horizontal line below all tabs
                   Container(
                     height: 1,
@@ -254,12 +260,12 @@ class _LogFoodView extends StatelessWidget {
                           : controller.searchController;
               
               final placeholder = isMyMealsTab 
-                  ? 'Search meals...' 
+                  ? l10n.searchMeals 
                   : isMyFoodsTab 
-                      ? 'Search foods...' 
+                      ? l10n.searchFoods 
                       : isSavedScansTab
-                          ? 'Search scanned meals...'
-                          : 'Chicken br';
+                          ? l10n.searchScannedMeals
+                          : l10n.chickenBr;
               
               final showClearButton = isMyMealsTab || isMyFoodsTab || isSavedScansTab;
               
@@ -344,7 +350,7 @@ class _LogFoodView extends StatelessWidget {
             
             // Tab Content
             Expanded(
-              child: _buildTabContent(),
+              child: _buildTabContent(context),
             ),
           ],
         ),
@@ -352,7 +358,9 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildAllTab() {
+  Widget _buildAllTab(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Container(
       margin: const EdgeInsets.all(20),
       child: Column(
@@ -386,9 +394,9 @@ class _LogFoodView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Suggestions',
-                    style: TextStyle(
+                  Text(
+                    l10n.suggestions,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: CupertinoColors.black,
@@ -405,10 +413,10 @@ class _LogFoodView extends StatelessWidget {
                             itemBuilder: (context, index) => _buildShimmerItem(),
                           )
                         : controller.suggestions.isEmpty
-                            ? const Center(
+                            ? Center(
                                 child: Text(
-                                  'No suggestions available',
-                                  style: TextStyle(
+                                  l10n.noSuggestionsAvailable,
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     color: Color(0xFF999999),
                                   ),
@@ -422,6 +430,7 @@ class _LogFoodView extends StatelessWidget {
                                   return GestureDetector(
                                     onTap: () => _onAddFood(context, index),
                                     child: _buildSuggestionItem(
+                                      context: context,
                                       title: suggestion['name'],
                                       calories: suggestion['calories'],
                                       onAdd: () => _onAddFood(context, index),
@@ -440,7 +449,9 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildMyMealsTab() {
+  Widget _buildMyMealsTab(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Stack(
       children: [
         Container(
@@ -457,10 +468,10 @@ class _LogFoodView extends StatelessWidget {
                         itemBuilder: (context, index) => _buildShimmerItem(),
                       )
                     : controller.myMeals.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'No meals saved yet',
-                              style: TextStyle(
+                              l10n.noMealsSavedYet,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 color: Color(0xFF999999),
                               ),
@@ -564,6 +575,7 @@ class _LogFoodView extends StatelessWidget {
     required int calories,
     VoidCallback? onTap,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -611,7 +623,7 @@ class _LogFoodView extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$calories calories',
+                    '$calories ${l10n.calories}',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF666666),
@@ -639,6 +651,7 @@ class _LogFoodView extends StatelessWidget {
     required int calories,
     VoidCallback? onTap,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -686,7 +699,7 @@ class _LogFoodView extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$calories calories',
+                    '$calories ${l10n.calories}',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF666666),
@@ -709,10 +722,12 @@ class _LogFoodView extends StatelessWidget {
   }
 
   Widget _buildSuggestionItem({
+    required BuildContext context,
     required String title,
     required int calories,
     required VoidCallback onAdd,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         // Flame icon
@@ -779,11 +794,14 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomTabBar() {
+  Widget _buildCustomTabBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final tabs = _getTabs(context);
+    
     return Obx(() => SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: _tabs.asMap().entries.map((entry) {
+        children: tabs.asMap().entries.map((entry) {
           final index = entry.key;
           final tab = entry.value;
           final isSelected = index == controller.selectedTabIndex.value;
@@ -818,28 +836,32 @@ class _LogFoodView extends StatelessWidget {
     ));
   }
 
-  Widget _buildTabContent() {
+  Widget _buildTabContent(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Obx(() {
       switch (controller.selectedTabIndex.value) {
         case 0:
-          return _buildAllTab();
+          return _buildAllTab(context);
         case 1:
-          return _buildMyMealsTab();
+          return _buildMyMealsTab(context);
         case 2:
-          return _buildMyFoodsTab();
+          return _buildMyFoodsTab(context);
         case 3:
           return Builder(
-            builder: (context) => _buildEmptyTab(context, 'Saved Scans'),
+            builder: (context) => _buildEmptyTab(context, l10n.savedScans),
           );
         case 4:
-          return _buildDirectInputTab();
+          return _buildDirectInputTab(context);
         default:
-          return _buildAllTab();
+          return _buildAllTab(context);
       }
     });
   }
 
-  Widget _buildMyFoodsTab() {
+  Widget _buildMyFoodsTab(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Stack(
       children: [
         Container(
@@ -856,10 +878,10 @@ class _LogFoodView extends StatelessWidget {
                         itemBuilder: (context, index) => _buildShimmerItem(),
                       )
                     : controller.myFoods.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'No foods created yet',
-                              style: TextStyle(
+                              l10n.noFoodsCreatedYet,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 color: Color(0xFF999999),
                               ),
@@ -969,10 +991,10 @@ class _LogFoodView extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Text(
-                  'Create Food',
+                child: Text(
+                  l10n.createFood,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: CupertinoColors.white,
@@ -988,8 +1010,10 @@ class _LogFoodView extends StatelessWidget {
   }
 
   Widget _buildEmptyTab(BuildContext context, String tabName) {
+    final l10n = AppLocalizations.of(context)!;
+    
     // Special handling for Saved Scans
-    if (tabName == 'Saved Scans') {
+    if (tabName == l10n.savedScans) {
       return Obx(() {
         if (controller.isLoadingScannedMeals.value) {
           // Loading state
@@ -1007,12 +1031,12 @@ class _LogFoodView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(flex: 2),
-              const SizedBox(
+              SizedBox(
                 width: 242,
                 child: Text(
-                  'Your saved scans will appear here',
+                  l10n.yourSavedScansWillAppearHere,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xB21E1822),
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -1054,10 +1078,10 @@ class _LogFoodView extends StatelessWidget {
     // Default empty state for other tabs
     return Stack(
       children: [
-        const Center(
+        Center(
           child: Text(
-            'Saved Scans content coming soon',
-            style: TextStyle(
+            l10n.savedScansContentComingSoon,
+            style: const TextStyle(
               fontSize: 16,
               color: Color(0xFF999999),
             ),
@@ -1074,7 +1098,9 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildDirectInputTab() {
+  Widget _buildDirectInputTab(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Stack(
       children: [
         Container(
@@ -1121,7 +1147,7 @@ class _LogFoodView extends StatelessWidget {
                   ),
                   child: CupertinoTextField(
                     controller: controller.foodNameController,
-                    placeholder: 'Edit Name',
+                    placeholder: l10n.editName,
                     placeholderStyle: const TextStyle(
                       color: Color(0xFF999999),
                       fontSize: 16,
@@ -1177,8 +1203,8 @@ class _LogFoodView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Calories',
-                              style: TextStyle(
+                              l10n.caloriesLabel,
+                              style: const TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF666666),
                               ),
@@ -1186,7 +1212,7 @@ class _LogFoodView extends StatelessWidget {
                             const SizedBox(height: 4),
                             CupertinoTextField(
                               controller: controller.caloriesController,
-                              placeholder: '512',
+                              placeholder: l10n.caloriesPlaceholder,
                               keyboardType: TextInputType.number,
                               style: const TextStyle(
                                 fontSize: 24,
@@ -1220,8 +1246,8 @@ class _LogFoodView extends StatelessWidget {
                       children: [
                         // Carbohydrates
                         Expanded(
-                          child: _buildMacroCard(context, 'Carbs', carbs, 'assets/icons/carbs.png', CupertinoColors.systemOrange, () {
-                            _editMacro(context, 'Carbs', 'assets/icons/carbs.png', CupertinoColors.systemOrange, carbs, (value) {
+                          child: _buildMacroCard(context, l10n.carbs, carbs, 'assets/icons/carbs.png', CupertinoColors.systemOrange, () {
+                            _editMacro(context, l10n.carbs, 'assets/icons/carbs.png', CupertinoColors.systemOrange, carbs, (value) {
                               controller.carbsValue.value = value;
                             });
                           }),
@@ -1229,8 +1255,8 @@ class _LogFoodView extends StatelessWidget {
                         const SizedBox(width: 12),
                         // Protein
                         Expanded(
-                          child: _buildMacroCard(context, 'Protein', protein, 'assets/icons/drumstick.png', CupertinoColors.systemBlue, () {
-                            _editMacro(context, 'Protein', 'assets/icons/drumstick.png', CupertinoColors.systemBlue, protein, (value) {
+                          child: _buildMacroCard(context, l10n.protein, protein, 'assets/icons/drumstick.png', CupertinoColors.systemBlue, () {
+                            _editMacro(context, l10n.protein, 'assets/icons/drumstick.png', CupertinoColors.systemBlue, protein, (value) {
                               controller.proteinValue.value = value;
                             });
                           }),
@@ -1238,8 +1264,8 @@ class _LogFoodView extends StatelessWidget {
                         const SizedBox(width: 12),
                         // Fats
                         Expanded(
-                          child: _buildMacroCard(context, 'Fats', fats, 'assets/icons/fat.png', CupertinoColors.systemRed, () {
-                            _editMacro(context, 'Fats', 'assets/icons/fat.png', CupertinoColors.systemRed, fats, (value) {
+                          child: _buildMacroCard(context, l10n.fats, fats, 'assets/icons/fat.png', CupertinoColors.systemRed, () {
+                            _editMacro(context, l10n.fats, 'assets/icons/fat.png', CupertinoColors.systemRed, fats, (value) {
                               controller.fatsValue.value = value;
                             });
                           }),
@@ -1255,9 +1281,9 @@ class _LogFoodView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Ingredients',
-                      style: TextStyle(
+                    Text(
+                      l10n.ingredients,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: CupertinoColors.black,
@@ -1286,12 +1312,12 @@ class _LogFoodView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Add More',
-                                style: TextStyle(
+                                l10n.addMore,
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                   color: CupertinoColors.black,
@@ -1340,9 +1366,9 @@ class _LogFoodView extends StatelessWidget {
                     builder: (context) => Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Amount',
-                          style: TextStyle(
+                        Text(
+                          l10n.amount,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: CupertinoColors.black,
@@ -1424,10 +1450,10 @@ class _LogFoodView extends StatelessWidget {
                           color: CupertinoColors.white,
                         ),
                       )
-                    : const Text(
-                        'Save Food',
+                    : Text(
+                        l10n.saveFood,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: CupertinoColors.white,
@@ -1456,6 +1482,7 @@ class _LogFoodView extends StatelessWidget {
   }
 
   void _showAmountInputSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final TextEditingController amountController = TextEditingController(text: controller.amountValue.value.toString());
     
     showCupertinoModalPopup(
@@ -1473,9 +1500,9 @@ class _LogFoodView extends StatelessWidget {
         child: Column(
           children: [
             // Title
-            const Text(
-              'Enter Amount',
-              style: TextStyle(
+            Text(
+              l10n.enterAmount,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: CupertinoColors.black,
@@ -1487,7 +1514,7 @@ class _LogFoodView extends StatelessWidget {
             CupertinoTextField(
               controller: amountController,
               keyboardType: TextInputType.number,
-              placeholder: 'Enter amount',
+              placeholder: l10n.enterAmountPlaceholder,
               style: const TextStyle(fontSize: 16),
               decoration: BoxDecoration(
                 border: Border.all(
@@ -1510,9 +1537,9 @@ class _LogFoodView extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: CupertinoColors.systemGrey),
+                    child: Text(
+                      l10n.cancel,
+                      style: const TextStyle(color: CupertinoColors.systemGrey),
                     ),
                   ),
                 ),
@@ -1526,9 +1553,9 @@ class _LogFoodView extends StatelessWidget {
                       }
                       Navigator.of(context).pop();
                     },
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(color: CupertinoColors.white),
+                    child: Text(
+                      l10n.save,
+                      style: const TextStyle(color: CupertinoColors.white),
                     ),
                   ),
                 ),
@@ -1615,6 +1642,8 @@ class _LogFoodView extends StatelessWidget {
   }
 
   Widget _buildBottomBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1696,10 +1725,10 @@ class _LogFoodView extends StatelessWidget {
               ),
             ],
           ),
-          child: const Text(
-            'Create a Meal',
+          child: Text(
+            l10n.createAMeal,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: CupertinoColors.white,
@@ -1726,6 +1755,7 @@ class _LogFoodView extends StatelessWidget {
   }
 
   Widget _buildScannedMealCard(BuildContext context, Map<String, dynamic> meal) {
+    final l10n = AppLocalizations.of(context)!;
     final calories = (meal['totalCalories'] as num).toInt();
     final protein = (meal['totalProtein'] as num).toInt();
     final fat = (meal['totalFat'] as num).toInt();
@@ -1806,7 +1836,7 @@ class _LogFoodView extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          mealName != null && mealName.isNotEmpty ? mealName : 'Scanned Meal',
+                          mealName != null && mealName.isNotEmpty ? mealName : l10n.scannedMeal,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -1848,17 +1878,17 @@ class _LogFoodView extends StatelessWidget {
                     children: [
                       Column(
                         children: [
-                          _buildNutritionBadge(calories.toString(), 'Calories', 'assets/icons/carbs.png'),
+                          _buildNutritionBadge(context, calories.toString(), l10n.caloriesLabel, 'assets/icons/carbs.png'),
                           const SizedBox(height: 4),
-                          _buildNutritionBadge(protein.toString(), 'Protein', 'assets/icons/drumstick.png'),
+                          _buildNutritionBadge(context, protein.toString(), l10n.protein, 'assets/icons/drumstick.png'),
                         ],
                       ),
                       const SizedBox(width: 12),
                       Column(
                         children: [
-                          _buildNutritionBadge(fat.toString(), 'Fat', 'assets/icons/fat.png'),
+                          _buildNutritionBadge(context, fat.toString(), l10n.fats, 'assets/icons/fat.png'),
                           const SizedBox(height: 4),
-                          _buildNutritionBadge(carbs.toString(), 'Carbs', 'assets/icons/carbs.png'),
+                          _buildNutritionBadge(context, carbs.toString(), l10n.carbs, 'assets/icons/carbs.png'),
                         ],
                       ),
                     ],
@@ -1883,7 +1913,7 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildNutritionBadge(String value, String label, String iconPath) {
+  Widget _buildNutritionBadge(BuildContext context, String value, String label, String iconPath) {
     return Container(
       width: 70,
       height: 30,
@@ -1938,6 +1968,7 @@ class _LogFoodView extends StatelessWidget {
   }
 
   Widget _buildDirectInputIngredientCard(BuildContext context, dynamic ingredient) {
+    final l10n = AppLocalizations.of(context)!;
     final name = ingredient['name'] ?? '';
     final quantity = ingredient['quantity']?.toString() ?? '';
     final unit = ingredient['unit'] ?? '';
@@ -2012,13 +2043,13 @@ class _LogFoodView extends StatelessWidget {
               runSpacing: 8,
               children: [
                 if (calories != '0')
-                  _buildDirectInputNutrientBadge('$calories kcal'),
+                  _buildDirectInputNutrientBadge(context, '$calories kcal'),
                 if (protein != '0')
-                  _buildDirectInputNutrientBadge('P: ${protein}g'),
+                  _buildDirectInputNutrientBadge(context, 'P: ${protein}g'),
                 if (carbs != '0')
-                  _buildDirectInputNutrientBadge('C: ${carbs}g'),
+                  _buildDirectInputNutrientBadge(context, 'C: ${carbs}g'),
                 if (fat != '0')
-                  _buildDirectInputNutrientBadge('F: ${fat}g'),
+                  _buildDirectInputNutrientBadge(context, 'F: ${fat}g'),
               ],
             ),
           ],
@@ -2027,7 +2058,7 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildDirectInputNutrientBadge(String text) {
+  Widget _buildDirectInputNutrientBadge(BuildContext context, String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -2050,6 +2081,7 @@ class _LogFoodView extends StatelessWidget {
   }
 
   void _showAddDirectInputIngredientDialog(BuildContext context, {dynamic existingIngredient}) {
+    final l10n = AppLocalizations.of(context)!;
     final bool isEditing = existingIngredient != null;
     
     final TextEditingController nameController = TextEditingController(
@@ -2112,9 +2144,9 @@ class _LogFoodView extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.cancel,
+                      style: const TextStyle(
                         fontSize: 16,
                         color: CupertinoColors.systemGrey,
                       ),
@@ -2122,7 +2154,7 @@ class _LogFoodView extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    isEditing ? 'Edit Ingredient' : 'Add Ingredient',
+                    isEditing ? l10n.editIngredient : l10n.addIngredient,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -2168,7 +2200,7 @@ class _LogFoodView extends StatelessWidget {
                       Navigator.of(context).pop();
                     },
                     child: Text(
-                      isEditing ? 'Save' : 'Add',
+                      isEditing ? l10n.save : l10n.add,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -2188,9 +2220,9 @@ class _LogFoodView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Name Field (Mandatory)
-                    const Text(
-                      'Name *',
-                      style: TextStyle(
+                    Text(
+                      l10n.name,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: CupertinoColors.black,
@@ -2199,7 +2231,7 @@ class _LogFoodView extends StatelessWidget {
                     const SizedBox(height: 8),
                     CupertinoTextField(
                       controller: nameController,
-                      placeholder: 'Enter ingredient name',
+                      placeholder: l10n.enterIngredientName,
                       placeholderStyle: const TextStyle(
                         color: Color(0xFF999999),
                         fontSize: 16,
@@ -2222,9 +2254,9 @@ class _LogFoodView extends StatelessWidget {
                     const SizedBox(height: 24),
                     
                     // Quantity Section
-                    const Text(
-                      'Quantity & Unit',
-                      style: TextStyle(
+                    Text(
+                      l10n.quantityUnit,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: CupertinoColors.black,
@@ -2237,7 +2269,7 @@ class _LogFoodView extends StatelessWidget {
                           flex: 2,
                           child: CupertinoTextField(
                             controller: quantityController,
-                            placeholder: 'Amount',
+                            placeholder: l10n.amountPlaceholder,
                             keyboardType: TextInputType.number,
                             placeholderStyle: const TextStyle(
                               color: Color(0xFF999999),
@@ -2263,7 +2295,7 @@ class _LogFoodView extends StatelessWidget {
                           flex: 3,
                           child: CupertinoTextField(
                             controller: unitController,
-                            placeholder: 'Unit (g, cup, tbsp)',
+                            placeholder: l10n.unitPlaceholder,
                             placeholderStyle: const TextStyle(
                               color: Color(0xFF999999),
                               fontSize: 16,
@@ -2289,9 +2321,9 @@ class _LogFoodView extends StatelessWidget {
                     const SizedBox(height: 24),
                     
                     // Nutrition Information
-                    const Text(
-                      'Nutrition (Optional)',
-                      style: TextStyle(
+                    Text(
+                      l10n.nutritionOptional,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: CupertinoColors.black,
@@ -2302,7 +2334,7 @@ class _LogFoodView extends StatelessWidget {
                     // Calories
                     CupertinoTextField(
                       controller: caloriesController,
-                      placeholder: 'Calories',
+                      placeholder: l10n.caloriesPlaceholder2,
                       keyboardType: TextInputType.number,
                       placeholderStyle: const TextStyle(
                         color: Color(0xFF999999),
@@ -2331,7 +2363,7 @@ class _LogFoodView extends StatelessWidget {
                         Expanded(
                           child: CupertinoTextField(
                             controller: proteinController,
-                            placeholder: 'Protein (g)',
+                            placeholder: l10n.proteinG,
                             keyboardType: TextInputType.number,
                             placeholderStyle: const TextStyle(
                               color: Color(0xFF999999),
@@ -2356,7 +2388,7 @@ class _LogFoodView extends StatelessWidget {
                         Expanded(
                           child: CupertinoTextField(
                             controller: carbsController,
-                            placeholder: 'Carbs (g)',
+                            placeholder: l10n.carbsG,
                             keyboardType: TextInputType.number,
                             placeholderStyle: const TextStyle(
                               color: Color(0xFF999999),
@@ -2385,7 +2417,7 @@ class _LogFoodView extends StatelessWidget {
                     // Fat
                     CupertinoTextField(
                       controller: fatController,
-                      placeholder: 'Fat (g)',
+                      placeholder: l10n.fatG,
                       keyboardType: TextInputType.number,
                       placeholderStyle: const TextStyle(
                         color: Color(0xFF999999),

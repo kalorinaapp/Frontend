@@ -288,6 +288,7 @@ class UserController extends GetxController {
       methodName: 'api/users/$userId',
       param: data,
       callback: (response) {
+        print('data: ${data}');
         isLoading.value = false;
         final decoded = response.response;
         try {

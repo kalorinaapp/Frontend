@@ -48,8 +48,10 @@ class ProgressService {
         'date': dateYYYYMMDD,
       },
       callback: (resp) async {
+        print('date: ${dateYYYYMMDD}');
         try {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+          print('parsed: ${parsed}');
         } catch (e) {
           debugPrint('ProgressService parse error: $e');
           parsed = null;
@@ -114,6 +116,29 @@ class ProgressService {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
         } catch (e) {
           debugPrint('ProgressService summary parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> logDailySteps({
+    required int steps,
+    required String dateYYYYMMDD,
+  }) async {
+    Map<String, dynamic>? parsed;
+    await multiPostAPINew(
+      methodName: 'api/progress/steps/exercise',
+      param: {
+        'steps': steps,
+        'loggedAt': dateYYYYMMDD,
+      },
+      callback: (resp) async {
+        try {
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('ProgressService steps parse error: $e');
           parsed = null;
         }
       },

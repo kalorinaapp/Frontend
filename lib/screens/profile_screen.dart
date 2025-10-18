@@ -128,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  fullName.isNotEmpty ? fullName : 'Set Name',
+                                  fullName.isNotEmpty ? fullName : l10n.setName,
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w600,
@@ -158,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   
                   // Personal Info Section
                   Text(
-                    'Personal Information',
+                    l10n.personalInformation,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -170,17 +170,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Personal Info Cards
                   Obx(() => _buildInfoCard(
                     icon: 'assets/icons/weights.png',
-                    title: 'Weight',
+                    title: l10n.weight,
                     value: '${userController.userData['weight'] ?? '-'} kg',
-                    onTap: () => _showEditDialog('Weight', 'weight', userController.userData['weight']),
+                    onTap: () => _showEditDialog(l10n.weight, 'weight', userController.userData['weight']),
                   )),
                   const SizedBox(height: 12),
                   
                   Obx(() => _buildInfoCard(
                     icon: 'assets/icons/up.png',
-                    title: 'Height',
+                    title: l10n.height,
                     value: '${userController.userData['height'] ?? '-'} cm',
-                    onTap: () => _showEditDialog('Height', 'height', userController.userData['height']),
+                    onTap: () => _showEditDialog(l10n.height, 'height', userController.userData['height']),
                   )),
                   const SizedBox(height: 12),
                   
@@ -188,9 +188,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final age = userController.userData['age'];
                     return _buildInfoCard(
                       icon: 'assets/icons/profile.png',
-                      title: 'Age',
-                      value: age != null ? '$age years' : '-',
-                      onTap: () => _showEditDialog('Age', 'age', age),
+                      title: l10n.age,
+                      value: age != null ? '$age ${l10n.years}' : '-',
+                      onTap: () => _showEditDialog(l10n.age, 'age', age),
                     );
                   }),
                   const SizedBox(height: 12),
@@ -199,7 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final gender = userController.userData['gender'] ?? '-';
                     return _buildInfoCard(
                       icon: gender == 'male' ? 'assets/icons/male.png' : 'assets/icons/female.png',
-                      title: 'Gender',
+                      title: l10n.gender,
                       value: gender.toString().capitalize ?? '-',
                       onTap: () => _showGenderDialog(),
                     );
@@ -210,9 +210,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final stepsGoal = healthProvider.stepsGoal;
                     return _buildInfoCard(
                       icon: 'assets/icons/steps.png',
-                      title: 'Daily Steps Goal',
-                      value: '$stepsGoal steps',
-                      onTap: () => _showEditDialog('Steps Goal', 'stepsGoal', stepsGoal),
+                      title: l10n.dailyStepsGoal,
+                      value: '$stepsGoal ${l10n.steps}',
+                      onTap: () => _showEditDialog(l10n.dailyStepsGoal, 'stepsGoal', stepsGoal),
                     );
                   }),
                   const SizedBox(height: 12),
@@ -240,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: Text(
-                              'Add Burned Calories to Goal',
+                              l10n.addBurnedCaloriesToGoal,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -266,7 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   
                   // Language Section
                   Text(
-                    'Language / Jezik',
+                    l10n.language,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -305,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   
                   // Other Settings Section
                   Text(
-                    'Settings',
+                    l10n.settings,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -317,8 +317,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Settings Cards
                   _buildSettingsCard(
                     icon: CupertinoIcons.person,
-                    title: 'Account',
-                    subtitle: 'Manage your profile and account settings',
+                    title: l10n.account,
+                    subtitle: l10n.manageYourProfileAndAccountSettings,
                     onTap: () {
                       // TODO: Navigate to account settings
                     },
@@ -328,8 +328,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   
                   _buildSettingsCard(
                     icon: CupertinoIcons.heart,
-                    title: 'Health Tracking',
-                    subtitle: 'View your health consistency and progress',
+                    title: l10n.healthTracking,
+                    subtitle: l10n.viewYourHealthConsistencyAndProgress,
                     onTap: () {
                       Navigator.of(context).push(
                         CupertinoPageRoute(
@@ -345,8 +345,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   
                   _buildSettingsCard(
                     icon: CupertinoIcons.bell,
-                    title: 'Notifications',
-                    subtitle: 'Configure your notification preferences',
+                    title: l10n.notifications,
+                    subtitle: l10n.configureYourNotificationPreferences,
                     onTap: () {
                       // TODO: Navigate to notification settings
                     },
@@ -356,8 +356,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   
                   _buildSettingsCard(
                     icon: CupertinoIcons.info,
-                    title: 'About',
-                    subtitle: 'App version and information',
+                    title: l10n.about,
+                    subtitle: l10n.appVersionAndInformation,
                     onTap: () {
                       // TODO: Navigate to about page
                     },
@@ -432,24 +432,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showEditNameDialog(String currentName) {
+    final l10n = AppLocalizations.of(context)!;
     final TextEditingController controller = TextEditingController(text: currentName);
     
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Edit Name'),
+        title: Text(l10n.editName),
         content: Padding(
           padding: const EdgeInsets.only(top: 16),
           child: CupertinoTextField(
             controller: controller,
-            placeholder: 'Enter your name',
+            placeholder: l10n.enterYourName,
             autofocus: true,
           ),
         ),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           CupertinoDialogAction(
             isDefaultAction: true,
@@ -473,7 +474,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
               Navigator.of(context).pop();
             },
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -481,6 +482,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showEditDialog(String fieldName, String fieldKey, dynamic currentValue) {
+    final l10n = AppLocalizations.of(context)!;
     final TextEditingController controller = TextEditingController(
       text: currentValue?.toString() ?? '',
     );
@@ -488,7 +490,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: Text('Edit $fieldName'),
+        title: Text('${l10n.editName} $fieldName'),
         content: Padding(
           padding: const EdgeInsets.only(top: 16),
           child: CupertinoTextField(
@@ -501,7 +503,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           CupertinoDialogAction(
             isDefaultAction: true,
@@ -519,7 +521,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
               Navigator.of(context).pop();
             },
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -527,10 +529,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showGenderDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Select Gender'),
+        title: Text(l10n.selectGender),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -541,7 +544,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 await _updateUserField('gender', 'male');
                 Navigator.of(context).pop();
               },
-              child: const Text('Male'),
+              child: Text(l10n.male),
             ),
             CupertinoButton(
               padding: EdgeInsets.zero,
@@ -549,14 +552,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 await _updateUserField('gender', 'female');
                 Navigator.of(context).pop();
               },
-              child: const Text('Female'),
+              child: Text(l10n.female),
             ),
           ],
         ),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
         ],
       ),

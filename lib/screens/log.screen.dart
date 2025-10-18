@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import '../constants/app_constants.dart';
 import '../providers/theme_provider.dart' show ThemeProvider;
 import '../utils/theme_helper.dart' show ThemeHelper;
+import '../l10n/app_localizations.dart';
 import 'log_food_screen.dart';
 import 'log_exercise_screen.dart';
 
@@ -92,118 +93,118 @@ class _LogScreenState extends State<LogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     
     return CupertinoPageScaffold(
       backgroundColor: widget.themeProvider.isLightMode ? CupertinoColors.white : CupertinoColors.black,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Log Title
-                const Text(
-                  'Log',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: CupertinoColors.black,
-                  ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 60),
+              // Log Title
+              Text(
+                l10n.log,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.black,
                 ),
-                const SizedBox(height: 30),
-                
-                // Exercise Section
-                const Text(
-                  'Exercise',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF666666),
-                  ),
+              ),
+              const SizedBox(height: 30),
+              
+              // Exercise Section
+              Text(
+                l10n.exercise,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF666666),
                 ),
-                const SizedBox(height: 16),
-                
-                // Exercise Cards
-                _buildLogCard(
-                  iconAsset: 'assets/icons/heartbeat.png',
-                  // icon: CupertinoIcons.heart_fill,
-                  title: 'Cardio',
-                  subtitle: 'Log runs, cycling, HIIT, or any endurance activity',
-                  onTap: _navigateToCardio,
+              ),
+              const SizedBox(height: 16),
+              
+              // Exercise Cards
+              _buildLogCard(
+                iconAsset: 'assets/icons/heartbeat.png',
+                // icon: CupertinoIcons.heart_fill,
+                title: l10n.cardio,
+                subtitle: l10n.cardioSubtitle,
+                onTap: _navigateToCardio,
+              ),
+              const SizedBox(height: 12),
+              
+              _buildLogCard(
+                iconAsset: 'assets/icons/weights.png',
+                title: l10n.weightTraining,
+                subtitle: l10n.weightTrainingSubtitle,
+                onTap: _navigateToWeightTraining,
+              ),
+              const SizedBox(height: 12),
+              
+              _buildLogCard(
+               iconAsset: 'assets/icons/stats.png',
+                title: l10n.describeExercise,
+                subtitle: l10n.describeExerciseSubtitle,
+                onTap: _navigateToDescribeExercise,
+              ),
+              const SizedBox(height: 12),
+              
+              _buildLogCard(
+                iconAsset: 'assets/icons/input.png',
+                title: l10n.directInput,
+                subtitle: l10n.directInputSubtitle,
+                onTap: _navigateToDirectInputExercise,
+              ),
+              const SizedBox(height: 30),
+              
+              // Food Section
+              Text(
+                l10n.food,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF666666),
                 ),
-                const SizedBox(height: 12),
-                
-                _buildLogCard(
-                  iconAsset: 'assets/icons/weights.png',
-                  title: 'Weight Training',
-                  subtitle: 'Track gym sessions, sets, and strength exercises',
-                  onTap: _navigateToWeightTraining,
-                ),
-                const SizedBox(height: 12),
-                
-                _buildLogCard(
-                 iconAsset: 'assets/icons/stats.png',
-                  title: 'Describe Exercise',
-                  subtitle: 'Let AI calculate calories burned',
-                  onTap: _navigateToDescribeExercise,
-                ),
-                const SizedBox(height: 12),
-                
-                _buildLogCard(
-                  iconAsset: 'assets/icons/input.png',
-                  title: 'Direct Input',
-                  subtitle: 'Type in calories burned yourself',
-                  onTap: _navigateToDirectInputExercise,
-                ),
-                const SizedBox(height: 30),
-                
-                // Food Section
-                const Text(
-                  'Food',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF666666),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Food Cards
-                _buildLogCard(
-                  iconAsset: 'assets/icons/meat.png',
-                  title: 'My Meals',
-                  subtitle: 'Track gym sessions, sets, and strength exercises',
-                  onTap: () => _navigateToMyMeals(0),
-                ),
-
-                const SizedBox(height: 12),
-                
-                _buildLogCard(
-                  iconAsset: 'assets/icons/foods.png',
-                  title: 'My Foods',
-                  subtitle: 'Let AI calculate calories burned',
-                  onTap: () => _navigateToMyMeals(1),
-                ),
-                const SizedBox(height: 12),
-                
-                _buildLogCard(
-                  iconAsset: 'assets/icons/bookmark.png',
-                  title: 'Saved Scans',
-                  subtitle: 'Type in calories burned yourself',
-                  onTap: () => _navigateToMyMeals(3),
-                ),
-                const SizedBox(height: 12),
-                
-                _buildLogCard(
-                  iconAsset: 'assets/icons/input.png',
-                  title: 'Direct Input',
-                  subtitle: 'Type in what you ate yourself',
-                  onTap: () => _navigateToMyMeals(4),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Food Cards
+              _buildLogCard(
+                iconAsset: 'assets/icons/meat.png',
+                title: l10n.myMeals,
+                subtitle: l10n.myMealsSubtitle,
+                onTap: () => _navigateToMyMeals(0),
+              ),
+      
+              const SizedBox(height: 12),
+              
+              _buildLogCard(
+                iconAsset: 'assets/icons/foods.png',
+                title: l10n.myFoods,
+                subtitle: l10n.myFoodsSubtitle,
+                onTap: () => _navigateToMyMeals(1),
+              ),
+              const SizedBox(height: 12),
+              
+              _buildLogCard(
+                iconAsset: 'assets/icons/bookmark.png',
+                title: l10n.savedScans,
+                subtitle: l10n.savedScansSubtitle,
+                onTap: () => _navigateToMyMeals(3),
+              ),
+              const SizedBox(height: 12),
+              
+              _buildLogCard(
+                iconAsset: 'assets/icons/input.png',
+                title: l10n.directInputFood,
+                subtitle: l10n.directInputFoodSubtitle,
+                onTap: () => _navigateToMyMeals(4),
+              ),
+              const SizedBox(height: 20),
+            ],
           ),
         ),
       ),
