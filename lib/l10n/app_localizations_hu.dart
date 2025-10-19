@@ -890,4 +890,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get areYouSureYouWantToLogOut => 'Biztosan ki szeretne jelentkezni?';
+
+  @override
+  String get recentlyUploaded => 'Nemrég feltöltve';
 }

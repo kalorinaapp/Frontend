@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:io';
 import '../constants/app_constants.dart' show AppConstants;
 import '../services/meals_service.dart';
 import 'ingredient_details_screen.dart';
@@ -25,6 +26,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
   final MealsService _mealsService = const MealsService();
   late Map<String, dynamic> _currentMealData;
   int _servingAmount = 1;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -32,19 +34,18 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     _currentMealData = Map<String, dynamic>.from(widget.mealData);
   }
 
-  Future<void> _updateMeal() async {
+  Future<Map<String, dynamic>?> _saveScannedMeal() async {
+    if (_isSaving) return null; // Prevent multiple saves
+    
+    setState(() {
+      _isSaving = true;
+    });
+    
     try {
-      final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
-      if (mealId == null) {
-        debugPrint('MealDetailsScreen: No meal ID found');
-        return;
-      }
-
       final userId = AppConstants.userId;
       final date = _currentMealData['date'] ?? '';
       final mealType = _currentMealData['mealType'] ?? '';
       final mealName = _currentMealData['mealName'] ?? '';
-      final isScanned = _currentMealData['isScanned'] ?? false;
       
       // Clean up entries data - remove MongoDB-specific fields and internal IDs
       // Include userId and mealType in each entry (required by API)
@@ -68,34 +69,147 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
         };
       }).toList();
 
-      debugPrint('MealDetailsScreen: Updating meal $mealId');
+      debugPrint('MealDetailsScreen: Saving scanned meal');
       debugPrint('MealDetailsScreen: userId=$userId, date=$date, mealType=$mealType');
       debugPrint('MealDetailsScreen: mealName=$mealName');
       debugPrint('MealDetailsScreen: entries count=${entries.length}');
       debugPrint('MealDetailsScreen: entries=$entries');
       
-      final response = await _mealsService.updateMeal(
-        mealId: mealId.toString(),
+      final response = await _mealsService.saveCompleteMeal(
         userId: userId,
         date: date,
         mealType: mealType,
         mealName: mealName,
         entries: entries,
         notes: _currentMealData['notes'] ?? '',
-        isScanned: isScanned,
+        mealImage: _currentMealData['mealImage'],
       );
-
+      
       if (response != null && response['success'] == true) {
-        debugPrint('MealDetailsScreen: Meal updated successfully - Response: $response');
+        debugPrint('MealDetailsScreen: Scanned meal saved successfully - Response: $response');
         
-        // Update local meal data with the response from server to stay in sync
+        // Update local meal data with the response from server
         if (response['meal'] != null) {
           setState(() {
             _currentMealData = Map<String, dynamic>.from(response['meal'] as Map<String, dynamic>);
           });
         }
+        
+        // Return the saved meal data for optimistic update
+        return response['meal'] as Map<String, dynamic>?;
       } else {
-        debugPrint('MealDetailsScreen: Failed to update meal - Response: $response');
+        debugPrint('MealDetailsScreen: Failed to save scanned meal - Response: $response');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('MealDetailsScreen: Error saving scanned meal: $e');
+      return null;
+    } finally {
+      setState(() {
+        _isSaving = false;
+      });
+    }
+  }
+
+  Future<void> _updateMeal() async {
+    try {
+      final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+      final userId = AppConstants.userId;
+      final date = _currentMealData['date'] ?? '';
+      final mealType = _currentMealData['mealType'] ?? '';
+      final mealName = _currentMealData['mealName'] ?? '';
+      final isScanned = _currentMealData['isScanned'] ?? false;
+      
+      // For scanned meals, only save when explicitly requested (Save button pressed)
+      if (isScanned && mealId == null) {
+        debugPrint('MealDetailsScreen: Skipping automatic save for scanned meal - waiting for Save button');
+        return;
+      }
+      
+      // Clean up entries data - remove MongoDB-specific fields and internal IDs
+      // Include userId and mealType in each entry (required by API)
+      final rawEntries = (_currentMealData['entries'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      final entries = rawEntries.map((entry) {
+        return {
+          'userId': userId,
+          'mealType': mealType,
+          'foodName': entry['foodName'] ?? '',
+          'quantity': entry['quantity'] ?? 1,
+          'unit': entry['unit'] ?? 'g',
+          'calories': entry['calories'] ?? 0,
+          'protein': entry['protein'] ?? 0,
+          'carbs': entry['carbs'] ?? 0,
+          'fat': entry['fat'] ?? 0,
+          'fiber': entry['fiber'] ?? 0,
+          'sugar': entry['sugar'] ?? 0,
+          'sodium': entry['sodium'] ?? 0,
+          'servingSize': entry['servingSize'] ?? 1,
+          'servingUnit': entry['servingUnit'] ?? 'serving',
+        };
+      }).toList();
+
+      Map<String, dynamic>? response;
+      
+      if (mealId == null) {
+        // Create new meal
+        debugPrint('MealDetailsScreen: Creating new meal');
+        debugPrint('MealDetailsScreen: userId=$userId, date=$date, mealType=$mealType');
+        debugPrint('MealDetailsScreen: mealName=$mealName');
+        debugPrint('MealDetailsScreen: entries count=${entries.length}');
+        debugPrint('MealDetailsScreen: entries=$entries');
+        
+        response = await _mealsService.saveCompleteMeal(
+          userId: userId,
+          date: date,
+          mealType: mealType,
+          mealName: mealName,
+          entries: entries,
+          notes: _currentMealData['notes'] ?? '',
+        );
+        
+        if (response != null && response['success'] == true) {
+          debugPrint('MealDetailsScreen: Meal created successfully - Response: $response');
+          
+          // Update local meal data with the response from server
+          if (response['meal'] != null) {
+            setState(() {
+              _currentMealData = Map<String, dynamic>.from(response!['meal'] as Map<String, dynamic>);
+            });
+          }
+        } else {
+          debugPrint('MealDetailsScreen: Failed to create meal - Response: $response');
+        }
+      } else {
+        // Update existing meal
+        debugPrint('MealDetailsScreen: Updating meal $mealId');
+        debugPrint('MealDetailsScreen: userId=$userId, date=$date, mealType=$mealType');
+        debugPrint('MealDetailsScreen: mealName=$mealName');
+        debugPrint('MealDetailsScreen: entries count=${entries.length}');
+        debugPrint('MealDetailsScreen: entries=$entries');
+        
+        response = await _mealsService.updateMeal(
+          mealId: mealId.toString(),
+          userId: userId,
+          date: date,
+          mealType: mealType,
+          mealName: mealName,
+          entries: entries,
+          notes: _currentMealData['notes'] ?? '',
+          isScanned: isScanned,
+        );
+
+        if (response != null && response['success'] == true) {
+          debugPrint('MealDetailsScreen: Meal updated successfully - Response: $response');
+          
+          // Update local meal data with the response from server to stay in sync
+          if (response['meal'] != null) {
+            setState(() {
+              _currentMealData = Map<String, dynamic>.from(response!['meal'] as Map<String, dynamic>);
+            });
+          }
+        } else {
+          debugPrint('MealDetailsScreen: Failed to update meal - Response: $response');
+        }
       }
     } catch (e) {
       debugPrint('MealDetailsScreen: Error updating meal: $e');
@@ -196,20 +310,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                       width: 91,
                                       height: 91,
                                       color: CupertinoColors.white,
-                                      child: CachedNetworkImage(
-                                        imageUrl: imageUrl,
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) => const Center(
-                                          child: SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CupertinoActivityIndicator(),
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) => Center(
-                                          child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
-                                        ),
-                                      ),
+                                      child: _buildImageWidget(imageUrl),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -515,7 +616,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               ),
             ),
             
-            // Bottom Done Button
+            // Bottom Save/Done Button
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -531,7 +632,21 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                 ],
               ),
               child: GestureDetector(
-                onTap: ()  {
+                onTap: _isSaving ? null : () async {
+                  // Check if this is a new scanned meal that needs to be saved
+                  final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+                  final isScanned = _currentMealData['isScanned'] ?? false;
+                  
+                  if (mealId == null && isScanned) {
+                    // This is a new scanned meal - save it first
+                    final savedMeal = await _saveScannedMeal();
+                    if (savedMeal != null) {
+                      // Return the saved meal data for optimistic update
+                      Navigator.of(context).pop(savedMeal);
+                      return;
+                    }
+                  }
+                  
                   Navigator.of(context).pop();
                 },
                 child: Container(
@@ -541,16 +656,24 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                     color: CupertinoColors.black,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Center(
-                    child: Text(
-                      'Done',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: CupertinoColors.white,
-                      ),
-                    ),
+                  child: Center(
+                    child: _isSaving 
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CupertinoActivityIndicator(
+                            color: CupertinoColors.white,
+                          ),
+                        )
+                      : Text(
+                          _getButtonText(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: CupertinoColors.white,
+                          ),
+                        ),
                   ),
                 ),
               ),
@@ -558,6 +681,68 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  String _getButtonText() {
+    final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+    final isScanned = _currentMealData['isScanned'] ?? false;
+    
+    // If it's a new scanned meal (no ID and isScanned is true), show "Save"
+    if (mealId == null && isScanned) {
+      return 'Save';
+    }
+    
+    // Otherwise show "Done" for existing meals
+    return 'Done';
+  }
+
+  Widget _buildImageWidget(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Center(
+        child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+      );
+    }
+    
+    // Check if it's a local file path
+    if (imageUrl.startsWith('/') || imageUrl.startsWith('file://')) {
+      try {
+        final file = File(imageUrl);
+        if (file.existsSync()) {
+          return Image.file(
+            file,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Center(
+              child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error loading local image: $e');
+      }
+    }
+    
+    // Check if it's a network URL
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => const Center(
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CupertinoActivityIndicator(),
+          ),
+        ),
+        errorWidget: (context, url, error) => Center(
+          child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+        ),
+      );
+    }
+    
+    // Fallback to default icon
+    return Center(
+      child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
     );
   }
 
@@ -638,6 +823,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
   Widget _buildIngredientRow(Map<String, dynamic> ingredient) {
     final foodName = ingredient['foodName'] ?? '';
     final calories = (ingredient['calories'] as num?)?.toInt() ?? 0;
+    
+    // Debug logging to see what's in the ingredient
+    debugPrint('Ingredient: $foodName, Calories: $calories');
+    debugPrint('Full ingredient data: $ingredient');
     
     return GestureDetector(
       onTap: () => _navigateToIngredientDetails(ingredient),
@@ -724,8 +913,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           _currentMealData['totalFat'] = totalFat;
         });
         
-        // Update meal on server
-        await _updateMeal();
+        // Update meal on server (skip for scanned meals)
+        final isScanned = _currentMealData['isScanned'] ?? false;
+        final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+        if (!isScanned || mealId != null) {
+          await _updateMeal();
+        }
       }
     }
   }
@@ -876,7 +1069,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                         _currentMealData['totalCalories'] = newCalories;
                       });
                       Navigator.of(context).pop();
-                      await _updateMeal();
+                      // Skip auto-save for scanned meals
+                      final isScanned = _currentMealData['isScanned'] ?? false;
+                      final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+                      if (!isScanned || mealId != null) {
+                        await _updateMeal();
+                      }
                     },
                     child: const Text(
                       'Save',
@@ -924,7 +1122,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                 _currentMealData['totalFat'] = newValue;
               }
             });
-            await _updateMeal();
+            // Skip auto-save for scanned meals
+            final isScanned = _currentMealData['isScanned'] ?? false;
+            final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+            if (!isScanned || mealId != null) {
+              await _updateMeal();
+            }
           },
         ),
       ),
@@ -945,7 +1148,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       setState(() {
         _currentMealData['mealName'] = newName;
       });
-      await _updateMeal();
+      // Skip auto-save for scanned meals
+      final isScanned = _currentMealData['isScanned'] ?? false;
+      final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+      if (!isScanned || mealId != null) {
+        await _updateMeal();
+      }
     }
   }
 
@@ -1047,8 +1255,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                       
                       Navigator.of(context).pop();
                       
-                      // Save to server
-                      await _updateMeal();
+                      // Skip auto-save for scanned meals
+                      final isScanned = _currentMealData['isScanned'] ?? false;
+                      final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+                      if (!isScanned || mealId != null) {
+                        await _updateMeal();
+                      }
                     },
                     child: const Text(
                       'Add',

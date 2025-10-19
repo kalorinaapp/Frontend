@@ -258,5 +258,6 @@
   "deleteAccountTitle": "¿Eliminar cuenta?",
   "accountWillBePermanentlyDeleted": "La cuenta será eliminada permanentemente",
   "logoutTitle": "¿Cerrar sesión?",
-  "areYouSureYouWantToLogOut": "¿Estás seguro de que quieres cerrar sesión?"
+  "areYouSureYouWantToLogOut": "¿Estás seguro de que quieres cerrar sesión?",
+  "recentlyUploaded": "Recientemente subido"
 }

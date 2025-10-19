@@ -300,6 +300,7 @@
   "deleteAccountTitle": "Изтрий акаунт?",
   "accountWillBePermanentlyDeleted": "Акаунтът ще бъде изтрит завинаги",
   "logoutTitle": "Изход?",
-  "areYouSureYouWantToLogOut": "Сигурни ли сте, че искате да излезете?"
+  "areYouSureYouWantToLogOut": "Сигурни ли сте, че искате да излезете?",
+  "recentlyUploaded": "Наскоро качено"
 }
 

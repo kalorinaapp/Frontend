@@ -300,6 +300,7 @@
   "deleteAccountTitle": "Șterge contul?",
   "accountWillBePermanentlyDeleted": "Contul va fi șters permanent",
   "logoutTitle": "Deconectare?",
-  "areYouSureYouWantToLogOut": "Ești sigur că vrei să te deconectezi?"
+  "areYouSureYouWantToLogOut": "Ești sigur că vrei să te deconectezi?",
+  "recentlyUploaded": "Încărcat recent"
 }
 

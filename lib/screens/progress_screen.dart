@@ -121,11 +121,45 @@ class _HeaderBadgeState extends State<_HeaderBadge> {
     _load();
   }
 
+  // Method to refresh the badge (can be called when user logs new weight)
+  void refreshBadge() {
+    _load();
+  }
+
   Future<void> _load() async {
-    final int rem = await UserPrefs.daysUntilNextWeighIn(cadenceDays: 7);
+    // Get the last weigh-in date
+    final DateTime? lastWeighIn = await UserPrefs.getLastWeighInDate();
+    if (lastWeighIn == null) {
+      // If no previous weigh-in, show 7 days as default
+      if (!mounted) return;
+      setState(() {
+        _daysRemaining = 7;
+      });
+      return;
+    }
+    
+    // Calculate days since last weigh-in
+    final DateTime now = DateTime.now();
+    final int daysSince = now.difference(lastWeighIn).inDays;
+    
+    // Dynamic cadence based on user's weigh-in pattern
+    // If user weighs in frequently (every 1-3 days), suggest 3 days
+    // If user weighs in moderately (every 4-7 days), suggest 7 days  
+    // If user weighs in less frequently (8+ days), suggest 14 days
+    int suggestedCadence;
+    if (daysSince <= 3) {
+      suggestedCadence = 3; // Frequent weighers
+    } else if (daysSince <= 7) {
+      suggestedCadence = 7; // Regular weighers
+    } else {
+      suggestedCadence = 14; // Less frequent weighers
+    }
+    
+    // Calculate remaining days based on the dynamic cadence
+    final int remaining = suggestedCadence - daysSince;
     if (!mounted) return;
     setState(() {
-      _daysRemaining = rem;
+      _daysRemaining = remaining <= 0 ? 0 : remaining;
     });
   }
 

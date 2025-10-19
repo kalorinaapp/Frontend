@@ -249,5 +249,6 @@
   "deleteAccountTitle": "Izbrisati račun?",
   "accountWillBePermanentlyDeleted": "Račun bo trajno izbrisan",
   "logoutTitle": "Odjaviti se?",
-  "areYouSureYouWantToLogOut": "Ali ste prepričani, da se želite odjaviti?"
+  "areYouSureYouWantToLogOut": "Ali ste prepričani, da se želite odjaviti?",
+  "recentlyUploaded": "Nedavno naloženo"
 }

@@ -890,4 +890,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get areYouSureYouWantToLogOut =>
       'Sind Sie sicher, dass Sie sich abmelden möchten?';
+
+  @override
+  String get recentlyUploaded => 'Kürzlich hochgeladen';
 }

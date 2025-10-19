@@ -249,6 +249,7 @@
   "deleteAccountTitle": "Обрисати налог?",
   "accountWillBePermanentlyDeleted": "Налог ће бити трајно обрисан",
   "logoutTitle": "Одјавити се?",
-  "areYouSureYouWantToLogOut": "Да ли сте сигурни да се желите одјавити?"
+  "areYouSureYouWantToLogOut": "Да ли сте сигурни да се желите одјавити?",
+  "recentlyUploaded": "Недавно преузето"
 }
 

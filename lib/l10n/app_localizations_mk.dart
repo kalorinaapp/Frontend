@@ -889,4 +889,7 @@ class AppLocalizationsMk extends AppLocalizations {
   @override
   String get areYouSureYouWantToLogOut =>
       'Дали сте сигурни дека сакате да се одјавите?';
+
+  @override
+  String get recentlyUploaded => 'Неодамна прикачено';
 }

@@ -892,4 +892,7 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get areYouSureYouWantToLogOut =>
       'Sei sicuro di volerti disconnettere?';
+
+  @override
+  String get recentlyUploaded => 'Caricato di recente';
 }

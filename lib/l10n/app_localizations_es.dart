@@ -890,4 +890,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get areYouSureYouWantToLogOut =>
       '¿Estás seguro de que quieres cerrar sesión?';
+
+  @override
+  String get recentlyUploaded => 'Recientemente subido';
 }

@@ -206,5 +206,6 @@
   "deleteAccountTitle": "Eliminare l'account?",
   "accountWillBePermanentlyDeleted": "L'account sarà eliminato permanentemente",
   "logoutTitle": "Disconnettersi?",
-  "areYouSureYouWantToLogOut": "Sei sicuro di volerti disconnettere?"
+  "areYouSureYouWantToLogOut": "Sei sicuro di volerti disconnettere?",
+  "recentlyUploaded": "Caricato di recente"
 }

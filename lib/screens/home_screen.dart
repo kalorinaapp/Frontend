@@ -15,9 +15,9 @@ import 'dart:io';
 import 'dart:convert';
 import '../constants/app_constants.dart';
 import '../network/http_helper.dart';
-import '../camera/scan_result_page.dart';
 import '../services/meals_service.dart';
 import '../services/progress_service.dart';
+import 'meal_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -40,19 +40,22 @@ class _HomeScreenState extends State<HomeScreen> {
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
   bool _isAnalyzing = false;
+  bool _hasScanError = false;
+  bool _isLoadingInitialData = true;
   Map<String, dynamic>? _scanResult;
   Map<String, int>? _todayTotals; // calories, protein, fats, carbs
   String? _todayCreatedAt;
   List<Map<String, dynamic>> _todayEntries = const [];
   List<Map<String, dynamic>> _todayMeals = const [];
+  List<Map<String, dynamic>> _todayExercises = const [];
   Map<String, dynamic>? _dailyProgress;
+  Map<String, dynamic>? _dailySummary; // Combined summary with calories consumed/burned
 
   @override
   void initState() {
     super.initState();
     _updateScreens();
-    _fetchTodayTotals();
-    _fetchDailyProgress();
+    _loadInitialData();
   }
 
   void _updateScreens() {
@@ -62,12 +65,18 @@ class _HomeScreenState extends State<HomeScreen> {
         themeProvider: widget.themeProvider,
         selectedImage: _selectedImage,
         isAnalyzing: _isAnalyzing,
+        hasScanError: _hasScanError,
+        isLoadingInitialData: _isLoadingInitialData,
         scanResult: _scanResult,
         todayTotals: _todayTotals,
         todayCreatedAt: _todayCreatedAt,
         todayEntries: _todayEntries,
         todayMeals: _todayMeals,
+        todayExercises: _todayExercises,
         dailyProgress: _dailyProgress,
+        dailySummary: _dailySummary,
+        onRetryScan: _retryScan,
+        onCloseError: _closeErrorCard,
       ),
       LogScreen(themeProvider: widget.themeProvider),
       ProgressScreen(themeProvider: widget.themeProvider, healthProvider: healthProvider), // Analytics
@@ -96,6 +105,94 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) => const ScanPage(),
       ),
     );
+  }
+
+  void _retryScan() {
+    if (_selectedImage != null) {
+      setState(() {
+        _hasScanError = false;
+        _isAnalyzing = true;
+      });
+      _updateScreens();
+      _analyzeImage(_selectedImage!.path);
+    }
+  }
+
+  void _closeErrorCard() {
+    setState(() {
+      _hasScanError = false;
+      _selectedImage = null;
+      _scanResult = null;
+    });
+    _updateScreens();
+  }
+
+  Future<void> _loadInitialData() async {
+    try {
+      final now = DateTime.now();
+      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final userId = AppConstants.userId;
+      
+      // Run both API calls in parallel for faster loading
+      final results = await Future.wait([
+        MealsService().fetchDailyMeals(userId: userId, dateYYYYMMDD: dateStr),
+        ProgressService().fetchDailyProgress(dateYYYYMMDD: dateStr),
+      ]);
+      
+      final mealsData = results[0];
+      final progressData = results[1];
+      
+      // Process meals data
+      if (mealsData != null && mealsData['success'] == true) {
+        final data = mealsData['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          final meals = ((data['meals'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
+          final exercises = ((data['exercises'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
+          final summary = data['summary'] as Map<String, dynamic>?;
+          
+          setState(() {
+            if (meals.isNotEmpty) {
+              final first = meals.first;
+              _todayTotals = {
+                'totalCalories': ((first['totalCalories'] ?? 0) as num).toInt(),
+                'totalProtein': ((first['totalProtein'] ?? 0) as num).toInt(),
+                'totalCarbs': ((first['totalCarbs'] ?? 0) as num).toInt(),
+                'totalFat': ((first['totalFat'] ?? 0) as num).toInt(),
+              };
+              _todayCreatedAt = first['createdAt'] as String?;
+              _todayEntries = ((first['entries'] as List?) ?? [])
+                  .whereType<Map<String, dynamic>>()
+                  .toList();
+              _todayMeals = meals;
+            } else {
+              _todayTotals = null;
+              _todayCreatedAt = null;
+              _todayEntries = const [];
+              _todayMeals = const [];
+            }
+            
+            _todayExercises = exercises;
+            _dailySummary = summary;
+          });
+        }
+      }
+      
+      // Process progress data
+      if (progressData != null) {
+        setState(() {
+          _dailyProgress = progressData['progress'] as Map<String, dynamic>?;
+        });
+      }
+      
+      _updateScreens();
+    } catch (e) {
+      debugPrint('Error loading initial data: $e');
+    } finally {
+      setState(() {
+        _isLoadingInitialData = false;
+      });
+      _updateScreens();
+    }
   }
 
   void _navigateToGallery() async {
@@ -135,7 +232,6 @@ class _HomeScreenState extends State<HomeScreen> {
         'userId': AppConstants.userId,
       };
       
-      final reqInfo = '${AppConstants.baseUrl}/api/scanning/scan-image';
       await multiPostAPINew(
         methodName: 'api/scanning/scan-image',
         param: payload,
@@ -143,6 +239,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Map<String, dynamic> result;
           try {
             result = jsonDecode(resp.response) as Map<String, dynamic>;
+
+            debugPrint('Scan result: $result');
           } catch (_) {
             result = {'message': resp.response, 'status': resp.code};
           }
@@ -152,27 +250,110 @@ class _HomeScreenState extends State<HomeScreen> {
           // Wait for percentage animation to complete (3 seconds)
           await Future.delayed(const Duration(seconds: 3));
           
-          // Stop analyzing animation and store result
-          setState(() {
-            _isAnalyzing = false;
-            _scanResult = result; // Store the scan result
-          });
-          _updateScreens();
-          // Refresh today totals after scanning
-          _fetchTodayTotals();
+            // Stop analyzing animation and store result
+            setState(() {
+              _isAnalyzing = false;
+              _scanResult = result; // Store the scan result
+              // Check if scan failed
+              _hasScanError = result['scanResult'] == null;
+            });
+            _updateScreens();
+            // Refresh today totals after scanning
+            _fetchTodayTotals();
           
-          // Navigate to results
-          Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (_) => ScanResultPage(
-                result: result,
-                imagePath: imagePath,
-                rawResponse: resp.response,
-                statusCode: resp.code,
-                requestInfo: reqInfo,
+          // Navigate to meal details screen with scan result data
+          debugPrint('Message: ${result['message']}');
+          debugPrint('Scan result data: ${result['scanResult']}');
+          
+          if (result['scanResult'] != null) {
+            final scanData = result['scanResult'] as Map<String, dynamic>;
+            final items = (scanData['items'] as List?) ?? [];
+            debugPrint('Scan data: $scanData');
+            debugPrint('Items count: ${items.length}');
+            
+            // Calculate total macros from items
+            int totalProtein = 0;
+            int totalCarbs = 0;
+            int totalFat = 0;
+            
+            for (var item in items) {
+              final macros = item['macros'] as Map<String, dynamic>? ?? {};
+              totalProtein += ((macros['protein'] ?? 0) as num).toInt();
+              totalCarbs += ((macros['carbs'] ?? 0) as num).toInt();
+              totalFat += ((macros['fat'] ?? 0) as num).toInt();
+            }
+            
+            // Create meal data structure from scan result
+            final mealData = {
+              'id': null, // New meal, no ID yet
+              'userId': AppConstants.userId,
+              'date': DateTime.now().toIso8601String(),
+              'mealType': 'lunch',
+              'mealName': scanData['mealName'] ?? 'Scanned Meal',
+              'mealImage': imagePath, // Use local file path for base64 encoding
+              'totalCalories': scanData['totalCalories'] ?? 0,
+              'totalProtein': totalProtein,
+              'totalCarbs': totalCarbs,
+              'totalFat': totalFat,
+              'isScanned': true,
+              'entries': items.map((item) => {
+                'userId': AppConstants.userId,
+                'mealType': 'lunch',
+                'foodName': item['name'] ?? 'Unknown Food',
+                'quantity': 1,
+                'unit': 'g',
+                'calories': item['calories'] ?? 0,
+                'protein': item['macros']?['protein'] ?? 0,
+                'carbs': item['macros']?['carbs'] ?? 0,
+                'fat': item['macros']?['fat'] ?? 0,
+                'fiber': item['macros']?['fiber'] ?? 0,
+                'sugar': item['macros']?['sugar'] ?? 0,
+                'sodium': item['macros']?['sodium'] ?? 0,
+                'servingSize': 1,
+                'servingUnit': 'serving',
+                'imageUrl': imagePath, // Use local file path for base64 encoding
+                'notes': 'AI detected: ${item['name'] ?? 'Unknown'}',
+              }).toList(),
+              'createdAt': DateTime.now().toIso8601String(),
+              'updatedAt': DateTime.now().toIso8601String(),
+            };
+            
+            debugPrint('Created meal data: $mealData');
+            debugPrint('Navigating to MealDetailsScreen');
+            
+            final savedMeal = await Navigator.of(context).push<Map<String, dynamic>>(
+              CupertinoPageRoute(
+                builder: (_) => MealDetailsScreen(
+                  mealData: mealData,
+                ),
               ),
-            ),
-          );
+            );
+            
+            // If meal was saved, add it optimistically to the dashboard
+            if (savedMeal != null) {
+              setState(() {
+                _todayMeals = [..._todayMeals, savedMeal];
+              });
+              // Refresh today totals to get updated data
+              _fetchTodayTotals();
+            }
+          } else {
+            debugPrint('Scan failed or no scan result, taking fallback path');
+            debugPrint('Result message: ${result['message']}');
+            debugPrint('Scan result: ${result['scanResult']}');
+            // Fallback to scan result page if scan failed
+            // Navigator.of(context).push(
+            //   CupertinoPageRoute(
+            //     builder: (_) => ScanResultPage(
+            //       result: result,
+            //       imagePath: imagePath,
+            //       rawResponse: resp.response,
+            //       statusCode: resp.code,
+            //       requestInfo: reqInfo,
+            //     ),
+            //   ),
+            // );
+          }
         },
       );
     } catch (e) {
@@ -185,29 +366,49 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchTodayTotals() async {
+    // Skip if already loading initial data to avoid duplicate calls
+    if (_isLoadingInitialData) return;
+    
     try {
       final now = DateTime.now();
       final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final userId = AppConstants.userId;
       final service = MealsService();
-      final decoded = await service.fetchTodayMeals(userId: userId, dateYYYYMMDD: dateStr, mealType: 'lunch');
-      if (decoded != null) {
-        debugPrint('GET today totals response: $decoded');
-        final meals = ((decoded['meals'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
-        if (meals.isNotEmpty) {
-          final first = meals.first;
+      
+      // Use the new combined daily endpoint
+      final decoded = await service.fetchDailyMeals(userId: userId, dateYYYYMMDD: dateStr);
+      if (decoded != null && decoded['success'] == true) {
+        debugPrint('GET daily data response: $decoded');
+        final data = decoded['data'] as Map<String, dynamic>?;
+        
+        if (data != null) {
+          final meals = ((data['meals'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
+          final exercises = ((data['exercises'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
+          final summary = data['summary'] as Map<String, dynamic>?;
+          
           setState(() {
-            _todayTotals = {
-              'totalCalories': ((first['totalCalories'] ?? 0) as num).toInt(),
-              'totalProtein': ((first['totalProtein'] ?? 0) as num).toInt(),
-              'totalCarbs': ((first['totalCarbs'] ?? 0) as num).toInt(),
-              'totalFat': ((first['totalFat'] ?? 0) as num).toInt(),
-            };
-            _todayCreatedAt = first['createdAt'] as String?;
-            _todayEntries = ((first['entries'] as List?) ?? [])
-                .whereType<Map<String, dynamic>>()
-                .toList();
-            _todayMeals = meals;
+            if (meals.isNotEmpty) {
+              final first = meals.first;
+              _todayTotals = {
+                'totalCalories': ((first['totalCalories'] ?? 0) as num).toInt(),
+                'totalProtein': ((first['totalProtein'] ?? 0) as num).toInt(),
+                'totalCarbs': ((first['totalCarbs'] ?? 0) as num).toInt(),
+                'totalFat': ((first['totalFat'] ?? 0) as num).toInt(),
+              };
+              _todayCreatedAt = first['createdAt'] as String?;
+              _todayEntries = ((first['entries'] as List?) ?? [])
+                  .whereType<Map<String, dynamic>>()
+                  .toList();
+              _todayMeals = meals;
+            } else {
+              _todayTotals = null;
+              _todayCreatedAt = null;
+              _todayEntries = const [];
+              _todayMeals = const [];
+            }
+            
+            _todayExercises = exercises;
+            _dailySummary = summary;
           });
           _updateScreens();
         } else {
@@ -216,33 +417,16 @@ class _HomeScreenState extends State<HomeScreen> {
             _todayCreatedAt = null;
             _todayEntries = const [];
             _todayMeals = const [];
+            _todayExercises = const [];
+            _dailySummary = null;
           });
           _updateScreens();
         }
       }
     } catch (e) {
-      debugPrint('Error fetching today totals: $e');
+      debugPrint('Error fetching daily data: $e');
     }
   }
-
-  Future<void> _fetchDailyProgress() async {
-    try {
-      final now = DateTime.now();
-      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      final service = ProgressService();
-      final decoded = await service.fetchDailyProgress(dateYYYYMMDD: dateStr);
-      if (decoded != null) {
-        setState(() {
-          _dailyProgress = decoded['progress'] as Map<String, dynamic>?;
-        });
-        _updateScreens();
-      }
-    } catch (e) {
-      debugPrint('Error fetching daily progress: $e');
-    }
-  }
-
-
 
   @override
   Widget build(BuildContext context) {

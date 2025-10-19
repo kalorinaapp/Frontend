@@ -25,7 +25,13 @@ class DashboardScreen extends StatefulWidget {
   final String? todayCreatedAt;
   final List<Map<String, dynamic>>? todayEntries;
   final List<Map<String, dynamic>>? todayMeals;
+  final List<Map<String, dynamic>>? todayExercises;
   final Map<String, dynamic>? dailyProgress;
+  final Map<String, dynamic>? dailySummary;
+  final bool hasScanError;
+  final bool isLoadingInitialData;
+  final VoidCallback? onRetryScan;
+  final VoidCallback? onCloseError;
 
   const DashboardScreen({
     super.key, 
@@ -37,7 +43,13 @@ class DashboardScreen extends StatefulWidget {
     this.todayCreatedAt,
     this.todayEntries,
     this.todayMeals,
+    this.todayExercises,
     this.dailyProgress,
+    this.dailySummary,
+    this.hasScanError = false,
+    this.isLoadingInitialData = false,
+    this.onRetryScan,
+    this.onCloseError,
   });
 
   @override
@@ -59,7 +71,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   final int fatLeft = 25;
 
   late AnimationController _percentageController;
-  late Animation<int> _percentageAnimation;
 
   @override
   void initState() {
@@ -73,13 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       vsync: this,
     );
     
-    _percentageAnimation = IntTween(
-      begin: 0,
-      end: 100,
-    ).animate(CurvedAnimation(
-      parent: _percentageController,
-      curve: Curves.easeInOut,
-    ));
+    // Animation setup removed as it's no longer needed
   }
 
   void _initializeWeek() {
@@ -405,6 +410,34 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               
               
               const SizedBox(height: 32),
+
+               // Show exercise cards if available
+                      if ((widget.todayExercises ?? []).isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Column(
+                            children: [
+                              // Section title
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Text(
+                                  l10n.recentlyUploaded,
+                                  style: const TextStyle(
+                                    color: Color(0xFF1E1822),
+                                    fontSize: 20,
+                                    fontFamily: 'Instrument Sans',
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              // Exercise cards
+                              ...widget.todayExercises!.map((exercise) => _buildExerciseCard(exercise, l10n)).toList(),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
               
               // Recently Logged Section
               Container(
@@ -412,7 +445,46 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    if ((widget.selectedImage == null || widget.isAnalyzing) && (widget.todayTotals == null) && ((widget.todayEntries == null) || widget.todayEntries!.isEmpty)) ...[
+                    if (widget.isLoadingInitialData) ...[
+                      // Show loading indicator while fetching initial data
+                      Container(
+                        width: double.infinity,
+                        height: 120,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F7FC),
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0x33000000),
+                              blurRadius: 3,
+                              offset: Offset(0, 0),
+                              spreadRadius: 0,
+                            )
+                          ],
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CupertinoActivityIndicator(
+                                radius: 16,
+                                color: CupertinoColors.black,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Loading your data...',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ] else if ((widget.selectedImage == null || widget.isAnalyzing) && (widget.todayTotals == null) && ((widget.todayEntries == null) || widget.todayEntries!.isEmpty)) ...[
                       Text(
                         l10n.noFoodLogged,
                         style: TextStyle(
@@ -426,8 +498,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       const SizedBox(height: 20),
                     ] else ...[
                       if (widget.isAnalyzing) _buildRecentlyLoggedCard(),
-                      if (widget.selectedImage != null && !widget.isAnalyzing)
-                        _buildScannedFoodCard(l10n),
+                      if (widget.hasScanError) _buildScanErrorCard(),
+                      // Removed optimistic scanned food card - only show after meal is saved
                       if ((widget.todayMeals ?? []).isNotEmpty) ...[
                         Column(
                           children: widget.todayMeals!.map((meal) => _buildMealTotalsCard(meal, l10n)).toList(),
@@ -437,6 +509,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         _buildTodayTotalsCard(l10n),
                         const SizedBox(height: 12),
                       ],
+                     
                       // Only show overall meal, not separate entries
                     ],
                   ],
@@ -728,6 +801,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       return SizedBox.shrink(); // Hide this when showing scanned food card
     }
 
+    // Show analyzing card when analyzing
+    if (widget.isAnalyzing) {
+      return _buildAnalyzingCard();
+    }
+
     // Otherwise, show the full layout with text
     return Column(
       children: [
@@ -757,40 +835,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 )
               else
                 Image.asset('assets/images/AI_Slides_Image.png'),
-              // Progress overlay (only show when analyzing)
-              if (widget.isAnalyzing)
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: CupertinoColors.black.withOpacity(0.3),
-                    ),
-                    child: Center(
-                      child: AnimatedBuilder(
-                        animation: _percentageAnimation,
-                        builder: (context, child) {
-                          return Text(
-                            '${_percentageAnimation.value}%',
-                            style: TextStyle(
-                              color: CupertinoColors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
         const SizedBox(height: 16),
         // Message text
         Text(
-          widget.isAnalyzing 
-            ? AppLocalizations.of(context)!.analyzing
-            : AppLocalizations.of(context)!.tapPlusToTrack,
+          AppLocalizations.of(context)!.tapPlusToTrack,
           style: TextStyle(
             fontSize: 16,
             color: CupertinoColors.systemGrey,
@@ -802,46 +853,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
-  Widget _buildScannedFoodCard(AppLocalizations l10n) {
-    // Extract data from nested scan result structure
-    final scanData = widget.scanResult?['scanResult'];
-    final items = scanData?['items'] as List? ?? [];
-    final foodName = items.isNotEmpty ? items.first['name'] ?? 'Scanned Food' : 'Scanned Food';
-    final calories = scanData?['totalCalories'] ?? 0;
-    
-    // Calculate totals from individual items since totalProtein, totalFat, totalCarbs are not in the response
-    int totalProtein = 0;
-    int totalFat = 0;
-    int totalCarbs = 0;
-    
-    for (var item in items) {
-      final macros = item['macros'] as Map<String, dynamic>? ?? {};
-      totalProtein += ((macros['protein'] ?? 0) as num).toInt();
-      totalFat += ((macros['fat'] ?? 0) as num).toInt();
-      totalCarbs += ((macros['carbs'] ?? 0) as num).toInt();
-    }
-    
-    // Debug logging removed per project rules
-    
-    // Use createdAt for timestamp, fallback to current time
-    String timeString;
-    if (widget.scanResult?['createdAt'] != null) {
-      try {
-        final createdAt = DateTime.parse(widget.scanResult!['createdAt']);
-        timeString = '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
-      } catch (e) {
-        final now = DateTime.now();
-        timeString = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-      }
-    } else {
-      final now = DateTime.now();
-      timeString = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    }
-    
+  Widget _buildScanErrorCard() {
     return Container(
-      width: double.infinity,
-      height: 120,
-      margin: const EdgeInsets.only(left: 0, right: 0, bottom: 12),
+      width: 345,
+      height: 106,
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: ShapeDecoration(
         color: const Color(0xFFF8F7FC),
         shape: RoundedRectangleBorder(
@@ -860,121 +876,192 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Food image
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                image: DecorationImage(
-                  image: FileImage(widget.selectedImage!),
-                  fit: BoxFit.cover,
+            // Food image with opacity overlay
+            Opacity(
+              opacity: 0.80,
+              child: Container(
+                width: 91,
+                height: 91,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  image: widget.selectedImage != null
+                      ? DecorationImage(
+                          image: FileImage(widget.selectedImage!),
+                          fit: BoxFit.cover,
+                        )
+                      : const DecorationImage(
+                          image: AssetImage('assets/images/AI_Slides_Image.png'),
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
             ),
             
             const SizedBox(width: 12),
             
-            // Food details and nutrition
+            // Error content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Food name and time
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          foodName,
-                          style: TextStyle(
-                            color: const Color(0xFF1E1822),
-                            fontSize: 14,
-                            fontFamily: 'Instrument Sans',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      // Time badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: ShapeDecoration(
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x33000000),
-                              blurRadius: 3,
-                              offset: Offset(0, 0),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
-                        child: Text(
-                          timeString,
-                          style: TextStyle(
-                            color: const Color(0xFF1E1822),
-                            fontSize: 9,
-                            fontFamily: 'Instrument Sans',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                    ],
+                  // Error text
+                  Text(
+                    'No food detected',
+                    style: const TextStyle(
+                      color: Color(0xFFDE2222),
+                      fontSize: 12,
+                      fontFamily: 'Instrument Sans',
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   
                   const SizedBox(height: 8),
                   
-                  // Nutrition cards in 2x2 grid
-                   Row(
-                     children: [
-                       // Left column
-                       Column(
-                         children: [
-                          _buildNutritionCard(
-                            (widget.todayTotals?['totalCalories'] ?? calories).toString(),
-                            l10n.calories,
-                            'assets/icons/carbs.png',
-                          ),
-                           const SizedBox(height: 4),
-                          _buildNutritionCard(
-                            (widget.todayTotals?['totalProtein'] ?? totalProtein).toString(),
-                            l10n.protein,
-                            'assets/icons/drumstick.png',
-                          ),
-                         ],
-                       ),
-                       const SizedBox(width: 12),
-                       // Right column
-                       Column(
-                         children: [
-                          _buildNutritionCard(
-                            (widget.todayTotals?['totalFat'] ?? totalFat).toString(),
-                            l10n.fats,
-                            'assets/icons/fat.png',
-                          ),
-                           const SizedBox(height: 4),
-                          _buildNutritionCard(
-                            (widget.todayTotals?['totalCarbs'] ?? totalCarbs).toString(),
-                            l10n.carbs,
-                            'assets/icons/carbs.png',
-                          ),
-                         ],
-                       ),
-                     ],
-                   ),
+                  // Retry button
+                  GestureDetector(
+                    onTap: widget.onRetryScan,
+                    child: Text(
+                      'Retry',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 12,
+                        fontFamily: 'Instrument Sans',
+                        fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
             
-            // Arrow icon
+            // Close button
+            GestureDetector(
+              onTap: widget.onCloseError,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.black,
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    CupertinoIcons.xmark,
+                    size: 12,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnalyzingCard() {
+    return Container(
+      width: double.infinity,
+      height: 106,
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: const ShapeDecoration(
+        color: Color(0xFFF8F7FC),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(15)),
+        ),
+        shadows: [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 3,
+            offset: Offset(0, 0),
+            spreadRadius: 0,
+          )
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Food image with opacity overlay
+            Opacity(
+              opacity: 0.6,
+              child: Container(
+                width: 90,
+                height: 93,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  image: widget.selectedImage != null
+                      ? DecorationImage(
+                          image: FileImage(widget.selectedImage!),
+                          fit: BoxFit.cover,
+                        )
+                      : const DecorationImage(
+                          image: AssetImage('assets/images/AI_Slides_Image.png'),
+                          fit: BoxFit.cover,
+                        ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(width: 12),
+            
+            // Analyzing content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Analyzing text
+                  Text(
+                    AppLocalizations.of(context)!.analyzing,
+                    style: const TextStyle(
+                      color: Color(0xFF1E1822),
+                      fontSize: 12,
+                      fontFamily: 'Instrument Sans',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  // Placeholder nutrition cards in 2x2 grid
+                  Row(
+                    children: [
+                      // Left column
+                      Column(
+                        children: [
+                          _buildPlaceholderNutritionCard(),
+                          const SizedBox(height: 4),
+                          _buildPlaceholderNutritionCard(),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      // Right column
+                      Column(
+                        children: [
+                          _buildPlaceholderNutritionCard(),
+                          const SizedBox(height: 4),
+                          _buildPlaceholderNutritionCard(),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            // Chevron icon
             Container(
-              width: 20,
-              height: 20,
-              child: Icon(
+              width: 24,
+              height: 24,
+              child: const Icon(
                 CupertinoIcons.chevron_right,
-                size: 16,
+                size: 24,
                 color: CupertinoColors.systemGrey,
               ),
             ),
@@ -983,6 +1070,76 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       ),
     );
   }
+
+  Widget _buildPlaceholderNutritionCard() {
+    return Container(
+      width: 70,
+      height: 24,
+      decoration: const ShapeDecoration(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(6)),
+        ),
+        shadows: [
+          BoxShadow(
+            color: Color(0x3F000000),
+            blurRadius: 5,
+            offset: Offset(0, 0),
+            spreadRadius: 1,
+          )
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            // Placeholder icon
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1822).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Placeholder text lines
+                Opacity(
+                  opacity: 0.1,
+                  child: Container(
+                    width: 35,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1822),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Opacity(
+                  opacity: 0.1,
+                  child: Container(
+                    width: 20,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1822),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Removed _buildScannedFoodCard method - no longer needed since we don't show optimistic meal cards
 
   Widget _buildNutritionCard(String value, String label, String iconPath) {
     return Container(
@@ -1052,12 +1209,12 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     final protein = totals['totalProtein'] ?? 0;
     final fat = totals['totalFat'] ?? 0;
     final carbs = totals['totalCarbs'] ?? 0;
-    // Build time from todayCreatedAt
+    // Build time from todayCreatedAt using app's locale
     String timeString = '';
     if (widget.todayCreatedAt != null) {
       try {
         final createdAt = DateTime.parse(widget.todayCreatedAt!);
-        timeString = '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
+        timeString = DateFormat('HH:mm', Localizations.localeOf(context).toString()).format(createdAt);
       } catch (_) {}
     }
 
@@ -1202,8 +1359,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     final createdAtStr = meal['createdAt'] as String?;
     if (createdAtStr != null) {
       try {
-        final createdAt = DateTime.parse(createdAtStr);
-        timeString = '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
+        final createdAt = DateTime.parse(createdAtStr).toLocal();
+        timeString = DateFormat('HH:mm', Localizations.localeOf(context).toString()).format(createdAt);
       } catch (_) {}
     }
 
@@ -1327,12 +1484,12 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 ],
               ),
             ),
-            Container(
-              width: 20,
-              height: 20,
+            SizedBox(
+              width: 24,
+              height: 24,
               child: const Icon(
                 CupertinoIcons.chevron_right,
-                size: 16,
+                size: 24,
                 color: CupertinoColors.systemGrey,
               ),
             ),
@@ -1340,6 +1497,236 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         ),
       ),
     );
+  }
+
+  Widget _buildExerciseCard(Map<String, dynamic> exercise, AppLocalizations l10n) {
+    // Extract exercise data
+    final caloriesBurned = ((exercise['caloriesBurned'] ?? 0) as num).toInt();
+    final exerciseType = exercise['type'] as String? ?? 'Exercise';
+    final loggedAt = exercise['loggedAt'] as String?;
+    final notes = exercise['notes'] as String?;
+    
+    // Format time from loggedAt using app's locale
+    String timeString = '';
+    if (loggedAt != null) {
+      try {
+        final loggedDateTime = DateTime.parse(loggedAt).toLocal();
+        // Use the app's locale for time formatting
+        timeString = DateFormat('HH:mm', Localizations.localeOf(context).toString()).format(loggedDateTime);
+      } catch (_) {}
+    }
+    
+    // Get exercise name from type or notes
+    String exerciseName = exerciseType;
+    if (notes != null && notes.isNotEmpty) {
+      exerciseName = notes;
+    }
+    
+    // Get appropriate icon based on exercise type
+    String iconPath = _getExerciseIcon(exerciseType);
+    
+    return Container(
+      width: double.infinity,
+      height: 106,
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: const ShapeDecoration(
+        color: Color(0xFFF8F7FC),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(15)),
+        ),
+        shadows: [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 3,
+            offset: Offset(0, 0),
+            spreadRadius: 0,
+          )
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Exercise icon
+            Container(
+              width: 50,
+              height: 50,
+              decoration: const ShapeDecoration(
+                color: Colors.white,
+                shape: OvalBorder(),
+              ),
+              child: Center(
+                child: Image.asset(
+                  iconPath,
+                  width: 24,
+                  height: 24,
+                ),
+              ),
+            ),
+            
+            const SizedBox(width: 12),
+            
+            // Exercise details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Exercise name and time
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          exerciseName,
+                          style: const TextStyle(
+                            color: Color(0xFF1E1822),
+                            fontSize: 12,
+                            fontFamily: 'Instrument Sans',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      if (timeString.isNotEmpty)
+                        Container(
+                          width: 24,
+                          height: 12,
+                          decoration: const ShapeDecoration(
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                            ),
+                            shadows: [
+                              BoxShadow(
+                                color: Color(0x33000000),
+                                blurRadius: 3,
+                                offset: Offset(0, 0),
+                                spreadRadius: 0,
+                              )
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              timeString,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFF1E1822),
+                                fontSize: 6,
+                                fontFamily: 'Instrument Sans',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  // Calories badge
+                  Container(
+                    width: 70,
+                    height: 24,
+                    decoration: const ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(6)),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 5,
+                          offset: Offset(0, 0),
+                          spreadRadius: 1,
+                        )
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Image.asset(
+                            'assets/icons/apple.png',
+                            width: 12,
+                            height: 12,
+                          ),
+                          const SizedBox(width: 4),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                caloriesBurned.toString(),
+                                style: TextStyle(
+                                  color: Colors.black.withOpacity(0.90),
+                                  fontSize: 7,
+                                  fontFamily: 'Instrument Sans',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                l10n.calories,
+                                style: TextStyle(
+                                  color: Colors.black.withOpacity(0.70),
+                                  fontSize: 6,
+                                  fontFamily: 'Instrument Sans',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Chevron icon
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Container(
+                width: 24,
+                height: 24,
+                child: const Icon(
+                  CupertinoIcons.chevron_right,
+                  size: 24,
+                  color: CupertinoColors.systemGrey,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getExerciseIcon(String exerciseType) {
+    // Map exercise types to appropriate icons (using same icons as log screen)
+    switch (exerciseType.toLowerCase()) {
+      case 'steps':
+        return 'assets/icons/steps.png';
+      case 'running':
+      case 'cardio':
+        return 'assets/icons/heartbeat.png'; // Same as cardio in log screen
+      case 'weight_lifting':
+      case 'strength':
+        return 'assets/icons/weights.png'; // Same as weight training in log screen
+      case 'cycling':
+      case 'bike':
+        return 'assets/icons/bike.png';
+      case 'swimming':
+        return 'assets/icons/swimming.png';
+      case 'yoga':
+        return 'assets/icons/yoga.png';
+      case 'describe':
+      case 'custom':
+        return 'assets/icons/stats.png'; // Same as describe exercise in log screen
+      case 'direct_input':
+        return 'assets/icons/input.png'; // Same as direct input in log screen
+      default:
+        return 'assets/icons/heartbeat.png'; // Default to cardio icon
+    }
   }
 
   Widget _buildStreakCard(AppLocalizations l10n) {

@@ -888,4 +888,7 @@ class AppLocalizationsBg extends AppLocalizations {
   @override
   String get areYouSureYouWantToLogOut =>
       'Сигурни ли сте, че искате да излезете?';
+
+  @override
+  String get recentlyUploaded => 'Наскоро качено';
 }

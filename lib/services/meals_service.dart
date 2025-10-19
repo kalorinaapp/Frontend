@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:calorie_ai_app/utils/network.dart';
 import 'package:flutter/foundation.dart';
 import '../network/http_helper.dart' hide multiPostAPINew;
@@ -29,6 +30,28 @@ class MealsService {
     return parsed;
   }
 
+  Future<Map<String, dynamic>?> fetchDailyMeals({
+    required String userId,
+    required String dateYYYYMMDD,
+  }) async {
+    Map<String, dynamic>? parsed;
+    await multiGetAPINew(
+      methodName: 'api/meals/daily/$userId',
+      query: {
+        'date': dateYYYYMMDD,
+      },
+      callback: (resp) async {
+        try {
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('MealsService fetchDailyMeals parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
   Future<Map<String, dynamic>?> saveCompleteMeal({
     required String userId,
     required String date,
@@ -36,6 +59,7 @@ class MealsService {
     required String mealName,
     required List<Map<String, dynamic>> entries,
     String? notes,
+    String? mealImage,
   }) async {
     Map<String, dynamic>? parsed;
     
@@ -48,6 +72,20 @@ class MealsService {
       'notes': notes ?? '',
       'isCompleted': true,
     };
+    
+    // Add base64 image if provided
+    if (mealImage != null && mealImage.isNotEmpty) {
+      try {
+        final file = File(mealImage);
+        if (file.existsSync()) {
+          final bytes = await file.readAsBytes();
+          final base64Data = base64Encode(bytes);
+          body['mealImage'] = 'data:image/jpeg;base64,$base64Data';
+        }
+      } catch (e) {
+        debugPrint('MealsService: Error encoding image: $e');
+      }
+    }
 
     await multiPostAPINew(
       methodName: 'api/meals/complete',

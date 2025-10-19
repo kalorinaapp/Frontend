@@ -301,5 +301,6 @@
   "deleteAccountTitle": "Delete Account?",
   "accountWillBePermanentlyDeleted": "Account will be permanently deleted",
   "logoutTitle": "Log out?",
-  "areYouSureYouWantToLogOut": "Are you sure you want to log out?"
+  "areYouSureYouWantToLogOut": "Are you sure you want to log out?",
+  "recentlyUploaded": "Recently Uploaded"
 }

@@ -206,5 +206,6 @@
   "deleteAccountTitle": "Konto löschen?",
   "accountWillBePermanentlyDeleted": "Konto wird dauerhaft gelöscht",
   "logoutTitle": "Abmelden?",
-  "areYouSureYouWantToLogOut": "Sind Sie sicher, dass Sie sich abmelden möchten?"
+  "areYouSureYouWantToLogOut": "Sind Sie sicher, dass Sie sich abmelden möchten?",
+  "recentlyUploaded": "Kürzlich hochgeladen"
 }

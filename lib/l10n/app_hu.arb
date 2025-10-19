@@ -300,6 +300,7 @@
   "deleteAccountTitle": "Fiók törlése?",
   "accountWillBePermanentlyDeleted": "A fiók véglegesen törlésre kerül",
   "logoutTitle": "Kijelentkezés?",
-  "areYouSureYouWantToLogOut": "Biztosan ki szeretne jelentkezni?"
+  "areYouSureYouWantToLogOut": "Biztosan ki szeretne jelentkezni?",
+  "recentlyUploaded": "Nemrég feltöltve"
 }
 

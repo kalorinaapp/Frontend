@@ -883,4 +883,7 @@ class AppLocalizationsSr extends AppLocalizations {
   @override
   String get areYouSureYouWantToLogOut =>
       'Да ли сте сигурни да се желите одјавити?';
+
+  @override
+  String get recentlyUploaded => 'Недавно преузето';
 }

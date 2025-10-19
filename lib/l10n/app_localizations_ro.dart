@@ -890,4 +890,7 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get areYouSureYouWantToLogOut =>
       'Ești sigur că vrei să te deconectezi?';
+
+  @override
+  String get recentlyUploaded => 'Încărcat recent';
 }
