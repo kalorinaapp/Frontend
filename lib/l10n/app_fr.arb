@@ -207,5 +207,8 @@
   "accountWillBePermanentlyDeleted": "Le compte sera définitivement supprimé",
   "logoutTitle": "Se déconnecter?",
   "areYouSureYouWantToLogOut": "Êtes-vous sûr de vouloir vous déconnecter?",
-  "recentlyUploaded": "Récemment téléchargé"
+  "recentlyUploaded": "Récemment téléchargé",
+  "cannotLogFutureStreak": "Impossible d'enregistrer des dates futures",
+  "cannotLogFutureStreakDescription": "Vous ne pouvez enregistrer des séries que pour aujourd'hui et les dates passées. Les dates futures seront débloquées lorsqu'elles arriveront!",
+  "ok": "D'accord"
 }

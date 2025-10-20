@@ -295,5 +295,8 @@
   "accountWillBePermanentlyDeleted": "Račun će biti trajno obrisan",
   "logoutTitle": "Odjaviti se?",
   "areYouSureYouWantToLogOut": "Jeste li sigurni da se želite odjaviti?",
-  "recentlyUploaded": "Nedavno učitano"
+  "recentlyUploaded": "Nedavno učitano",
+  "cannotLogFutureStreak": "Nije moguće evidentirati buduće datume",
+  "cannotLogFutureStreakDescription": "Možete evidentirati niz samo za današnji dan i prošle datume. Budući datumi će se otključati kako budu dolazili!",
+  "ok": "U redu"
 }

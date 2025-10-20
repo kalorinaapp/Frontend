@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import '../constants/app_constants.dart';
 import '../network/http_helper.dart';
-import '../utils/network.dart' show getAPI, deleteAPI;
+import '../utils/network.dart' show deleteAPI, getAPI, putAPI;
 
 class StreakService extends GetxController {
 
@@ -131,10 +131,10 @@ class StreakService extends GetxController {
 
       Map<String, dynamic>? result;
       
-      await multiPostAPINew(
-        methodName: 'streaks/update',
+      await putAPI(
+        methodName: 'api/streaks/$streakId',
         param: params,
-        callback: (ResponseAPI response) {
+        callback: (response) {
           if (response.isError == true) {
             errorMessage.value = response.response;
             return;
@@ -145,6 +145,9 @@ class StreakService extends GetxController {
             if (data['success'] == true && data['streak'] != null) {
               result = data['streak'];
               streakData.value = data['streak'];
+              // Update local map for this date
+              final dateKey = _formatDate(date);
+              streaksMap[dateKey] = data['streak'];
             } else {
               errorMessage.value = data['message'] ?? 'Failed to update streak';
             }
@@ -161,6 +164,41 @@ class StreakService extends GetxController {
       errorMessage.value = 'Failed to update streak: $e';
       return null;
     }
+  }
+
+  // Create or update streak for a specific day depending on existing entry
+  Future<Map<String, dynamic>?> upsertStreak({
+    required String streakType,
+    required DateTime date,
+  }) async {
+    final existingStreakId = getStreakId(date);
+    print("Existing Streak Id $existingStreakId");
+    if (existingStreakId != null && existingStreakId.isNotEmpty) {
+      return await updateStreak(
+        streakId: existingStreakId,
+        streakType: streakType,
+        date: date,
+      );
+    }
+
+    // final created = await createStreak(
+    //   streakType: streakType,
+    //   date: date,
+    // );
+
+    // If backend indicates it already exists, try update as a fallback
+    // if (created == null && errorMessage.value.toLowerCase().contains('already')) {
+    //   final fallbackId = getStreakId(date);
+    //   if (fallbackId != null && fallbackId.isNotEmpty) {
+    //     return await updateStreak(
+    //       streakId: fallbackId,
+    //       streakType: streakType,
+    //       date: date,
+    //     );
+    //   }
+    // }
+
+    // return created;
   }
 
   // Delete/undo streak for a specific day
@@ -224,7 +262,7 @@ class StreakService extends GetxController {
       List<Map<String, dynamic>>? result;
       
       await getAPI(
-        methodName: 'api/streaks/date-range?startDate=$startDateStr&endDate=$endDateStr',
+        methodName: 'api/streaks/date-range?startDate=$startDateStr&endDate=$endDateStr&currentDate=${DateTime.now().toLocal().toIso8601String()}',
         callback: (response) {
           if (response.isError == true) {
             errorMessage.value = response.response;
@@ -244,9 +282,11 @@ class StreakService extends GetxController {
                   streaksMap[dateKey] = streak;
                 }
               }
+             
             } else {
               errorMessage.value = data['message'] ?? 'Failed to get streaks';
             }
+            
           } catch (e) {
             errorMessage.value = 'Failed to parse response: $e';
           }
@@ -290,7 +330,7 @@ class StreakService extends GetxController {
       Map<String, dynamic>? result;
       
       await getAPI(
-        methodName: 'api/streaks/history/${AppConstants.userId}',
+        methodName: 'api/streaks/history/${AppConstants.userId}?currentDate=${DateTime.now().toLocal().toIso8601String()}',
         callback: (response) {
           if (response.isError == true) {
             errorMessage.value = response.response;
@@ -302,6 +342,18 @@ class StreakService extends GetxController {
             if (data['success'] == true && data['history'] != null) {
               result = data['history'];
               streakHistory.value = data['history'];
+              // Merge any available logged dates from history into streaksMap
+              try {
+                final raw = data['history'];
+                // Primary shape: { history: [ { _id, date, streakType, ... }, ... ] }
+                if (raw is Map<String, dynamic> && raw['history'] is List) {
+                  _mergeHistoryListIntoMap(List<dynamic>.from(raw['history'] as List));
+                } else if (raw is List) {
+                  _mergeHistoryListIntoMap(raw);
+                } else if (raw is Map<String, dynamic>) {
+                  _mergeHistoryDatesIntoMap(raw);
+                }
+              } catch (_) {}
             } else {
               errorMessage.value = data['message'] ?? 'Failed to get streak history';
             }
@@ -319,6 +371,134 @@ class StreakService extends GetxController {
       errorMessage.value = 'Failed to get streak history: $e';
       return null;
     }
+  }
+
+  // Merge dates from streak history payload into local streaksMap
+  // Supports multiple shapes:
+  // 1) { dates: ["YYYY-MM-DD", ...] }  -> defaults to Successful
+  // 2) { successfulDates: [...], failedDates: [...] }
+  // 3) { dates: [{ date: "YYYY-MM-DD", streakType: "Successful"|"Failed" }, ...] }
+  void _mergeHistoryDatesIntoMap(Map<String, dynamic> history) {
+    void upsertEntry(String dateKey, String? streakType, {String? id}) {
+      final existing = streaksMap[dateKey] ?? <String, dynamic>{};
+      streaksMap[dateKey] = {
+        ...existing,
+        'date': dateKey,
+        if (streakType != null) 'streakType': streakType,
+        if (id != null && id.isNotEmpty) 'id': id,
+      };
+    }
+
+    String? normalizeType(dynamic raw) {
+      if (raw is! String) return null;
+      final s = raw.toLowerCase().trim();
+      if (s.startsWith('succ')) return 'Successful';
+      if (s.startsWith('pass')) return 'Successful';
+      if (s.startsWith('win')) return 'Successful';
+      if (s.startsWith('fail')) return 'Failed';
+      if (s.startsWith('miss')) return 'Failed';
+      if (s.startsWith('lose')) return 'Failed';
+      return null;
+    }
+
+    // Case 2: explicit successful/failed arrays
+    final successList = history['successfulDates'] ?? history['successDates'];
+    final failedList = history['failedDates'] ?? history['failDates'];
+    if (successList is List) {
+      for (final d in successList) {
+        if (d is String && d.isNotEmpty) {
+          upsertEntry(d, 'Successful');
+        }
+        if (d is Map && d['date'] is String) {
+          final t = normalizeType(d['streakType']) ?? 'Successful';
+          final id = (d['_id'] ?? d['id'] ?? d['streakId'] ?? d['streakDateId']) as String?;
+          upsertEntry(d['date'] as String, t, id: id);
+        }
+      }
+    }
+    if (failedList is List) {
+      for (final d in failedList) {
+        if (d is String && d.isNotEmpty) {
+          upsertEntry(d, 'Failed');
+        }
+        if (d is Map && d['date'] is String) {
+          final t = normalizeType(d['streakType']) ?? 'Failed';
+          final id = (d['_id'] ?? d['id'] ?? d['streakId'] ?? d['streakDateId']) as String?;
+          upsertEntry(d['date'] as String, t, id: id);
+        }
+      }
+    }
+
+    // Case 1/3: generic dates array
+    final dates = history['dates'];
+    if (dates is List) {
+      for (final item in dates) {
+        if (item is String && item.isNotEmpty) {
+          // Do not assume type when only a date string is provided
+          // Leave as-is; date-range API or per-day fetch will enrich later
+          continue;
+        } else if (item is Map) {
+          final dateKey = item['date'];
+          if (dateKey is String && dateKey.isNotEmpty) {
+            final explicitType = normalizeType(item['streakType']) ?? normalizeType(item['status']) ?? normalizeType(item['type']);
+            final id = (item['_id'] ?? item['id'] ?? item['streakId'] ?? item['streakDateId']) as String?;
+            upsertEntry(dateKey, explicitType, id: id);
+          }
+        }
+      }
+    }
+
+    // Generic catch-all: scan any list fields for objects with a date
+    for (final entry in history.entries) {
+      final value = entry.value;
+      if (value is List) {
+        for (final v in value) {
+          if (v is Map) {
+            final dateKey = v['date'];
+            if (dateKey is String && dateKey.isNotEmpty) {
+              final t = normalizeType(v['streakType']) ?? normalizeType(v['status']) ?? normalizeType(v['type']);
+              final id = (v['_id'] ?? v['id'] ?? v['streakId'] ?? v['streakDateId']) as String?;
+              upsertEntry(dateKey, t, id: id);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Merge when history is a List of objects with { _id|id, date, streakType|status|type }
+  void _mergeHistoryListIntoMap(List<dynamic> historyList) {
+    String? normalizeType(dynamic raw) {
+      if (raw is! String) return null;
+      final s = raw.toLowerCase().trim();
+      if (s.startsWith('succ')) return 'Successful';
+      if (s.startsWith('pass')) return 'Successful';
+      if (s.startsWith('win')) return 'Successful';
+      if (s.startsWith('fail')) return 'Failed';
+      if (s.startsWith('miss')) return 'Failed';
+      if (s.startsWith('lose')) return 'Failed';
+      return null;
+    }
+
+    for (final item in historyList) {
+      if (item is Map) {
+        final dateKey = item['date'];
+        if (dateKey is String && dateKey.isNotEmpty) {
+          final streakType = normalizeType(item['streakType']) ?? normalizeType(item['status']) ?? normalizeType(item['type']);
+          final id = (item['_id'] ?? item['id'] ?? item['streakId'] ?? item['streakDateId']) as String?;
+          final existing = streaksMap[dateKey] ?? <String, dynamic>{};
+          streaksMap[dateKey] = {
+            ...existing,
+            'date': dateKey,
+            if (streakType != null) 'streakType': streakType,
+            if (id != null && id.isNotEmpty) 'id': id,
+          };
+          
+        }
+      }
+    }
+
+    print("Streaks Map ${streaksMap}");
   }
 
   // Get current streak count

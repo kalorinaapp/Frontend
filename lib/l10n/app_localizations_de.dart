@@ -893,4 +893,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Kürzlich hochgeladen';
+
+  @override
+  String get cannotLogFutureStreak =>
+      'Zukünftige Daten können nicht erfasst werden';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Sie können Streaks nur für heute und vergangene Daten erfassen. Zukünftige Daten werden freigeschaltet, sobald sie eintreffen!';
+
+  @override
+  String get ok => 'OK';
 }

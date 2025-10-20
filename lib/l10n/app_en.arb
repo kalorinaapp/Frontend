@@ -302,5 +302,8 @@
   "accountWillBePermanentlyDeleted": "Account will be permanently deleted",
   "logoutTitle": "Log out?",
   "areYouSureYouWantToLogOut": "Are you sure you want to log out?",
-  "recentlyUploaded": "Recently Uploaded"
+  "recentlyUploaded": "Recently Uploaded",
+  "cannotLogFutureStreak": "Can't Log Future Dates",
+  "cannotLogFutureStreakDescription": "You can only log streaks for today and past dates. Future dates will unlock as they arrive!",
+  "ok": "OK"
 }

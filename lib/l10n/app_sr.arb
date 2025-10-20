@@ -250,6 +250,9 @@
   "accountWillBePermanentlyDeleted": "Налог ће бити трајно обрисан",
   "logoutTitle": "Одјавити се?",
   "areYouSureYouWantToLogOut": "Да ли сте сигурни да се желите одјавити?",
-  "recentlyUploaded": "Недавно преузето"
+  "recentlyUploaded": "Недавно преузето",
+  "cannotLogFutureStreak": "Не можете евидентирати будуће датуме",
+  "cannotLogFutureStreakDescription": "Можете евидентирати низове само за данас и прошле датуме. Будући датуми ће се откључати како буду долазили!",
+  "ok": "У реду"
 }
 

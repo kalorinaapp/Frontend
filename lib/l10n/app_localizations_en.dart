@@ -886,4 +886,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Recently Uploaded';
+
+  @override
+  String get cannotLogFutureStreak => 'Can\'t Log Future Dates';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'You can only log streaks for today and past dates. Future dates will unlock as they arrive!';
+
+  @override
+  String get ok => 'OK';
 }

@@ -250,5 +250,8 @@
   "accountWillBePermanentlyDeleted": "Račun bo trajno izbrisan",
   "logoutTitle": "Odjaviti se?",
   "areYouSureYouWantToLogOut": "Ali ste prepričani, da se želite odjaviti?",
-  "recentlyUploaded": "Nedavno naloženo"
+  "recentlyUploaded": "Nedavno naloženo",
+  "cannotLogFutureStreak": "Ni mogoče evidentirati prihodnjih datumov",
+  "cannotLogFutureStreakDescription": "Lahko evidentirate nize samo za danes in pretekle datume. Prihodnji datumi se bodo odklenili, ko bodo prispeli!",
+  "ok": "V redu"
 }

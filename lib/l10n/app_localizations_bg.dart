@@ -891,4 +891,14 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Наскоро качено';
+
+  @override
+  String get cannotLogFutureStreak => 'Не може да се записват бъдещи дати';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Можете да записвате серии само за днес и минали дати. Бъдещите дати ще се отключат, когато настъпят!';
+
+  @override
+  String get ok => 'Добре';
 }

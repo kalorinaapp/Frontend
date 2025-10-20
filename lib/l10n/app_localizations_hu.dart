@@ -893,4 +893,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Nemrég feltöltve';
+
+  @override
+  String get cannotLogFutureStreak => 'Jövőbeli dátumok nem rögzíthetők';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Csak a mai napra és a múltbeli dátumokra rögzíthet sorozatokat. A jövőbeli dátumok feloldódnak, amikor megérkeznek!';
+
+  @override
+  String get ok => 'Rendben';
 }

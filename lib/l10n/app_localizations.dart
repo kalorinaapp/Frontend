@@ -1805,6 +1805,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recently Uploaded'**
   String get recentlyUploaded;
+
+  /// No description provided for @cannotLogFutureStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t Log Future Dates'**
+  String get cannotLogFutureStreak;
+
+  /// No description provided for @cannotLogFutureStreakDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only log streaks for today and past dates. Future dates will unlock as they arrive!'**
+  String get cannotLogFutureStreakDescription;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
 }
 
 class _AppLocalizationsDelegate

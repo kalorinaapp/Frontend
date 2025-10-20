@@ -48,7 +48,7 @@ class ProgressService {
         'date': dateYYYYMMDD,
       },
       callback: (resp) async {
-        print('date: ${dateYYYYMMDD}');
+        print('date: $dateYYYYMMDD');
         try {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
           print('parsed: ${parsed}');

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 import '../l10n/app_localizations.dart' show AppLocalizations;
 import '../providers/theme_provider.dart';
 import '../services/streak_service.dart';
@@ -446,41 +447,109 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     if (widget.isLoadingInitialData) ...[
-                      // Show loading indicator while fetching initial data
-                      Container(
-                        width: double.infinity,
-                        height: 120,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F7FC),
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0x33000000),
-                              blurRadius: 3,
-                              offset: Offset(0, 0),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CupertinoActivityIndicator(
-                                radius: 16,
-                                color: CupertinoColors.black,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Loading your data...',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              ),
+                      // Show shimmer loading effect while fetching initial data
+                      Shimmer.fromColors(
+                        baseColor: const Color(0xFFE8E8E8),
+                        highlightColor: const Color(0xFFF5F5F5),
+                        child: Container(
+                          width: double.infinity,
+                          height: 120,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F7FC),
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x33000000),
+                                blurRadius: 3,
+                                offset: Offset(0, 0),
+                                spreadRadius: 0,
+                              )
                             ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                // Shimmer image placeholder
+                                Container(
+                                  width: 96,
+                                  height: 96,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                // Shimmer content placeholder
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Title placeholder
+                                      Container(
+                                        width: double.infinity,
+                                        height: 14,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      // Nutrition cards placeholders
+                                      Row(
+                                        children: [
+                                          Column(
+                                            children: [
+                                              Container(
+                                                width: 70,
+                                                height: 24,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Container(
+                                                width: 70,
+                                                height: 24,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                width: 70,
+                                                height: 24,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Container(
+                                                width: 70,
+                                                height: 24,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

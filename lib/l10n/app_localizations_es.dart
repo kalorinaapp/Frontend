@@ -893,4 +893,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Recientemente subido';
+
+  @override
+  String get cannotLogFutureStreak => 'No se pueden registrar fechas futuras';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Solo puedes registrar rachas para hoy y fechas pasadas. ¡Las fechas futuras se desbloquearán cuando lleguen!';
+
+  @override
+  String get ok => 'Aceptar';
 }

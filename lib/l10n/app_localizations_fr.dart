@@ -896,4 +896,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Récemment téléchargé';
+
+  @override
+  String get cannotLogFutureStreak =>
+      'Impossible d\'enregistrer des dates futures';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Vous ne pouvez enregistrer des séries que pour aujourd\'hui et les dates passées. Les dates futures seront débloquées lorsqu\'elles arriveront!';
+
+  @override
+  String get ok => 'D\'accord';
 }

@@ -301,6 +301,9 @@
   "accountWillBePermanentlyDeleted": "Contul va fi șters permanent",
   "logoutTitle": "Deconectare?",
   "areYouSureYouWantToLogOut": "Ești sigur că vrei să te deconectezi?",
-  "recentlyUploaded": "Încărcat recent"
+  "recentlyUploaded": "Încărcat recent",
+  "cannotLogFutureStreak": "Nu poți înregistra date viitoare",
+  "cannotLogFutureStreakDescription": "Poți înregistra serii doar pentru astăzi și datele trecute. Datele viitoare se vor debloca când vor ajunge!",
+  "ok": "OK"
 }
 

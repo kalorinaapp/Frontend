@@ -19,7 +19,9 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
   void initState() {
     super.initState();
     streakService = Get.put(StreakService());
-    // _loadStreaksForMonth();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadHistory();
+    });
   }
 
 
@@ -29,6 +31,25 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
     final highestStreak = streakService.getHighestStreak();
 
     return {'current': currentStreak, 'longest': highestStreak};
+  }
+
+  Future<void> _loadHistory() async {
+    await streakService.getStreakHistory();
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadStreaksForMonth() async {
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0);
+    await Future.wait([
+      streakService.getStreaksForDateRange(
+        startDate: startOfMonth,
+        endDate: endOfMonth,
+      ),
+      streakService.getStreakHistory(),
+    ]);
+    if (mounted) setState(() {});
   }
 
   @override
@@ -414,7 +435,7 @@ class _DayTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _showDayOptionsDialog(context),
+      onTap: () => _handleTileTap(context),
       child: Container(
         height: 130,
         decoration: ShapeDecoration(
@@ -457,6 +478,103 @@ class _DayTile extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _handleTileTap(BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final currentDate = DateTime(date.year, date.month, date.day);
+    
+    // Check if date is in the future
+    if (currentDate.isAfter(today)) {
+      _showFutureDateDialog(context);
+    } else {
+      _showDayOptionsDialog(context);
+    }
+  }
+
+  void _showFutureDateDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFE5E5E5), width: 1),
+        ),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.85,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F7FC),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Center(
+                  child: Icon(
+                    CupertinoIcons.calendar_badge_minus,
+                    size: 32,
+                    color: Colors.black.withOpacity(0.6),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Title
+              Text(
+                l10n.cannotLogFutureStreak,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontFamily: 'Instrument Sans',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Description
+              Text(
+                l10n.cannotLogFutureStreakDescription,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.7),
+                  fontSize: 16,
+                  fontFamily: 'Instrument Sans',
+                  fontWeight: FontWeight.w400,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // OK button
+              SizedBox(
+                width: double.infinity,
+                child: CupertinoButton(
+                  color: CupertinoColors.black,
+                  borderRadius: BorderRadius.circular(12),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    l10n.ok,
+                    style: const TextStyle(
+                      color: CupertinoColors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -596,12 +714,15 @@ class _DayTile extends StatelessWidget {
       case 'Successful':
         // Optimistically update UI
         final previousData = streakService.streaksMap[dateKey];
+        final existing = streakService.streaksMap[dateKey] ?? <String, dynamic>{};
+        // Preserve existing id and other fields; only change type/date
         streakService.streaksMap[dateKey] = {
+          ...existing,
           'streakType': 'Successful',
           'date': dateKey,
         };
         
-        final result = await streakService.createStreak(
+        final result = await streakService.upsertStreak(
           streakType: 'Successful',
           date: date.toLocal(),
         );
@@ -631,12 +752,15 @@ class _DayTile extends StatelessWidget {
       case 'Failed':
         // Optimistically update UI
         final previousData = streakService.streaksMap[dateKey];
+        final existing = streakService.streaksMap[dateKey] ?? <String, dynamic>{};
+        // Preserve existing id and other fields; only change type/date
         streakService.streaksMap[dateKey] = {
+          ...existing,
           'streakType': 'Failed',
           'date': dateKey,
         };
         
-        final result = await streakService.createStreak(
+        final result = await streakService.upsertStreak(
           streakType: 'Failed',
           date: date.toLocal(),
         );

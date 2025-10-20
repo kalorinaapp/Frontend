@@ -302,6 +302,9 @@
   "accountWillBePermanentlyDeleted": "Сметката ќе биде трајно избришана",
   "logoutTitle": "Одјави се?",
   "areYouSureYouWantToLogOut": "Дали сте сигурни дека сакате да се одјавите?",
-  "recentlyUploaded": "Неодамна прикачено"
+  "recentlyUploaded": "Неодамна прикачено",
+  "cannotLogFutureStreak": "Не можете да евидентирате идни датуми",
+  "cannotLogFutureStreakDescription": "Можете да евидентирате низови само за денес и минати датуми. Идните датуми ќе се отклучат кога ќе пристигнат!",
+  "ok": "Во ред"
 }
 

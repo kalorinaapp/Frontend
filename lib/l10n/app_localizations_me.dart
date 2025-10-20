@@ -12,6 +12,16 @@ class AppLocalizationsCg extends AppLocalizations {
   String get appTitle => 'Karolina';
 
   @override
+  String get cannotLogFutureStreak => 'Ne možete evidentirati budući niz';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Nije moguće evidentirati niz za buduće datume. Molimo izaberite današnji ili raniji datum.';
+
+  @override
+  String get ok => 'U redu';
+
+  @override
   String get recentlyUploaded => 'Nedavno postavljeno';
 
 

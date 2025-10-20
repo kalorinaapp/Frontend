@@ -895,4 +895,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Caricato di recente';
+
+  @override
+  String get cannotLogFutureStreak => 'Impossibile registrare date future';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Puoi registrare serie solo per oggi e date passate. Le date future si sbloccheranno quando arriveranno!';
+
+  @override
+  String get ok => 'OK';
 }

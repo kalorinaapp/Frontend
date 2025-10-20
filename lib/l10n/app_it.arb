@@ -207,5 +207,8 @@
   "accountWillBePermanentlyDeleted": "L'account sarà eliminato permanentemente",
   "logoutTitle": "Disconnettersi?",
   "areYouSureYouWantToLogOut": "Sei sicuro di volerti disconnettere?",
-  "recentlyUploaded": "Caricato di recente"
+  "recentlyUploaded": "Caricato di recente",
+  "cannotLogFutureStreak": "Impossibile registrare date future",
+  "cannotLogFutureStreakDescription": "Puoi registrare serie solo per oggi e date passate. Le date future si sbloccheranno quando arriveranno!",
+  "ok": "OK"
 }

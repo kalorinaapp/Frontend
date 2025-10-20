@@ -892,4 +892,14 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Неодамна прикачено';
+
+  @override
+  String get cannotLogFutureStreak => 'Не можете да евидентирате идни датуми';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Можете да евидентирате низови само за денес и минати датуми. Идните датуми ќе се отклучат кога ќе пристигнат!';
+
+  @override
+  String get ok => 'Во ред';
 }

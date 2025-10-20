@@ -886,4 +886,14 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Недавно преузето';
+
+  @override
+  String get cannotLogFutureStreak => 'Не можете евидентирати будуће датуме';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Можете евидентирати низове само за данас и прошле датуме. Будући датуми ће се откључати како буду долазили!';
+
+  @override
+  String get ok => 'У реду';
 }

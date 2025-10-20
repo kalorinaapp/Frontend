@@ -207,5 +207,8 @@
   "accountWillBePermanentlyDeleted": "Konto wird dauerhaft gelöscht",
   "logoutTitle": "Abmelden?",
   "areYouSureYouWantToLogOut": "Sind Sie sicher, dass Sie sich abmelden möchten?",
-  "recentlyUploaded": "Kürzlich hochgeladen"
+  "recentlyUploaded": "Kürzlich hochgeladen",
+  "cannotLogFutureStreak": "Zukünftige Daten können nicht erfasst werden",
+  "cannotLogFutureStreakDescription": "Sie können Streaks nur für heute und vergangene Daten erfassen. Zukünftige Daten werden freigeschaltet, sobald sie eintreffen!",
+  "ok": "OK"
 }

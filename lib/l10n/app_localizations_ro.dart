@@ -893,4 +893,14 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Încărcat recent';
+
+  @override
+  String get cannotLogFutureStreak => 'Nu poți înregistra date viitoare';
+
+  @override
+  String get cannotLogFutureStreakDescription =>
+      'Poți înregistra serii doar pentru astăzi și datele trecute. Datele viitoare se vor debloca când vor ajunge!';
+
+  @override
+  String get ok => 'OK';
 }
