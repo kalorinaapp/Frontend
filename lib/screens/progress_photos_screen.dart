@@ -20,7 +20,7 @@ class ProgressPhotosScreen extends StatefulWidget {
 }
 
 class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
-  final ProgressService _service = const ProgressService();
+  final ProgressService _service = ProgressService();
   late List<ProgressPhotoItem> _items;
 
   @override

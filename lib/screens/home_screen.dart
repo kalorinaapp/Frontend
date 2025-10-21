@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:get/get.dart';
 import '../l10n/app_localizations.dart' show AppLocalizations;
 import '../onboarding/screens/stage4_personalization/settings_page.dart' show SettingsPage;
 import '../providers/health_provider.dart' show HealthProvider;
@@ -54,6 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize ProgressService as singleton
+    Get.put(ProgressService());
     _updateScreens();
     _loadInitialData();
   }
@@ -133,10 +136,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final userId = AppConstants.userId;
       
+      // Get the singleton ProgressService instance
+      final progressService = Get.find<ProgressService>();
+      
       // Run both API calls in parallel for faster loading
       final results = await Future.wait([
         MealsService().fetchDailyMeals(userId: userId, dateYYYYMMDD: dateStr),
-        ProgressService().fetchDailyProgress(dateYYYYMMDD: dateStr),
+        progressService.fetchDailyProgress(dateYYYYMMDD: dateStr),
       ]);
       
       final mealsData = results[0];

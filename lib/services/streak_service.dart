@@ -180,6 +180,7 @@ class StreakService extends GetxController {
         date: date,
       );
     }
+    return null;
 
     // final created = await createStreak(
     //   streakType: streakType,

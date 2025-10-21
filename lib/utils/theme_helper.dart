@@ -42,8 +42,8 @@ class ThemeHelper {
       : CupertinoColors.systemGrey2;
 
   static Color get divider => isLightMode 
-      ? CupertinoColors.separator 
-      : CupertinoColors.systemGrey4;
+      ? CupertinoColors.systemGrey4 
+      : CupertinoColors.systemGrey6;
 
   static Color get accent => isLightMode 
       ? CupertinoColors.activeBlue 

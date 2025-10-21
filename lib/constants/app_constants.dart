@@ -9,7 +9,7 @@ class AppConstants {
 
   static String get baseUrl {
     if (Platform.isAndroid) return 'http://10.0.2.2:3000/';
-    return 'http://172.16.8.117:3000/';
+    return 'http://172.20.10.13:3000/';
   }
 
   static String revenueCatId = '';

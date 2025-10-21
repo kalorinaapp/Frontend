@@ -21,7 +21,7 @@ class ConfirmWeightScreen extends StatefulWidget {
 
 class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
   late final TextEditingController _weightController;
-  final ProgressService _progressService = const ProgressService();
+  final ProgressService _progressService = ProgressService();
   bool _saving = false;
 
   @override

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +10,8 @@ import 'package:shimmer/shimmer.dart';
 import '../l10n/app_localizations.dart' show AppLocalizations;
 import '../providers/theme_provider.dart';
 import '../services/streak_service.dart';
+import '../services/progress_service.dart';
+import '../utils/theme_helper.dart' show ThemeHelper;
 import 'log_streak_screen.dart' show LogStreakScreen;
 import 'set_goals_screen.dart' show SetGoalsScreen;
 
@@ -144,11 +148,16 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
+                colors: widget.themeProvider.isLightMode ? [
                   Color(0xFFD1D9E6), // More visible bluish slate at top
                   Color(0xFFE2E8F0), // Light slate blue-gray
                   Color(0xFFF1F5F9), // Very light bluish gray
                   Color(0xFFFFFFFF), // Pure white at bottom
+                ] : [
+                  Color(0xFF1A202C), // Dark bluish slate at top
+                  Color(0xFF171923), // Darker slate blue-gray
+                  Color(0xFF0F1419), // Very dark bluish gray
+                  Color(0xFF0A0A0A), // Almost black at bottom
                 ],
                 stops: [0.0, 0.3, 0.6, 1.0],
               ),
@@ -173,7 +182,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     const Spacer(),
@@ -189,11 +198,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.cardBackground,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: CupertinoColors.black.withOpacity(0.1),
+                              color: ThemeHelper.textPrimary.withOpacity(0.1),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -209,14 +218,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: CupertinoColors.black,
+                                color: ThemeHelper.textPrimary,
                               ),
                             ),
                             const SizedBox(width: 6),
-                            const Icon(
+                            Icon(
                               CupertinoIcons.add,
                               size: 16,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                           ],
                         ),
@@ -231,11 +240,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.white,
+                  color: ThemeHelper.cardBackground,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.05),
+                      color: ThemeHelper.textPrimary.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -266,11 +275,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         height: 264, // Match macro stack height (3×80 + 2×12)
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.cardBackground,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: CupertinoColors.black.withOpacity(0.05),
+                              color: ThemeHelper.textPrimary.withOpacity(0.05),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -285,7 +294,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: CupertinoColors.black,
+                                color: ThemeHelper.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -298,17 +307,34 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                   alignment: Alignment.center,
                                   children: [
                                     // Progress circle
-                                    SizedBox(
-                                      width: 80,
-                                      height: 80,
-                                      child: CircularProgressIndicator(
-                                        value: 0.83, // 1875/2250
-                                        strokeWidth: 6,
-                                        backgroundColor: CupertinoColors.systemGrey5,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          CupertinoColors.black,
-                                        ),
-                                      ),
+                                    GetBuilder<ProgressService>(
+                                      builder: (progressService) {
+                                        final progressData = progressService.dailyProgressData;
+                                        
+                                        int consumed = 0;
+                                        int goal = 0;
+                                        
+                                        if (progressData != null && progressData['progress'] != null) {
+                                          final progress = progressData['progress'] as Map<String, dynamic>;
+                                          consumed = progress['calories']?['consumed'] ?? 0;
+                                          goal = progress['calories']?['goal'] ?? 0;
+                                        }
+                                        
+                                        double progressValue = goal > 0 ? consumed / goal : 0.0;
+                                        
+                                        return SizedBox(
+                                          width: 80,
+                                          height: 80,
+                                          child: CircularProgressIndicator(
+                                            value: progressValue,
+                                            strokeWidth: 6,
+                                            backgroundColor: CupertinoColors.systemGrey5,
+                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                              CupertinoColors.black,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
                                     // Center apple icon
                                     Image.asset('assets/icons/apple.png', width: 24, height: 24),
@@ -319,52 +345,80 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             const SizedBox(height: 16),
                             // Calories numbers
                             Center(
-                              child: RichText(
-                                text: TextSpan(
-                                  children: [
-                                      TextSpan(
-                                      text: '${widget.dailyProgress?['calories']?['consumed'] ?? 0}',
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: CupertinoColors.black,
-                                      ),
+                              child: GetBuilder<ProgressService>(
+                                builder: (progressService) {
+                                  final progressData = progressService.dailyProgressData;
+                                  
+                                  int consumed = 0;
+                                  int goal = 0;
+                                  
+                                  if (progressData != null && progressData['progress'] != null) {
+                                    final progress = progressData['progress'] as Map<String, dynamic>;
+                                    consumed = progress['calories']?['consumed'] ?? 0;
+                                    goal = progress['calories']?['goal'] ?? 0;
+                                  }
+                                  
+                                  return RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: '$consumed',
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: ThemeHelper.textPrimary,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: '/$goal',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: ThemeHelper.textSecondary,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                      TextSpan(
-                                      text: '/${widget.dailyProgress?['calories']?['goal'] ?? 0}',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: CupertinoColors.systemGrey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(height: 8),
                             // Info message
                             Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    CupertinoIcons.info_circle,
-                                    size: 12,
-                                    color: CupertinoColors.systemGrey,
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Flexible(
-                                    child: Text(
-                                      '${(widget.dailyProgress?['calories']?['remaining'] ?? 0)} ${l10n.caloriesMoreToGo}',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: CupertinoColors.systemGrey,
+                              child: GetBuilder<ProgressService>(
+                                builder: (progressService) {
+                                  final progressData = progressService.dailyProgressData;
+                                  
+                                  int remaining = 0;
+                                  
+                                  if (progressData != null && progressData['progress'] != null) {
+                                    final progress = progressData['progress'] as Map<String, dynamic>;
+                                    remaining = progress['calories']?['remaining'] ?? 0;
+                                  }
+                                  
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        CupertinoIcons.info_circle,
+                                        size: 12,
+                                        color: ThemeHelper.textSecondary,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
+                                      const SizedBox(width: 3),
+                                      Flexible(
+                                        child: Text(
+                                          '$remaining ${l10n.caloriesMoreToGo}',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: ThemeHelper.textSecondary,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
                           ],
@@ -381,24 +435,21 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         children: [
                           _buildCompactMacroCard(
                             l10n.fats,
-                            ((widget.dailyProgress?['macros']?['fat']?['consumed'] ?? 0) as num).toInt(),
-                            ((widget.dailyProgress?['macros']?['fat']?['goal'] ?? 0) as num).toInt(),
+                            'fat',
                             CupertinoColors.systemRed,
                             l10n,
                           ),
                           const SizedBox(height: 12),
                           _buildCompactMacroCard(
                             l10n.protein,
-                            ((widget.dailyProgress?['macros']?['protein']?['consumed'] ?? 0) as num).toInt(),
-                            ((widget.dailyProgress?['macros']?['protein']?['goal'] ?? 0) as num).toInt(),
+                            'protein',
                             CupertinoColors.systemBlue,
                             l10n,
                           ),
                           const SizedBox(height: 12),
                           _buildCompactMacroCard(
                             l10n.carbs,
-                            ((widget.dailyProgress?['macros']?['carbs']?['consumed'] ?? 0) as num).toInt(),
-                            ((widget.dailyProgress?['macros']?['carbs']?['goal'] ?? 0) as num).toInt(),
+                            'carbs',
                             CupertinoColors.systemOrange,
                             l10n,
                           ),
@@ -559,7 +610,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -658,7 +709,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -724,23 +775,23 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     }
   }
 
-  Widget _buildCompactMacroCard(String label, int current, int total, Color color, AppLocalizations l10n) {
-    double progress = current / total;
+  Widget _buildCompactMacroCard(String label, String dataKey, Color color, AppLocalizations l10n) {
     return GestureDetector(
       onTap: () {
+        print('widget.todayTotals: ${widget.todayTotals}');
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SetGoalsScreen()),
+          MaterialPageRoute(builder: (context) => SetGoalsScreen(dailyProgress: widget.todayTotals)),
         );
       },
       child: Container(
         height: 80,
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.05),
+              color: ThemeHelper.textPrimary.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -758,13 +809,33 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   alignment: Alignment.center,
                   children: [
                     // Progress circle
-                    CustomPaint(
-                      size: Size(48, 48),
-                      painter: CircleProgressPainter(
-                        progress: progress,
-                        color: color,
-                        strokeWidth: 4,
-                      ),
+                    GetBuilder<ProgressService>(
+                      builder: (progressService) {
+                        final progressData = progressService.dailyProgressData;
+                        
+                        int consumed = 0;
+                        int goal = 0;
+                        
+                        if (progressData != null && progressData['progress'] != null) {
+                          final progress = progressData['progress'] as Map<String, dynamic>;
+                          if (progress['macros'] != null) {
+                            final macros = progress['macros'] as Map<String, dynamic>;
+                            consumed = macros[dataKey]?['consumed'] ?? 0;
+                            goal = macros[dataKey]?['goal'] ?? 0;
+                          }
+                        }
+                        
+                        double progressValue = goal > 0 ? consumed / goal : 0.0;
+                        
+                        return CustomPaint(
+                          size: Size(48, 48),
+                          painter: CircleProgressPainter(
+                            progress: progressValue,
+                            color: color,
+                            strokeWidth: 4,
+                          ),
+                        );
+                      },
                     ),
                     // Center icon based on label
                     _getIconForMacro(label, l10n),
@@ -778,11 +849,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 height: 80,
                 margin: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.white,
+                  color: ThemeHelper.cardBackground,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.03),
+                      color: ThemeHelper.textPrimary.withOpacity(0.03),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),
@@ -796,7 +867,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       height: 28,
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey6,
+                        color: ThemeHelper.divider.withOpacity(0.5),
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(12),
                           topRight: Radius.circular(12),
@@ -808,7 +879,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: CupertinoColors.systemGrey,
+                            color: ThemeHelper.textSecondary,
                             letterSpacing: 0.1,
                           ),
                         ),
@@ -820,35 +891,53 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         width: double.infinity,
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.cardBackground,
                           borderRadius: BorderRadius.only(
                             bottomLeft: Radius.circular(12),
                             bottomRight: Radius.circular(12),
                           ),
                         ),
                         child: Center(
-                          child: RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: '$current',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: CupertinoColors.black,
-                                  ),
+                          child: GetBuilder<ProgressService>(
+                            builder: (progressService) {
+                              final progressData = progressService.dailyProgressData;
+                              
+                              int consumed = 0;
+                              int goal = 0;
+                              
+                              if (progressData != null && progressData['progress'] != null) {
+                                final progress = progressData['progress'] as Map<String, dynamic>;
+                                if (progress['macros'] != null) {
+                                  final macros = progress['macros'] as Map<String, dynamic>;
+                                  consumed = macros[dataKey]?['consumed'] ?? 0;
+                                  goal = macros[dataKey]?['goal'] ?? 0;
+                                }
+                              }
+                              
+                              return RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: '$consumed',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: ThemeHelper.textPrimary,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: '/$goal',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: ThemeHelper.textSecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                TextSpan(
-                                  text: '/$total',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: CupertinoColors.systemGrey,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
                         ),
                       ),
@@ -1802,11 +1891,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: CupertinoColors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.15),
+            color: ThemeHelper.textPrimary.withOpacity(0.15),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -1828,7 +1917,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                 ],
@@ -1838,7 +1927,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey6,
+                  color: ThemeHelper.divider,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -1851,7 +1940,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                   ],
@@ -1901,7 +1990,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: CupertinoColors.systemGrey,
+              color: ThemeHelper.textSecondary,
               height: 1.3,
             ),
             textAlign: TextAlign.center,
@@ -1913,7 +2002,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           SizedBox(
             width: double.infinity,
             child: CupertinoButton(
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
               borderRadius: BorderRadius.circular(20),
               padding: const EdgeInsets.symmetric(vertical: 12),
               onPressed: () {
@@ -1924,7 +2013,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               child: Text(
                 l10n.continueButton,
                 style: TextStyle(
-                  color: CupertinoColors.white,
+                  color: ThemeHelper.background,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),

@@ -1,10 +1,21 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import '../network/http_helper.dart' show multiGetAPINew;
 import '../utils/network.dart' show multiPostAPINew;
 
-class ProgressService {
-  const ProgressService();
+class ProgressService extends GetxController {
+  // Store daily progress data as reactive
+  final Rx<Map<String, dynamic>?> _dailyProgressData = Rx<Map<String, dynamic>?>(null);
+  
+  // Getter to access stored daily progress data
+  Map<String, dynamic>? get dailyProgressData => _dailyProgressData.value;
+  
+  // Method to update data and trigger UI refresh
+  void updateProgressData(Map<String, dynamic>? data) {
+    _dailyProgressData.value = data;
+    update();
+  }
 
   Future<Map<String, dynamic>?> uploadProgressPhotos({
     required List<String> base64Images,
@@ -51,7 +62,13 @@ class ProgressService {
         print('date: $dateYYYYMMDD');
         try {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
-          print('parsed: ${parsed}');
+          
+          // Store the data in the reactive variable
+          _dailyProgressData.value = parsed;
+          // Trigger UI update
+          update();
+
+          print('dailyProgressData: ${_dailyProgressData.value}');
         } catch (e) {
           debugPrint('ProgressService parse error: $e');
           parsed = null;

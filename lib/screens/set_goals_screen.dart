@@ -2,14 +2,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import '../automatic_generation_pageview.dart' show AutomaticGenerationPageview;
 import '../utils/theme_helper.dart' show ThemeHelper;
 import '../providers/theme_provider.dart' show ThemeProvider;
+import '../services/progress_service.dart' show ProgressService;
 
 class SetGoalsScreen extends StatefulWidget {
+  final Map<String, dynamic>? dailyProgress;
   // final ThemeProvider themeProvider;
 
   const SetGoalsScreen({
+    this.dailyProgress,
     super.key,
     // required this.themeProvider,
   });
@@ -19,22 +23,36 @@ class SetGoalsScreen extends StatefulWidget {
 }
 
 class _SetGoalsScreenState extends State<SetGoalsScreen> {
-  final TextEditingController _caloriesController = TextEditingController(text: '75');
-  final TextEditingController _carbsController = TextEditingController(text: '75');
-  final TextEditingController _proteinController = TextEditingController(text: '75');
-  final TextEditingController _fatsController = TextEditingController(text: '75');
+  bool _isLoading = true;
 
   @override
-  void dispose() {
-    _caloriesController.dispose();
-    _carbsController.dispose();
-    _proteinController.dispose();
-    _fatsController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _checkProgressData();
+  }
+
+  void _checkProgressData() {
+    // Check if we have progress data, if not show loading
+    final progressService = Get.find<ProgressService>();
+    if (progressService.dailyProgressData != null) {
+      setState(() {
+        _isLoading = false;
+      });
+    } else {
+      // Listen for progress data updates
+      progressService.addListener(() {
+        if (mounted && progressService.dailyProgressData != null) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+ 
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemBackground,
       child: Column(
@@ -80,38 +98,46 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                   const SizedBox(height: 32),
                   
                   // Kalorije Goal Card
-                  _buildMacroCard(
-                    'Kalorije',
-                    _caloriesController,
-                    'assets/icons/apple.png', // Your asset placeholder
-                  ),
+                  _isLoading 
+                    ? _buildShimmerCard('Kalorije', 'assets/icons/apple.png')
+                    : _buildMacroCard(
+                        'Kalorije',
+                        'assets/icons/apple.png',
+                        'calories',
+                      ),
                   
                   const SizedBox(height: 16),
                   
                   // Ugljikohidrati Goal Card
-                  _buildMacroCard(
-                    'Ugljikohidrati',
-                    _carbsController,
-                    'assets/icons/carbs.png', // Your asset placeholder
-                  ),
+                  _isLoading 
+                    ? _buildShimmerCard('Ugljikohidrati', 'assets/icons/carbs.png')
+                    : _buildMacroCard(
+                        'Ugljikohidrati',
+                        'assets/icons/carbs.png',
+                        'carbs',
+                      ),
                   
                   const SizedBox(height: 16),
                   
                   // Proteini Goal Card
-                  _buildMacroCard(
-                    'Proteini',
-                    _proteinController,
-                    'assets/icons/drumstick.png', // Your asset placeholder
-                  ),
+                  _isLoading 
+                    ? _buildShimmerCard('Proteini', 'assets/icons/drumstick.png')
+                    : _buildMacroCard(
+                        'Proteini',
+                        'assets/icons/drumstick.png',
+                        'protein',
+                      ),
                   
                   const SizedBox(height: 16),
                   
                   // Masti Goal Card
-                  _buildMacroCard(
-                    'Masti',
-                    _fatsController,
-                    'assets/icons/fat.png', // Your asset placeholder
-                  ),
+                  _isLoading 
+                    ? _buildShimmerCard('Masti', 'assets/icons/fat.png')
+                    : _buildMacroCard(
+                        'Masti',
+                        'assets/icons/fat.png',
+                        'fat',
+                      ),
                   
                   const SizedBox(height: 60),
                   
@@ -184,7 +210,63 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
     );
   }
 
-  Widget _buildMacroCard(String label, TextEditingController controller, String assetName) {
+  Widget _buildShimmerCard(String label, String assetName) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: CupertinoColors.systemGrey2,
+            ),
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width * 0.55,
+          decoration: BoxDecoration(
+            color: CupertinoColors.systemGrey6.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Shimmer.fromColors(
+            baseColor: CupertinoColors.systemGrey5,
+            highlightColor: CupertinoColors.systemGrey6,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: Row(
+                children: [
+                  // Shimmer placeholder for value
+                  Expanded(
+                    child: Container(
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.white,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  
+                  // Icon (not shimmered)
+                  Center(
+                    child: Image.asset(
+                      assetName, 
+                      width: assetName == 'assets/icons/apple.png' ? 36 : 24, 
+                      height: assetName == 'assets/icons/apple.png' ? 36 : 24
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMacroCard(String label, String assetName, String dataKey) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -208,32 +290,46 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
-              
               // Value and icon section
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                 child: Row(
                   children: [
-                    // Value input
+                    // Value display using GetBuilder with null safety
                     Expanded(
-                      child: CupertinoTextField(
-                        controller: controller,
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.normal,
-                          color: CupertinoColors.black,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                        ),
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.left,
-                        padding: EdgeInsets.zero,
+                      child: GetBuilder<ProgressService>(
+                        builder: (progressService) {
+                          final progressData = progressService.dailyProgressData;
+                          int value = 0;
+                          
+                          debugPrint('ProgressService data for $dataKey: $progressData');
+                          
+                          if (progressData != null && progressData['progress'] != null) {
+                            final progress = progressData['progress'] as Map<String, dynamic>;
+                            
+                            if (dataKey == 'calories') {
+                              value = progress['calories']?['goal'] ?? 0;
+                            } else if (progress['macros'] != null) {
+                              final macros = progress['macros'] as Map<String, dynamic>;
+                              value = macros[dataKey]?['goal'] ?? 0;
+                            }
+                          }
+                          
+                          debugPrint('Value for $dataKey: $value');
+                          
+                          return Text(
+                            value.toString(),
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.normal,
+                              color: CupertinoColors.black,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     
-                    // Icon placeholder - you will replace with your assets
+                    // Icon
                     Center(
                       child: Image.asset(assetName, width: assetName == 'assets/icons/apple.png' ? 36 : 24, height: assetName == 'assets/icons/apple.png' ? 36 : 24),
                     ),

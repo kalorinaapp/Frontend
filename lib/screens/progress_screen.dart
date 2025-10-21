@@ -197,7 +197,7 @@ class _WeightOverviewCard extends StatefulWidget {
 }
 
 class _WeightOverviewCardState extends State<_WeightOverviewCard> {
-  final ProgressService _service = const ProgressService();
+  final ProgressService _service = ProgressService();
   double? _lastWeight;
   double? _prevWeight;
   bool _loading = false;
@@ -432,7 +432,7 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
     return [l10n.thirtyDays, l10n.ninetyDays, l10n.sixMonths, l10n.oneYear, l10n.allTime];
   }
   int _selectedIndex = 0;
-  final ProgressService _service = const ProgressService();
+  final ProgressService _service =  ProgressService();
   double? _lastWeight;
   double? _prevWeight;
   bool _loadingHistory = false;
@@ -842,7 +842,7 @@ class _WeeklySummaryStrip extends StatefulWidget {
 }
 
 class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
-  final ProgressService _service = const ProgressService();
+  final ProgressService _service =  ProgressService();
   String _headline = 'Great job!';
   String _headlineDeltaText = '';
   String _avgLabel = '';
@@ -1299,7 +1299,7 @@ class _AddBurnedToGoalCard extends StatefulWidget {
 
 class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
   final UserController _userController = Get.find<UserController>();
-  final ProgressService _progressService = const ProgressService();
+  final ProgressService _progressService =  ProgressService();
   
   Map<String, dynamic>? _progressData;
   bool _isLoadingProgress = false;

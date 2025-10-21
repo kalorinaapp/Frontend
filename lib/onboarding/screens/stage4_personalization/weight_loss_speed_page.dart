@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
@@ -37,15 +38,24 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
-    
-    // Initialize with default speed
-    _controller.setDoubleData('weight_loss_speed', _currentSpeed);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.setDoubleData('weight_loss_speed', _currentSpeed);
+      debugPrint('========== Weight Loss Speed Page Initialized ==========');
+      debugPrint('Default Speed: $_currentSpeed kg/week');
+      debugPrint('Speed Level: ${_getSpeedLevel()}');
+      debugPrint('==========================================');
+    });
+   
   }
 
   void _updateSpeed(double newSpeed) {
     setState(() {
       _currentSpeed = newSpeed;
       _controller.setDoubleData('weight_loss_speed', _currentSpeed);
+      debugPrint('========== Weight Loss Speed Updated ==========');
+      debugPrint('New Speed: $_currentSpeed kg/week (${_formatSpeed(_currentSpeed)})');
+      debugPrint('Speed Level: ${_getSpeedLevel()}');
+      debugPrint('==========================================');
     });
   }
 
@@ -258,6 +268,11 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
             height: 75,
             child: CupertinoButton(
               onPressed: () {
+                debugPrint('========== Weight Loss Speed Page - Moving to Next ==========');
+                debugPrint('Final Speed Selected: $_currentSpeed kg/week');
+                debugPrint('Speed Level: ${_getSpeedLevel()}');
+                debugPrint('All Data: ${_controller.getAllData()}');
+                debugPrint('==========================================');
                 _controller.goToNextPage();
               },
               color: CupertinoColors.white,

@@ -15,7 +15,7 @@ class HealthProvider extends ChangeNotifier {
   String _errorMessage = '';
   bool _hasPermissions = false;
   Timer? _autoTimer;
-  final ProgressService _progress = const ProgressService();
+  final ProgressService _progress =  ProgressService();
 
   int get stepsToday => _stepsToday;
   int get stepsGoal => _stepsGoal;
