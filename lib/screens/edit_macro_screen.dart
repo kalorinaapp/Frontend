@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
+import '../utils/theme_helper.dart';
 
 class EditMacroScreen extends StatefulWidget {
   final String macroName;
@@ -64,7 +65,7 @@ class _EditMacroScreenState extends State<EditMacroScreen> {
         _focusNode.unfocus();
       },
       child: CupertinoPageScaffold(
-        backgroundColor: CupertinoColors.white,
+        backgroundColor: ThemeHelper.background,
         resizeToAvoidBottomInset: true,
         child: SafeArea(
           child: Column(
@@ -80,16 +81,16 @@ class _EditMacroScreenState extends State<EditMacroScreen> {
                         'assets/icons/back.svg',
                         width: 24,
                         height: 24,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     const Spacer(),
                     Text(
                       widget.macroName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     const Spacer(),
@@ -105,21 +106,21 @@ class _EditMacroScreenState extends State<EditMacroScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.white,
+                  color: ThemeHelper.cardBackground,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFFE8E8E8),
+                    color: ThemeHelper.divider,
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.08),
+                      color: ThemeHelper.textPrimary.withOpacity(0.08),
                       blurRadius: 15,
                       offset: const Offset(0, 4),
                       spreadRadius: 0,
                     ),
                     BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.04),
+                      color: ThemeHelper.textPrimary.withOpacity(0.04),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                       spreadRadius: 0,
@@ -151,11 +152,11 @@ class _EditMacroScreenState extends State<EditMacroScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Edit',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF999999),
+                              color: ThemeHelper.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -164,10 +165,10 @@ class _EditMacroScreenState extends State<EditMacroScreen> {
                             focusNode: _focusNode,
                             keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.done,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.normal,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                             decoration: const BoxDecoration(),
                             padding: EdgeInsets.zero,
@@ -194,20 +195,20 @@ class _EditMacroScreenState extends State<EditMacroScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
-                            color: CupertinoColors.white,
+                            color: ThemeHelper.cardBackground,
                             borderRadius: BorderRadius.circular(25),
                             border: Border.all(
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                               width: 1.5,
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Undo',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                           ),
                         ),
@@ -221,16 +222,16 @@ class _EditMacroScreenState extends State<EditMacroScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
-                            color: CupertinoColors.black,
+                            color: ThemeHelper.textPrimary,
                             borderRadius: BorderRadius.circular(25),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Done',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: CupertinoColors.white,
+                              color: ThemeHelper.background,
                             ),
                           ),
                         ),

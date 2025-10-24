@@ -12,6 +12,12 @@ class AppLocalizationsCg extends AppLocalizations {
   String get appTitle => 'Karolina';
 
   @override
+  String dayStreak(int count) => 'Niz dana $count';
+
+  @override
+  String get keepGoing => 'Nastavi dalje';
+
+  @override
   String get cannotLogFutureStreak => 'Ne možete zabilježiti budući niz';
 
   @override

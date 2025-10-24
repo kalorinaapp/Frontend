@@ -24,26 +24,26 @@ class ThemeHelper {
   static const Color buttonGradientStart = Color(0xFFFF6A00); // FF6A00 at 15%
   static const Color buttonGradientEnd = Color(0xFFEE0979);   // EE0979 at 100%
 
-  // Colors
+  // Colors - Based on Cal AI modern design
   static Color get background => isLightMode 
       ? CupertinoColors.systemBackground 
-      : CupertinoColors.black;
+      : const Color(0xFF1C1C1E); // Dark gray background like Cal AI
 
   static Color get cardBackground => isLightMode 
       ? CupertinoColors.secondarySystemBackground 
-      : CupertinoColors.systemGrey6.darkColor;
+      : const Color(0xFF2C2C2E); // Elevated card color - sleek and modern
 
   static Color get textPrimary => isLightMode 
       ? CupertinoColors.label 
-      : CupertinoColors.white;
+      : const Color(0xFFFFFFFF); // Pure white for best contrast
 
   static Color get textSecondary => isLightMode 
       ? CupertinoColors.secondaryLabel 
-      : CupertinoColors.systemGrey2;
+      : const Color(0xFF8E8E93); // Subtle gray for secondary text
 
   static Color get divider => isLightMode 
       ? CupertinoColors.systemGrey4 
-      : CupertinoColors.systemGrey6;
+      : const Color(0xFF38383A); // Subtle divider for dark mode
 
   static Color get accent => isLightMode 
       ? CupertinoColors.activeBlue 

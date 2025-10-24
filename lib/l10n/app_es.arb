@@ -262,5 +262,7 @@
   "recentlyUploaded": "Recientemente subido",
   "cannotLogFutureStreak": "No se pueden registrar fechas futuras",
   "cannotLogFutureStreakDescription": "Solo puedes registrar rachas para hoy y fechas pasadas. ¡Las fechas futuras se desbloquearán cuando lleguen!",
+  "dayStreak": "Día {count} Racha",
+  "keepGoing": "¡Sigue así!",
   "ok": "Aceptar"
 }

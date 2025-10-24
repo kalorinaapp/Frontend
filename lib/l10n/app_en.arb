@@ -305,5 +305,14 @@
   "recentlyUploaded": "Recently Uploaded",
   "cannotLogFutureStreak": "Can't Log Future Dates",
   "cannotLogFutureStreakDescription": "You can only log streaks for today and past dates. Future dates will unlock as they arrive!",
+  "dayStreak": "Day {count} Streak",
+  "@dayStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "keepGoing": "Keep going!",
   "ok": "OK"
 }

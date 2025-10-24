@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
@@ -12,14 +14,44 @@ import '../authentication/user.controller.dart' show UserController;
 import '../constants/app_constants.dart' show AppConstants;
 import 'desired_weight_update_screen.dart' show DesiredWeightUpdateScreen;
 import '../services/progress_service.dart';
+import '../services/streak_service.dart';
 import '../utils/user.prefs.dart' show UserPrefs;
 import '../l10n/app_localizations.dart';
+import 'log_streak_screen.dart';
 
 class ProgressScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
   final HealthProvider healthProvider;
+  final VoidCallback? onWeightLogged;
 
-  const ProgressScreen({super.key, required this.themeProvider, required this.healthProvider});
+  const ProgressScreen({
+    super.key, 
+    required this.themeProvider, 
+    required this.healthProvider,
+    this.onWeightLogged,
+  });
+
+  // Helper method to check if weigh-in is due today
+  Future<bool> _isWeighInDueToday() async {
+    final DateTime? lastWeighIn = await UserPrefs.getLastWeighInDate();
+    if (lastWeighIn == null) return true; // If no previous weigh-in, suggest weighing in
+    
+    final DateTime now = DateTime.now();
+    final int daysSince = now.difference(lastWeighIn).inDays;
+    
+    // Dynamic cadence based on user's weigh-in pattern
+    int suggestedCadence;
+    if (daysSince <= 3) {
+      suggestedCadence = 3; // Frequent weighers
+    } else if (daysSince <= 7) {
+      suggestedCadence = 7; // Regular weighers
+    } else {
+      suggestedCadence = 14; // Less frequent weighers
+    }
+    
+    final int remaining = suggestedCadence - daysSince;
+    return remaining <= 0; // Due today or overdue
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,46 +85,69 @@ class ProgressScreen extends StatelessWidget {
                 const SizedBox(height: 30),
                 _WeightOverviewCard(),
                 const SizedBox(height: 12),
-                 Transform.scale(scaleX: 1.5, child: Divider(color: Colors.black.withOpacity(0.3))),
+                 Transform.scale(scaleX: 1.5, child: Divider(color: ThemeHelper.divider)),
                  const SizedBox(height: 12),
-                Obx(() {
-                  dynamic w = userController.userData['weight'];
-                  // Fallbacks if API nests data differently
-                  w ??= (userController.userData['data'] is Map) ? userController.userData['data']['weight'] : null;
-                  w ??= (userController.userData['user'] is Map) ? userController.userData['user']['weight'] : null;
-                  // Last resort fallback if stored in constants
-                  w ??= AppConstants.userId.isNotEmpty ? null : null;
-                  final String weightStr = (w == null || (w is String && w.isEmpty)) ? '-' : w.toString();
-                  return _WeightTile(
-                    title: l10n.myWeight,
-                    value: '$weightStr kg',
-                    trailingLabel: l10n.logWeight,
-                    leadingIcon: 'assets/icons/export.png',
-                    isUpdateTarget: false,
-                  );
-                }),
+                FutureBuilder<bool>(
+                  future: _isWeighInDueToday(),
+                  builder: (context, snapshot) {
+                    return Obx(() {
+                      dynamic w = userController.userData['weight'];
+                      // Fallbacks if API nests data differently
+                      w ??= (userController.userData['data'] is Map) ? userController.userData['data']['weight'] : null;
+                      w ??= (userController.userData['user'] is Map) ? userController.userData['user']['weight'] : null;
+                      // Last resort fallback if stored in constants
+                      w ??= AppConstants.userId.isNotEmpty ? null : null;
+                      final String weightStr = (w == null || (w is String && w.isEmpty)) ? '-' : w.toString();
+                      return _WeightTile(
+                        title: l10n.myWeight,
+                        value: '$weightStr kg',
+                        trailingLabel: l10n.logWeight,
+                        leadingIcon: 'assets/icons/export.png',
+                        isUpdateTarget: false,
+                        isWeighInDueToday: snapshot.data ?? false,
+                        onWeightLogged: onWeightLogged,
+                      );
+                    });
+                  },
+                ),
                 const SizedBox(height: 10),
-                Obx(() {
-                  dynamic tw = userController.userData['targetWeight'];
-                  // Fallbacks if API nests data differently
-                  tw ??= (userController.userData['data'] is Map) ? userController.userData['data']['targetWeight'] : null;
-                  tw ??= (userController.userData['user'] is Map) ? userController.userData['user']['targetWeight'] : null;
-                  final String targetStr = (tw == null || (tw is String && tw.isEmpty)) ? '-' : tw.toString();
-                  return _WeightTile(
-                    title: l10n.targetWeight,
-                    value: '$targetStr kg',
-                    trailingLabel: l10n.update,
-                    leadingIcon: 'assets/icons/trophy.png',
-                    isUpdateTarget: true,
-                  );
-                }),
+                FutureBuilder<bool>(
+                  future: _isWeighInDueToday(),
+                  builder: (context, snapshot) {
+                    return Obx(() {
+                      dynamic tw = userController.userData['targetWeight'];
+                      // Fallbacks if API nests data differently
+                      tw ??= (userController.userData['data'] is Map) ? userController.userData['data']['targetWeight'] : null;
+                      tw ??= (userController.userData['user'] is Map) ? userController.userData['user']['targetWeight'] : null;
+                      final String targetStr = (tw == null || (tw is String && tw.isEmpty)) ? '-' : tw.toString();
+                      return _WeightTile(
+                        title: l10n.targetWeight,
+                        value: '$targetStr kg',
+                        trailingLabel: l10n.update,
+                        leadingIcon: 'assets/icons/trophy.png',
+                        isUpdateTarget: true,
+                        isWeighInDueToday: snapshot.data ?? false,
+                        onWeightLogged: onWeightLogged,
+                      );
+                    });
+                  },
+                ),
                 const SizedBox(height: 30),
                
                 _GoalProgressCard(),
                 const SizedBox(height: 12),
                 _WeeklySummaryStrip(),
                 const SizedBox(height: 12),
-                _ProgressPhotosCard(),
+                FutureBuilder<bool>(
+                  future: _isWeighInDueToday(),
+                  builder: (context, snapshot) {
+                    return _ProgressPhotosCard(
+                      isWeighInDueToday: snapshot.data ?? false,
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                _StreakCard(),
                 const SizedBox(height: 12),
                 _StepsCard(healthProvider: healthProvider),
                 const SizedBox(height: 12),
@@ -114,6 +169,7 @@ class _HeaderBadge extends StatefulWidget {
 
 class _HeaderBadgeState extends State<_HeaderBadge> {
   int _daysRemaining = 7;
+  bool _isDueToday = false;
 
   @override
   void initState() {
@@ -123,6 +179,7 @@ class _HeaderBadgeState extends State<_HeaderBadge> {
 
   // Method to refresh the badge (can be called when user logs new weight)
   void refreshBadge() {
+    _isDueToday = false; // Reset flag before reloading
     _load();
   }
 
@@ -159,15 +216,27 @@ class _HeaderBadgeState extends State<_HeaderBadge> {
     final int remaining = suggestedCadence - daysSince;
     if (!mounted) return;
     setState(() {
-      _daysRemaining = remaining <= 0 ? 0 : remaining;
+      if (remaining <= 0) {
+        _daysRemaining = 0; // Due today or overdue
+        _isDueToday = (remaining == 0); // Exactly due today
+      } else {
+        _daysRemaining = remaining;
+        _isDueToday = false;
+      }
     });
   }
 
   String _label() {
     final l10n = AppLocalizations.of(context)!;
-    if (_daysRemaining <= 0) return l10n.weighInDue;
-    return l10n.nextWeighIn(_daysRemaining);
+    if (_daysRemaining <= 0) {
+      if (_isDueToday) {
+        return "Next Weigh-In: Today";
+      } else {
+        return l10n.weighInDue;
+      }
     }
+    return l10n.nextWeighIn(_daysRemaining);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -240,10 +309,10 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
         width: MediaQuery.of(context).size.width * 0.4,
         padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
         decoration: BoxDecoration(
-          color: Color(0xFFFBFAFB),
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(13),
-          boxShadow: const [
-            BoxShadow(color: Color(0x3F000000), blurRadius: 1, spreadRadius: 1),
+          boxShadow: [
+            BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 1, spreadRadius: 1),
           ],
         ),
         child: Column(
@@ -267,14 +336,14 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
                   _KgValue(big: weightStr, small: 'kg'),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: const Icon(CupertinoIcons.arrow_right, size: 28, color: Colors.black),
+                    child: Icon(CupertinoIcons.arrow_right, size: 28, color: ThemeHelper.textPrimary),
                   ),
                   _KgValue(big: targetStr, small: 'kg'),
                 ],
               );
             }),
             const SizedBox(height: 12),
-            Divider(color: Colors.black.withOpacity(0.1), height: 1),
+            Divider(color: ThemeHelper.divider, height: 1),
             const SizedBox(height: 12),
             Obx(() {
               final UserController uc = Get.find<UserController>();
@@ -296,7 +365,7 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
               }
               return Text(
                 progressText,
-                style: ThemeHelper.textStyleWithColor(ThemeHelper.body1, Colors.black),
+                style: ThemeHelper.textStyleWithColor(ThemeHelper.body1, ThemeHelper.textPrimary),
               );
             }),
             const SizedBox(height: 4),
@@ -305,7 +374,7 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
             else
               Text(
                 _deltaText(),
-                style: ThemeHelper.textStyleWithColor(ThemeHelper.footnote, Colors.black.withOpacity(0.5)),
+                style: ThemeHelper.textStyleWithColor(ThemeHelper.footnote, ThemeHelper.textSecondary),
               ),
             
           ],
@@ -336,11 +405,11 @@ class _KgValue extends StatelessWidget {
         children: [
           TextSpan(
             text: big,
-            style: ThemeHelper.textStyleWithColor(ThemeHelper.title1, Colors.black),
+            style: ThemeHelper.textStyleWithColor(ThemeHelper.title1, ThemeHelper.textPrimary),
           ),
           TextSpan(
             text: small,
-            style: ThemeHelper.textStyleWithColor(ThemeHelper.title3, Colors.black,),
+            style: ThemeHelper.textStyleWithColor(ThemeHelper.title3, ThemeHelper.textPrimary),
           ),
         ],
       ),
@@ -348,50 +417,108 @@ class _KgValue extends StatelessWidget {
   }
 }
 
-class _WeightTile extends StatelessWidget {
+class _WeightTile extends StatefulWidget {
   final String title;
   final String value;
   final String trailingLabel;
   final String leadingIcon;
   final bool isUpdateTarget;
+  final bool isWeighInDueToday;
+  final VoidCallback? onWeightLogged;
   const _WeightTile({
     required this.title,
     required this.value,
     required this.trailingLabel,
     required this.leadingIcon,
     this.isUpdateTarget = false,
+    this.isWeighInDueToday = false,
+    this.onWeightLogged,
   });
+
+  @override
+  State<_WeightTile> createState() => _WeightTileState();
+}
+
+class _WeightTileState extends State<_WeightTile> with TickerProviderStateMixin {
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _shakeAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween<double>(begin: 0.0, end: -2.0), weight: 30),
+      TweenSequenceItem(tween: Tween<double>(begin: -2.0, end: 2.0), weight: 20),
+      TweenSequenceItem(tween: Tween<double>(begin: 2.0, end: -1.0), weight: 20),
+      TweenSequenceItem(tween: Tween<double>(begin: -1.0, end: 0.0), weight: 30),
+    ]).animate(CurvedAnimation(
+      parent: _shakeController,
+      curve: Curves.easeOut,
+    ));
+    
+    // Start the periodic shake animation if weigh-in is due today
+    if (!widget.isUpdateTarget && widget.isWeighInDueToday) {
+      _startPeriodicShake();
+    }
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    super.dispose();
+  }
+
+  void _startPeriodicShake() {
+    Future.delayed(const Duration(seconds: 8), () {
+      if (mounted && !widget.isUpdateTarget && widget.isWeighInDueToday) {
+        _shakeController.forward().then((_) {
+          _shakeController.reverse().then((_) {
+            // Schedule next shake with random interval between 8-10 seconds
+            final randomDelay = 8 + (DateTime.now().millisecondsSinceEpoch % 3);
+            Future.delayed(Duration(seconds: randomDelay), () {
+              _startPeriodicShake();
+            });
+          });
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x3F000000), blurRadius: 5, spreadRadius: 1),
+        boxShadow: [
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 5, spreadRadius: 1),
         ],
       ),
       child: Row(
         children: [
-          Image.asset(leadingIcon, width: 44, height: 44),
+          Image.asset(widget.leadingIcon, width: 44, height: 44),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  widget.title,
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.5),
+                    color: ThemeHelper.textSecondary,
                     fontWeight: FontWeight.w500,
                     fontSize: 10,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  value,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  widget.value,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: ThemeHelper.textPrimary),
                 ),
               ],
             ),
@@ -400,24 +527,76 @@ class _WeightTile extends StatelessWidget {
             onTap: () async {
               await Navigator.of(context).push(
                 CupertinoPageRoute(
-                  builder: (ctx) => DesiredWeightUpdateScreen(isUpdatingTarget: isUpdateTarget),
+                  builder: (ctx) => DesiredWeightUpdateScreen(isUpdatingTarget: widget.isUpdateTarget),
                 ),
               );
+              // Call the callback to refresh weigh-in status after returning
+              if (widget.onWeightLogged != null) {
+                widget.onWeightLogged!();
+              }
             },
-            child: Row(
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.update,
-                  style: TextStyle(color: Color(0x7F1E1822), fontSize: 10, fontWeight: FontWeight.w500),
-                ),
-                SizedBox(width: 6),
-                Icon(CupertinoIcons.pencil, size: 14, color: Color(0x7F1E1822)),
-              ],
-            ),
+            child: _buildUpdateButton(context, widget.isUpdateTarget),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildUpdateButton(BuildContext context, bool isUpdateTarget) {
+    // Check if this is the weight row (not target weight) and if weigh-in is due today
+    if (!isUpdateTarget && widget.isWeighInDueToday) {
+      // Show custom orange button with shake animation when weigh-in is due today
+      return AnimatedBuilder(
+        animation: _shakeAnimation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(_shakeAnimation.value, 0),
+            child: Container(
+              width: 60,
+              height: 30,
+              decoration: ShapeDecoration(
+                color: const Color(0xFFFE9D15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                shadows: [
+                  BoxShadow(
+                    color: Color(0x33000000),
+                    blurRadius: 3,
+                    offset: Offset(0, 0),
+                    spreadRadius: 0,
+                  )
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  'UPDATE',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontFamily: 'Instrument Sans',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      // For target weight, show the original button
+      return Row(
+        children: [
+          Text(
+            AppLocalizations.of(context)!.update,
+            style: TextStyle(color: ThemeHelper.textSecondary, fontSize: 10, fontWeight: FontWeight.w500),
+          ),
+          SizedBox(width: 6),
+          Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textSecondary),
+        ],
+      );
+    }
   }
 }
 
@@ -463,20 +642,15 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
             return db.compareTo(da);
           });
           _lastWeight = (logs.first['weight'] as num?)?.toDouble();
-          print('lastWeight: $_lastWeight');
           if (logs.length > 1) {
             _prevWeight = (logs[1]['weight'] as num?)?.toDouble();
-            print('prevWeight: $_prevWeight');
           }
-
-          // Build chart series (oldest -> newest)
+          
           final weights = logs.reversed
               .map((e) => (e['weight'] as num?)?.toDouble())
               .whereType<double>()
               .toList();
-          print('weights: $weights');
           _series = weights;
-          print('series: $_series');
         }
       }
     } finally {
@@ -518,10 +692,9 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
         .whereType<double>()
         .toList();
     if (weights.isEmpty) return const [];
-    final double minW = weights.reduce((a, b) => a < b ? a : b);
-    final double maxW = weights.reduce((a, b) => a > b ? a : b);
-    final double span = (maxW - minW).abs() < 0.001 ? 1.0 : (maxW - minW);
-    return weights.map((w) => (w - minW) / span).toList();
+    
+    // Return raw weight values, not normalized - the chart painter will handle normalization
+    return weights;
   }
 
   @override
@@ -531,7 +704,7 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppLocalizations.of(context)!.weightGoalProgress, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          Text(AppLocalizations.of(context)!.weightGoalProgress, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: ThemeHelper.textPrimary)),
           const SizedBox(height: 16),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -566,14 +739,13 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
             double? delta;
             if (_lastWeight != null && _prevWeight != null) {
               delta = _lastWeight! - _prevWeight!;
-              print('delta: $delta');
             }
             final String subtitle = (delta != null && delta != 0)
                 ? '${delta > 0 ? '+' : ''}${delta.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}'
                 : '- ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
             return Text(
               subtitle,
-              style: ThemeHelper.textStyleWithColor(ThemeHelper.footnote, Colors.black.withOpacity(0.5)),
+              style: ThemeHelper.textStyleWithColor(ThemeHelper.footnote, ThemeHelper.textSecondary),
             );
           }),
         ],
@@ -588,14 +760,14 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? Colors.black : Colors.white,
+          color: selected ? ThemeHelper.textPrimary : ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(6),
-          boxShadow: const [BoxShadow(color: Color(0x3F000000), blurRadius: 5, spreadRadius: 1)],
+          boxShadow: [BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 5, spreadRadius: 1)],
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : Colors.black,
+            color: selected ? ThemeHelper.background : ThemeHelper.textPrimary,
             fontWeight: FontWeight.w600,
             fontSize: 10,
           ),
@@ -639,202 +811,222 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
   }
 }
 
-class _ChartPlaceholder extends StatelessWidget {
+class _ChartPlaceholder extends StatefulWidget {
   final String leftLabel;
   final String rightLabel;
   final List<double> dataPoints; // weights raw
   const _ChartPlaceholder({required this.leftLabel, required this.rightLabel, this.dataPoints = const []});
+  
+  @override
+  State<_ChartPlaceholder> createState() => _ChartPlaceholderState();
+}
+
+class _ChartPlaceholderState extends State<_ChartPlaceholder> {
+  
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 280,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x3F000000), blurRadius: 5, spreadRadius: 1),
+        boxShadow: [
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 5, spreadRadius: 1),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final double totalHeight = constraints.maxHeight;
-            const double xAxisReserved = 28; // bottom area for dates
-            final double chartHeight = totalHeight - xAxisReserved;
+        padding: const EdgeInsets.all(12.0),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width - 48,
+          height: 232,
+          child: Stack(
+            children: [
+              // Fixed Y-axis labels
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final double totalHeight = constraints.maxHeight;
+                  const double xAxisReserved = 28;
+                  final double chartHeight = totalHeight - xAxisReserved;
 
-            double yForFraction(double f) => f * chartHeight; // 0..1 -> y within chart
+                  double yForFraction(double f) => f * chartHeight;
 
-            Widget lineRow(String label, double fraction) {
-              return Positioned(
-                left: 0,
-                right: 0,
-                top: yForFraction(fraction),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 28,
-                      child: Text(label,
-                          style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.8))),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
+                  Widget lineRow(String label, double fraction) {
+                    return Positioned(
+                      left: 0,
+                      top: yForFraction(fraction),
                       child: SizedBox(
-                        height: 1,
-                        child: CustomPaint(
-                          painter: _DashedLinePainter(color: Colors.black.withOpacity(0.2), dashWidth: 4, dashGap: 3),
-                        ),
+                        width: 24,
+                        child: Text(label,
+                            style: TextStyle(fontSize: 12, color: ThemeHelper.textPrimary)),
+                      ),
+                    );
+                  }
+
+                  return Stack(
+                    children: [
+                      lineRow('65', 0.10),
+                      lineRow('70', 0.40),
+                      lineRow('75', 0.70),
+                      lineRow('80', 0.90),
+                    ],
+                  );
+                },
+              ),
+              // Fixed X-axis labels - show date range
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(widget.leftLabel, style: TextStyle(fontSize: 11, color: ThemeHelper.textPrimary)),
+                      Text(widget.rightLabel, style: TextStyle(fontSize: 11, color: ThemeHelper.textPrimary)),
+                    ],
+                  ),
+                ),
+              ),
+              // Simple chart area without gesture detection
+              Positioned(
+                left: 24, // Start after Y-axis labels (reduced from 34)
+                right: 0,
+                top: 0,
+                bottom: 28, // Leave space for X-axis
+                child: Stack(
+                  children: [
+                    // Chart line
+                    CustomPaint(
+                      size: Size.infinite,
+                      painter: _SimpleChartPainter(
+                        data: widget.dataPoints,
                       ),
                     ),
+                    // Weight bubble image at the last point
+                    if (widget.dataPoints.isNotEmpty)
+                      _buildWeightBubble(),
                   ],
                 ),
-              );
-            }
-
-            return CustomPaint(
-              size: Size(constraints.maxWidth, constraints.maxHeight),
-              painter: _LineAreaPainter(
-                data: dataPoints,
-                bottomReserved: xAxisReserved,
-                leftReserved: 34, // 28 for label + 6 spacing
               ),
-              child: Stack(
-                children: [
-                  // dashed lines with labels (low at top, high at bottom)
-                  lineRow('65', 0.10),
-                  lineRow('70', 0.40),
-                  lineRow('75', 0.70),
-                  lineRow('80', 0.90),
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(leftLabel, style: const TextStyle(fontSize: 11)),
-                          Text(rightLabel, style: const TextStyle(fontSize: 11)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
+            ],
+          ),
         ),
+      ),
+    );
+  }
+  
+  Widget _buildWeightBubble() {
+    if (widget.dataPoints.isEmpty) return const SizedBox.shrink();
+    
+    // Simple positioning - just place at the end of the chart area
+    return Positioned(
+      right: 20, // Position from the right edge
+      top: 20,   // Position from the top
+      child: Stack(
+        children: [
+          // Weight bubble image
+          Image.asset(
+            'assets/icons/weight_label.png',
+            width: 50,
+            height: 24,
+            fit: BoxFit.contain,
+            color: ThemeHelper.isLightMode ? Colors.black : Colors.white,
+          ),
+          // Weight text overlay
+          Positioned(
+            left: 15,
+            top: 4,
+            child: Text(
+              '${widget.dataPoints.last.toStringAsFixed(0)} kg',
+              style: TextStyle(
+                color: ThemeHelper.isLightMode ? Colors.white : Colors.black,
+                fontSize: 8,
+                fontFamily: 'Instrument Sans',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _DashedLinePainter extends CustomPainter {
-  final Color color;
-  final double dashWidth;
-  final double dashGap;
-  const _DashedLinePainter({required this.color, this.dashWidth = 4, this.dashGap = 3});
+// Removed _DashedLinePainter class since we now draw dotted lines directly in _LineAreaPainter
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-    double x = 0;
-    final double y = size.height / 2;
-    while (x < size.width) {
-      final double x2 = (x + dashWidth).clamp(0, size.width);
-      canvas.drawLine(Offset(x, y), Offset(x2, y), paint);
-      x += dashWidth + dashGap;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.dashWidth != dashWidth || oldDelegate.dashGap != dashGap;
-  }
-}
-
-class _LineAreaPainter extends CustomPainter {
-  final List<double> data; // 0..1
-  final double bottomReserved;
-  final double leftReserved;
-  _LineAreaPainter({required this.data, required this.bottomReserved, this.leftReserved = 0});
+class _SimpleChartPainter extends CustomPainter {
+  final List<double> data;
+  
+  _SimpleChartPainter({
+    required this.data,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (data.isEmpty) return;
-    final double chartHeight = size.height - bottomReserved;
+    final double chartHeight = size.height;
     final double width = size.width;
     final int n = data.length;
-    if (n < 2) return;
+    if (n < 1) return;
 
-    // Normalize raw weights using provided yMin/yMax, else auto-fit to data range
+    // Normalize raw weights
     double minW = data.reduce((a, b) => a < b ? a : b);
     double maxW = data.reduce((a, b) => a > b ? a : b);
     if ((maxW - minW).abs() < 0.001) {
       maxW = minW + 1.0;
     }
-    // Reverse y-axis: higher weights closer to bottom (value 1.0), lower to top (0.0)
+    
     List<double> norm = data
         .map((w) => ((w - minW) / (maxW - minW)).clamp(0.0, 1.0))
         .map((v) => 1.0 - v)
         .toList();
 
     // Build points
-    final double dx = (width - leftReserved) / (n - 1);
+    final double dx = width / (n - 1);
     final List<Offset> pts = List.generate(n, (i) {
-      final double x = leftReserved + i * dx;
-      final double y = (1.0 - norm[i]) * chartHeight; // norm==1 => top, but we reversed above
+      final double x = i * dx;
+      final double y = (1.0 - norm[i]) * chartHeight;
       return Offset(x, y);
     });
 
-    // Area path (under line)
-    final Path area = Path()
-      ..moveTo(pts.first.dx, chartHeight)
-      ..lineTo(pts.first.dx, pts.first.dy);
-    for (int i = 1; i < pts.length; i++) {
-      area.lineTo(pts[i].dx, pts[i].dy);
+    // Draw dotted curved line
+    if (n > 1) {
+      final Paint dottedLinePaint = Paint()
+        ..color = ThemeHelper.textPrimary.withOpacity(0.3)
+        ..strokeWidth = 1
+        ..style = PaintingStyle.stroke;
+      
+      const double dashWidth = 4;
+      const double dashGap = 3;
+      
+      // Draw dotted line manually
+      for (int i = 0; i < pts.length - 1; i++) {
+        final Offset start = pts[i];
+        final Offset end = pts[i + 1];
+        final double distance = (end - start).distance;
+        final int segments = (distance / (dashWidth + dashGap)).ceil();
+        
+        for (int j = 0; j < segments; j++) {
+          final double t1 = j * (dashWidth + dashGap) / distance;
+          final double t2 = (j * (dashWidth + dashGap) + dashWidth) / distance;
+          if (t1 < 1.0) {
+            final Offset p1 = Offset.lerp(start, end, t1.clamp(0.0, 1.0))!;
+            final Offset p2 = Offset.lerp(start, end, t2.clamp(0.0, 1.0))!;
+            canvas.drawLine(p1, p2, dottedLinePaint);
+          }
+        }
+      }
     }
-    area.lineTo(pts.last.dx, chartHeight);
-    area.close();
 
-    final Rect shaderRect = Rect.fromLTWH(leftReserved, 0, width - leftReserved, chartHeight);
-    final Paint areaPaint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.black,
-          Color(0xFF777777),
-          Colors.white,
-        ],
-        stops: [0.0, 0.5, 1.0],
-      ).createShader(shaderRect)
-      ..style = PaintingStyle.fill
-      ..isAntiAlias = true
-      ..colorFilter = const ColorFilter.mode(Colors.black12, BlendMode.srcATop);
-    canvas.drawPath(area, areaPaint);
-
-    // Line path
-    final Path line = Path()..moveTo(pts.first.dx, pts.first.dy);
-    for (int i = 1; i < pts.length; i++) {
-      line.lineTo(pts[i].dx, pts[i].dy);
-    }
-    final Paint linePaint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke
-      ..isAntiAlias = true;
-    canvas.drawPath(line, linePaint);
+    // Note: Bubble will be drawn using Image widget in the Stack, not in CustomPaint
   }
 
   @override
-  bool shouldRepaint(covariant _LineAreaPainter oldDelegate) {
-    return oldDelegate.data != data || oldDelegate.bottomReserved != bottomReserved;
+  bool shouldRepaint(covariant _SimpleChartPainter oldDelegate) {
+    return oldDelegate.data != data;
   }
 }
+
+// Removed _LineAreaPainter class since we now use _InteractiveChartPainter
 
 class _WeeklySummaryStrip extends StatefulWidget {
   @override
@@ -921,7 +1113,7 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
           final l10n = AppLocalizations.of(context)!;
           setState(() {
             _headline = lost ? '${l10n.greatJob} You lost ' : '${l10n.greatJob} ${l10n.youGained} ';
-            _headlineDeltaText = deltaText + ' this week';
+            _headlineDeltaText = '$deltaText this week';
             _avgLabel = lost ? l10n.avgDailyLost : l10n.avgDailyGained;
             _avgText = avgText;
             _toGoText = '${toGo.abs().toStringAsFixed(1)} ${l10n.kgToGo}';
@@ -938,10 +1130,10 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x3F000000), blurRadius: 5, spreadRadius: 1),
+        boxShadow: [
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 5, spreadRadius: 1),
         ],
       ),
       child: Column(
@@ -952,14 +1144,14 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
                 ? const CupertinoActivityIndicator()
                 : Text.rich(
                     TextSpan(children: [
-                      TextSpan(text: _headline + ' ', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                      TextSpan(text: _headlineDeltaText, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                      TextSpan(text: '$_headline ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: ThemeHelper.textPrimary)),
+                      TextSpan(text: _headlineDeltaText, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: ThemeHelper.textPrimary)),
                     ]),
                     textAlign: TextAlign.center,
                   ),
           ),
           const SizedBox(height: 8),
-          Divider(color: Colors.black.withOpacity(0.1), height: 1),
+          Divider(color: ThemeHelper.divider, height: 1),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -967,12 +1159,12 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_avgLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(_avgLabel, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
                   const SizedBox(height: 2),
-                  Text(_avgText, style: const TextStyle(fontSize: 12)),
+                  Text(_avgText, style: TextStyle(fontSize: 12, color: ThemeHelper.textPrimary)),
                 ],
               ),
-              Container(width: 1, height: 28, color: Colors.black.withOpacity(0.1)),
+              Container(width: 1, height: 28, color: ThemeHelper.divider),
               Text(_toGoText, style: const TextStyle(color: Color(0xFFFE9D15), fontWeight: FontWeight.w600, fontSize: 20)),
             ],
           ),
@@ -983,13 +1175,66 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
 }
 
 class _ProgressPhotosCard extends StatefulWidget {
+  final bool isWeighInDueToday;
+  
+  const _ProgressPhotosCard({
+    this.isWeighInDueToday = false,
+  });
+  
   @override
   State<_ProgressPhotosCard> createState() => _ProgressPhotosCardState();
 }
 
-class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
+class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerProviderStateMixin {
   final ImagePicker _picker = ImagePicker();
   final List<XFile> _images = [];
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _shakeAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween<double>(begin: 0.0, end: -2.0), weight: 30),
+      TweenSequenceItem(tween: Tween<double>(begin: -2.0, end: 2.0), weight: 20),
+      TweenSequenceItem(tween: Tween<double>(begin: 2.0, end: -1.0), weight: 20),
+      TweenSequenceItem(tween: Tween<double>(begin: -1.0, end: 0.0), weight: 30),
+    ]).animate(CurvedAnimation(
+      parent: _shakeController,
+      curve: Curves.easeOut,
+    ));
+    
+    // Start the periodic shake animation if weigh-in is due today
+    if (widget.isWeighInDueToday) {
+      _startPeriodicShake();
+    }
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    super.dispose();
+  }
+
+  void _startPeriodicShake() {
+    Future.delayed(const Duration(seconds: 8), () {
+      if (mounted && widget.isWeighInDueToday) {
+        _shakeController.forward().then((_) {
+          _shakeController.reverse().then((_) {
+            // Schedule next shake with random interval between 8-10 seconds
+            final randomDelay = 8 + (DateTime.now().millisecondsSinceEpoch % 3);
+            Future.delayed(Duration(seconds: randomDelay), () {
+              _startPeriodicShake();
+            });
+          });
+        });
+      }
+    });
+  }
 
   String _currentWeightLabel(BuildContext context) {
     try {
@@ -1004,6 +1249,166 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
     } catch (_) {
       return '';
     }
+  }
+
+  Widget _buildAnimatedUploadButton(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.75,
+      height: 99,
+      decoration: BoxDecoration(
+        color: ThemeHelper.cardBackground,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 3)],
+      ),
+      child: Center(
+        child: AnimatedBuilder(
+          animation: _shakeAnimation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(_shakeAnimation.value, 0),
+              child: Container(
+                width: 107,
+                height: 30,
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFFE9D15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  shadows: [
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      blurRadius: 3,
+                      offset: Offset(0, 0),
+                      spreadRadius: 0,
+                    )
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 8,
+                      top: 2,
+                      child: Text(
+                        '+',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontFamily: 'Instrument Sans',
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Text(
+                          AppLocalizations.of(context)!.uploadPhoto,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontFamily: 'Instrument Sans',
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSmallAnimatedUploadButton(BuildContext context) {
+    return Container(
+      width: 88,
+      height: 120,
+      decoration: BoxDecoration(
+        color: ThemeHelper.cardBackground,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: ThemeHelper.divider),
+        boxShadow: [BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 3)],
+      ),
+      child: Center(
+        child: AnimatedBuilder(
+          animation: _shakeAnimation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(_shakeAnimation.value, 0),
+              child: SizedBox(
+                width: 56,
+                height: 55,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: Container(
+                        width: 56,
+                        height: 50,
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFFE9D15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Color(0x33000000),
+                              blurRadius: 3,
+                              offset: Offset(0, 0),
+                              spreadRadius: 0,
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      top: 12,
+                      child: SizedBox(
+                        width: 56,
+                        child: Text(
+                          'Upload\nPhoto',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontFamily: 'Instrument Sans',
+                            fontWeight: FontWeight.w700,
+                            height: 1.1,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      top: 24,
+                      child: SizedBox(
+                        width: 56,
+                        child: Text(
+                          '+',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontFamily: 'Instrument Sans',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _showPickerSheet(BuildContext context) async {
@@ -1027,7 +1432,7 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
                 ));
               }
             },
-            child: Text(AppLocalizations.of(context)!.camera, style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w400)),
+            child: Text(AppLocalizations.of(context)!.camera, style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w400)),
           ),
           CupertinoActionSheetAction(
             onPressed: () async {
@@ -1043,12 +1448,12 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
                 ));
               }
             },
-            child: Text(AppLocalizations.of(context)!.gallery, style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w400)),
+            child: Text(AppLocalizations.of(context)!.gallery, style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w400)),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.of(ctx).pop(),
-          child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
+          child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
         ),
       ),
     );
@@ -1059,10 +1464,10 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x3F000000), blurRadius: 5, spreadRadius: 1),
+        boxShadow: [
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 5, spreadRadius: 1),
         ],
       ),
       child: Column(
@@ -1073,17 +1478,17 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(AppLocalizations.of(context)!.progressPhotos, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                Text(AppLocalizations.of(context)!.progressPhotos, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
                 if (_images.isNotEmpty)
                 Container(
                   width: 102,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: ThemeHelper.cardBackground,
                     borderRadius: BorderRadius.circular(13),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x3F000000),
+                        color: ThemeHelper.textPrimary.withOpacity(0.1),
                         blurRadius: 5,
                         offset: Offset(0, 0),
                         spreadRadius: 1,
@@ -1098,7 +1503,7 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
                         AppLocalizations.of(context)!.seeProgress,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.black.withOpacity(0.60),
+                          color: ThemeHelper.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -1114,25 +1519,27 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
             Center(
               child: GestureDetector(
                 onTap: () => _showPickerSheet(context),
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.75,
-                  height: 99,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8F7FC),
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 3)],
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(AppLocalizations.of(context)!.uploadPhoto, style: TextStyle(fontSize: 12, color: Color(0xB21E1822))),
-                        SizedBox(height: 4),
-                        Text('+', style: TextStyle(fontSize: 22, color: Color(0xB21E1822))),
-                      ],
-                    ),
-                  ),
-                ),
+                child:widget.isWeighInDueToday
+                    ? _buildAnimatedUploadButton(context)
+                    : Container(
+                        width: MediaQuery.of(context).size.width * 0.75,
+                        height: 99,
+                        decoration: BoxDecoration(
+                          color: ThemeHelper.cardBackground,
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 3)],
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(AppLocalizations.of(context)!.uploadPhoto, style: TextStyle(fontSize: 12, color: ThemeHelper.textSecondary)),
+                              SizedBox(height: 4),
+                              Text('+', style: TextStyle(fontSize: 22, color: ThemeHelper.textSecondary)),
+                            ],
+                          ),
+                        ),
+                      ),
               ),
             )
           else
@@ -1144,24 +1551,26 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> {
                 children: [
                    GestureDetector(
                     onTap: () => _showPickerSheet(context),
-                    child: Container(
-                      width: 88,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8F7FC),
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: const Color(0xFFE8E8E8)),
-                        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 3)],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(AppLocalizations.of(context)!.upload, style: TextStyle(fontSize: 12, color: Color(0xB21E1822))),
-                          SizedBox(height: 4),
-                          Icon(CupertinoIcons.add, size: 18, color: Color(0xB21E1822)),
-                        ],
-                      ),
-                    ),
+                    child: widget.isWeighInDueToday
+                        ? _buildSmallAnimatedUploadButton(context)
+                        : Container(
+                            width: 88,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: ThemeHelper.cardBackground,
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(color: ThemeHelper.divider),
+                              boxShadow: [BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 3)],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(AppLocalizations.of(context)!.upload, style: TextStyle(fontSize: 12, color: ThemeHelper.textSecondary)),
+                                SizedBox(height: 4),
+                                Icon(CupertinoIcons.add, size: 18, color: ThemeHelper.textSecondary),
+                              ],
+                            ),
+                          ),
                   ),
                   // Existing images with delete button
                   ..._images.asMap().entries.map((entry) {
@@ -1207,21 +1616,21 @@ class _StepsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x3F000000), blurRadius: 5, spreadRadius: 1),
+        boxShadow: [
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 5, spreadRadius: 1),
         ],
       ),
       child: Row(
         children: [
-          Image.asset('assets/icons/steps.png', width: 30, height: 30),
+          Image.asset('assets/icons/steps.png', width: 30, height: 30, color: ThemeHelper.textPrimary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(AppLocalizations.of(context)!.stepsToday, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                Text(AppLocalizations.of(context)!.stepsToday, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
                 const SizedBox(height: 4),
                 if (healthProvider.isLoading)
                   const Text('Loading...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600))
@@ -1252,16 +1661,16 @@ class _StepsCard extends StatelessWidget {
                     text: TextSpan(children: [
                       TextSpan(
                         text: '${healthProvider.stepsToday}',
-                        style: const TextStyle(
-                          color: Color(0xFF1E1822),
+                        style: TextStyle(
+                          color: ThemeHelper.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       TextSpan(
                         text: '/${healthProvider.stepsGoal}',
-                        style: const TextStyle(
-                          color: Color(0x7F1E1822),
+                        style: TextStyle(
+                          color: ThemeHelper.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
@@ -1280,9 +1689,9 @@ class _StepsCard extends StatelessWidget {
           if (healthProvider.hasPermissions && !healthProvider.isLoading)
             GestureDetector(
               onTap: () => healthProvider.refreshSteps(),
-              child: const Icon(
+              child: Icon(
                 CupertinoIcons.refresh,
-                color: Color(0x7F1E1822),
+                color: ThemeHelper.textSecondary,
                 size: 16,
               ),
             ),
@@ -1380,10 +1789,10 @@ class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x3F000000), blurRadius: 5, spreadRadius: 1),
+        boxShadow: [
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 5, spreadRadius: 1),
         ],
       ),
       child: Row(
@@ -1392,7 +1801,7 @@ class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(AppLocalizations.of(context)!.addBurnedCaloriesToDailyGoal, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                Text(AppLocalizations.of(context)!.addBurnedCaloriesToDailyGoal, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: ThemeHelper.textPrimary)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -1413,7 +1822,7 @@ class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
             ),
           ),
           CupertinoSwitch(
-            activeColor: CupertinoColors.black,
+            activeColor: ThemeHelper.textPrimary,
             value: _includeStepCaloriesInGoal,
             onChanged: (_) => _toggleIncludeStepCalories(),
           ),
@@ -1433,25 +1842,217 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(6),
-        boxShadow: const [
-          BoxShadow(color: Color(0x3F000000), blurRadius: 5, spreadRadius: 1),
+        boxShadow: [
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 5, spreadRadius: 1),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset(icon, width: 14, height: 14),
+          Image.asset(icon, width: 14, height: 14, color: ThemeHelper.textPrimary),
           const SizedBox(width: 6),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: Colors.black.withOpacity(0.9))),
-              Text(subtitle, style: TextStyle(fontSize: 7, color: Colors.black.withOpacity(0.7))),
+              Text(title, style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
+              Text(subtitle, style: TextStyle(fontSize: 7, color: ThemeHelper.textSecondary)),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StreakCard extends StatefulWidget {
+  @override
+  State<_StreakCard> createState() => _StreakCardState();
+}
+
+class _StreakCardState extends State<_StreakCard> {
+  final StreakService _streakService = Get.put(StreakService());
+  int _currentStreak = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStreakData();
+  }
+
+  Future<void> _loadStreakData() async {
+    await _streakService.getStreakHistory();
+    if (mounted) {
+      setState(() {
+        _currentStreak = _streakService.getCurrentStreak();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      width: 335,
+      height: 195,
+      decoration: BoxDecoration(
+        color: ThemeHelper.cardBackground,
+        borderRadius: BorderRadius.circular(13),
+        boxShadow: [
+          BoxShadow(
+            color: ThemeHelper.textPrimary.withOpacity(0.1),
+            blurRadius: 5,
+            offset: Offset(0, 0),
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with flame icon and streak text
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/icons/flame.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 130,
+                      child: Text(
+                        l10n.dayStreak(_currentStreak),
+                        style: TextStyle(
+                          color: ThemeHelper.textPrimary,
+                          fontSize: 20,
+                          fontFamily: 'Instrument Sans',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 70,
+                      child: Text(
+                        l10n.keepGoing,
+                        style: TextStyle(
+                          color: ThemeHelper.textPrimary,
+                          fontSize: 12,
+                          fontFamily: 'Instrument Sans',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Inner gray container with navigation
+            Center(
+              child: GestureDetector(
+                onTap: () async {
+                  await Navigator.of(context).push(
+                    CupertinoPageRoute(
+                      builder: (context) => const LogStreakScreen(),
+                    ),
+                  );
+                  // Refresh streak data when returning from log streak screen
+                  _loadStreakData();
+                },
+                child: Container(
+                  width: 272,
+                  height: 99,
+                  decoration: BoxDecoration(
+                    color: ThemeHelper.cardBackground,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: ThemeHelper.textPrimary.withOpacity(0.1),
+                        blurRadius: 3,
+                        offset: Offset(0, 0),
+                        spreadRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 86,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: ThemeHelper.cardBackground,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: ThemeHelper.textPrimary.withOpacity(0.1),
+                            blurRadius: 3,
+                            offset: Offset(0, 0),
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 16,
+                            height: 16,
+                            decoration: const BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage('assets/icons/flame.png'),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 41,
+                            child: Text(
+                              l10n.logStreak,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: ThemeHelper.textSecondary,
+                                fontSize: 8,
+                                fontFamily: 'Instrument Sans',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          SizedBox(
+                            width: 6,
+                            height: 16,
+                            child: Text(
+                              '+',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: ThemeHelper.textSecondary,
+                                fontSize: 14,
+                                fontFamily: 'Instrument Sans',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

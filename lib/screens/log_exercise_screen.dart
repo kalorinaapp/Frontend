@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import '../providers/theme_provider.dart' show ThemeProvider;
 import '../services/exercise_service.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/theme_helper.dart';
 
 class LogExerciseScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -89,12 +90,12 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CupertinoColors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE8E8E8), width: 1.5),
+        border: Border.all(color: ThemeHelper.divider, width: 1.5),
         boxShadow: [
-          BoxShadow(color: CupertinoColors.black.withOpacity(0.08), blurRadius: 15, offset: const Offset(0,4)),
-          BoxShadow(color: CupertinoColors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0,2)),
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.08), blurRadius: 15, offset: const Offset(0,4)),
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.04), blurRadius: 8, offset: const Offset(0,2)),
         ],
       ),
       child: Column(
@@ -102,11 +103,11 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
         children: [
           Row(
             children: [
-              const Icon(CupertinoIcons.flame, size: 18, color: CupertinoColors.black),
+              Icon(CupertinoIcons.flame, size: 18, color: ThemeHelper.textPrimary),
               const SizedBox(width: 8),
-              Text(type[0].toUpperCase() + type.substring(1), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              Text(type[0].toUpperCase() + type.substring(1), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
               const Spacer(),
-              Text('$calories kcal', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              Text('$calories kcal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: ThemeHelper.textPrimary)),
             ],
           ),
           const SizedBox(height: 12),
@@ -132,7 +133,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
     final l10n = AppLocalizations.of(context)!;
     
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.white,
+      backgroundColor: ThemeHelper.background,
       child: SafeArea(
         child: Column(
           children: [
@@ -147,16 +148,16 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                       'assets/icons/back.svg',
                       width: 24,
                       height: 24,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const Spacer(),
                   Text(
                     l10n.logExercise,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const Spacer(),
@@ -175,7 +176,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   Container(
                     height: 1,
                     width: double.infinity,
-                    color: const Color(0xFFE8E8E8),
+                    color: ThemeHelper.divider,
                   ),
                 ],
               ),
@@ -215,7 +216,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: isSelected ? CupertinoColors.black : const Color(0x00000000),
+                    color: isSelected ? ThemeHelper.textPrimary : const Color(0x00000000),
                     width: 2,
                   ),
                 ),
@@ -225,7 +226,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? CupertinoColors.black : const Color(0xFF999999),
+                  color: isSelected ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
                 ),
               ),
             ),
@@ -266,10 +267,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 // Intensity Section
                 Text(
                   l10n.intensity,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -292,24 +293,24 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: _selectedIntensity == i 
-                                  ? const Color(0xFFF5F5F5) 
-                                  : CupertinoColors.white,
+                                  ? ThemeHelper.background
+                                  : ThemeHelper.cardBackground,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: _selectedIntensity == i 
-                                    ? CupertinoColors.black 
-                                    : const Color(0xFFE8E8E8),
+                                    ? ThemeHelper.textPrimary
+                                    : ThemeHelper.divider,
                                 width: _selectedIntensity == i ? 2 : 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: CupertinoColors.black.withOpacity(0.08),
+                                  color: ThemeHelper.textPrimary.withOpacity(0.08),
                                   blurRadius: 15,
                                   offset: const Offset(0, 4),
                                   spreadRadius: 0,
                                 ),
                                 BoxShadow(
-                                  color: CupertinoColors.black.withOpacity(0.04),
+                                  color: ThemeHelper.textPrimary.withOpacity(0.04),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                   spreadRadius: 0,
@@ -320,19 +321,19 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                               children: [
                                 Text(
                                   intensityLabels[i],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: CupertinoColors.black,
+                                    color: ThemeHelper.textPrimary,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     '- ${intensityDescriptions[i]}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
-                                      color: Color(0xFF666666),
+                                      color: ThemeHelper.textSecondary,
                                     ),
                                   ),
                                 ),
@@ -349,10 +350,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 // Duration Section
                 Text(
                   l10n.duration,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -362,10 +363,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(l10n.fifteenMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text(l10n.thirtyMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text(l10n.fortyFiveMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text(l10n.sixtyMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text(l10n.fifteenMin, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
+                    Text(l10n.thirtyMin, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
+                    Text(l10n.fortyFiveMin, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
+                    Text(l10n.sixtyMin, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -375,9 +376,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   color: Colors.transparent,
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: CupertinoColors.black,
-                      inactiveTrackColor: const Color(0xFFE8E8E8),
-                      thumbColor: CupertinoColors.black,
+                      activeTrackColor: ThemeHelper.textPrimary,
+                      inactiveTrackColor: ThemeHelper.divider,
+                      thumbColor: ThemeHelper.textPrimary,
                       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
                       trackHeight: 6,
                       overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
@@ -402,21 +403,21 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.cardBackground,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFFE8E8E8),
+                      color: ThemeHelper.divider,
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.08),
+                        color: ThemeHelper.textPrimary.withOpacity(0.08),
                         blurRadius: 15,
                         offset: const Offset(0, 4),
                         spreadRadius: 0,
                       ),
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.04),
+                        color: ThemeHelper.textPrimary.withOpacity(0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                         spreadRadius: 0,
@@ -426,10 +427,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   child: CupertinoTextField(
                     controller: TextEditingController(text: _duration.round().toString()),
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                     decoration: const BoxDecoration(),
                     padding: EdgeInsets.zero,
@@ -453,7 +454,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                       children: [
                         CupertinoActivityIndicator(),
                         SizedBox(width: 8),
-                        Text(l10n.logging, style: const TextStyle(color: Color(0xFF666666))),
+                        Text(l10n.logging, style: TextStyle(color: ThemeHelper.textSecondary)),
                       ],
                     ),
                   ),
@@ -507,16 +508,16 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: Text(
                   _isLoggingCardio ? l10n.logging : l10n.add,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.background,
                   ),
                 ),
               ),
@@ -542,10 +543,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
               children: [
                 Text(
                   l10n.intensity,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -566,24 +567,24 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: _selectedIntensity == i 
-                                  ? const Color(0xFFF5F5F5) 
-                                  : CupertinoColors.white,
+                                  ? ThemeHelper.background
+                                  : ThemeHelper.cardBackground,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: _selectedIntensity == i 
-                                    ? CupertinoColors.black 
-                                    : const Color(0xFFE8E8E8),
+                                    ? ThemeHelper.textPrimary
+                                    : ThemeHelper.divider,
                                 width: _selectedIntensity == i ? 2 : 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: CupertinoColors.black.withOpacity(0.08),
+                                  color: ThemeHelper.textPrimary.withOpacity(0.08),
                                   blurRadius: 15,
                                   offset: const Offset(0, 4),
                                   spreadRadius: 0,
                                 ),
                                 BoxShadow(
-                                  color: CupertinoColors.black.withOpacity(0.04),
+                                  color: ThemeHelper.textPrimary.withOpacity(0.04),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                   spreadRadius: 0,
@@ -594,19 +595,19 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                               children: [
                                 Text(
                                   intensityLabels[i],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: CupertinoColors.black,
+                                    color: ThemeHelper.textPrimary,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     '- ${weightIntensityDescriptions[i]}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
-                                      color: Color(0xFF666666),
+                                      color: ThemeHelper.textSecondary,
                                     ),
                                   ),
                                 ),
@@ -620,10 +621,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 const SizedBox(height: 40),
                 Text(
                   l10n.duration,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -631,10 +632,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(l10n.fifteenMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text(l10n.thirtyMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text(l10n.fortyFiveMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
-                    Text(l10n.sixtyMin, style: const TextStyle(fontSize: 14, color: CupertinoColors.black)),
+                    Text(l10n.fifteenMin, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
+                    Text(l10n.thirtyMin, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
+                    Text(l10n.fortyFiveMin, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
+                    Text(l10n.sixtyMin, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -642,9 +643,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   color: Colors.transparent,
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: CupertinoColors.black,
-                      inactiveTrackColor: const Color(0xFFE8E8E8),
-                      thumbColor: CupertinoColors.black,
+                      activeTrackColor: ThemeHelper.textPrimary,
+                      inactiveTrackColor: ThemeHelper.divider,
+                      thumbColor: ThemeHelper.textPrimary,
                       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
                       trackHeight: 6,
                       overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
@@ -666,21 +667,21 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.cardBackground,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFFE8E8E8),
+                      color: ThemeHelper.divider,
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.08),
+                        color: ThemeHelper.textPrimary.withOpacity(0.08),
                         blurRadius: 15,
                         offset: const Offset(0, 4),
                         spreadRadius: 0,
                       ),
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.04),
+                        color: ThemeHelper.textPrimary.withOpacity(0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                         spreadRadius: 0,
@@ -690,10 +691,10 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   child: CupertinoTextField(
                     controller: TextEditingController(text: _duration.round().toString()),
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                     decoration: const BoxDecoration(),
                     padding: EdgeInsets.zero,
@@ -717,7 +718,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                       children: [
                         CupertinoActivityIndicator(),
                         SizedBox(width: 8),
-                        Text(l10n.logging, style: const TextStyle(color: Color(0xFF666666))),
+                        Text(l10n.logging, style: TextStyle(color: ThemeHelper.textSecondary)),
                       ],
                     ),
                   ),
@@ -821,15 +822,15 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.cardBackground,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFFE8E8E8),
+                      color: ThemeHelper.divider,
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.06),
+                        color: ThemeHelper.textPrimary.withOpacity(0.06),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                         spreadRadius: 0,
@@ -843,15 +844,15 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                         'assets/icons/Spark.svg',
                         width: 16,
                         height: 16,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         l10n.aiPowered,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                         ),
                       ),
                     ],
@@ -864,21 +865,21 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.cardBackground,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFFE8E8E8),
+                      color: ThemeHelper.divider,
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.08),
+                        color: ThemeHelper.textPrimary.withOpacity(0.08),
                         blurRadius: 15,
                         offset: const Offset(0, 4),
                         spreadRadius: 0,
                       ),
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.04),
+                        color: ThemeHelper.textPrimary.withOpacity(0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                         spreadRadius: 0,
@@ -891,13 +892,13 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                     maxLines: 1,
                     keyboardType: TextInputType.multiline,
                     textInputAction: TextInputAction.newline,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
-                    placeholderStyle: const TextStyle(
+                    placeholderStyle: TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF999999),
+                      color: ThemeHelper.textSecondary,
                     ),
                     decoration: const BoxDecoration(),
                     padding: EdgeInsets.zero,
@@ -913,9 +914,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                     height: 40,
                     child: Text(
                       l10n.workoutExample,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF999999),
+                        color: ThemeHelper.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -933,7 +934,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                         children: [
                           const CupertinoActivityIndicator(),
                           const SizedBox(width: 8),
-                          Text(l10n.estimating, style: const TextStyle(color: Color(0xFF666666))),
+                          Text(l10n.estimating, style: TextStyle(color: ThemeHelper.textSecondary)),
                         ],
                       ),
                     ),
@@ -1011,12 +1012,12 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CupertinoColors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE8E8E8), width: 1.5),
+        border: Border.all(color: ThemeHelper.divider, width: 1.5),
         boxShadow: [
-          BoxShadow(color: CupertinoColors.black.withOpacity(0.08), blurRadius: 15, offset: const Offset(0,4)),
-          BoxShadow(color: CupertinoColors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0,2)),
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.08), blurRadius: 15, offset: const Offset(0,4)),
+          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.04), blurRadius: 8, offset: const Offset(0,2)),
         ],
       ),
       child: Column(
@@ -1024,18 +1025,18 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
         children: [
           Row(
             children: [
-              const Icon(CupertinoIcons.flame, size: 18, color: CupertinoColors.black),
+              Icon(CupertinoIcons.flame, size: 18, color: ThemeHelper.textPrimary),
               const SizedBox(width: 8),
-              Text(l10n.aiEstimate, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              Text(l10n.aiEstimate, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
               const Spacer(),
-              Text('$estimated kcal', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              Text('$estimated kcal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: ThemeHelper.textPrimary)),
             ],
           ),
           const SizedBox(height: 12),
-          Container(height: 1, width: double.infinity, color: const Color(0xFFE8E8E8)),
+          Container(height: 1, width: double.infinity, color: ThemeHelper.divider),
           const SizedBox(height: 12),
           if (desc.isNotEmpty) ...[
-            Text(desc, style: const TextStyle(fontSize: 14, color: Color(0xFF333333))),
+            Text(desc, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
             const SizedBox(height: 8),
           ],
           Wrap(
@@ -1049,9 +1050,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(l10n.whyThisEstimate, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(l10n.whyThisEstimate, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
           const SizedBox(height: 6),
-          Text(rationale, style: const TextStyle(fontSize: 13, color: Color(0xFF666666), height: 1.3)),
+          Text(rationale, style: TextStyle(fontSize: 13, color: ThemeHelper.textSecondary, height: 1.3)),
         ],
       ),
     );
@@ -1061,11 +1062,11 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: ThemeHelper.background,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
+        border: Border.all(color: ThemeHelper.divider, width: 1),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 12, color: Color(0xFF333333))),
+      child: Text(text, style: TextStyle(fontSize: 12, color: ThemeHelper.textPrimary)),
     );
   }
 
@@ -1090,21 +1091,21 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.white,
+                  color: ThemeHelper.cardBackground,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFFE8E8E8),
+                    color: ThemeHelper.divider,
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.08),
+                      color: ThemeHelper.textPrimary.withOpacity(0.08),
                       blurRadius: 15,
                       offset: const Offset(0, 4),
                       spreadRadius: 0,
                     ),
                     BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.04),
+                      color: ThemeHelper.textPrimary.withOpacity(0.04),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                       spreadRadius: 0,
@@ -1118,6 +1119,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                       'assets/icons/flame_black.png',
                       width: 24,
                       height: 24,
+                      color: ThemeHelper.textPrimary,
                     ),
                     const SizedBox(width: 12),
                     
@@ -1128,9 +1130,9 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                         children: [
                           Text(
                             l10n.typeCaloriesBurned,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF666666),
+                              color: ThemeHelper.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -1140,14 +1142,14 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                             controller: _caloriesController,
                             placeholder: l10n.zeroPlaceholder,
                             keyboardType: TextInputType.number,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
-                            placeholderStyle: const TextStyle(
+                            placeholderStyle: TextStyle(
                               fontSize: 16,
-                              color: Color(0xFF999999),
+                              color: ThemeHelper.textSecondary,
                             ),
                             decoration: const BoxDecoration(),
                             padding: EdgeInsets.zero,
@@ -1204,16 +1206,16 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: Text(
                   _isLoggingCardio ? l10n.logging : l10n.add,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.background,
                   ),
                 ),
               ),

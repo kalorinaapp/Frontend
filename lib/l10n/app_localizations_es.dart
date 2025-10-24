@@ -902,5 +902,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Solo puedes registrar rachas para hoy y fechas pasadas. ¡Las fechas futuras se desbloquearán cuando lleguen!';
 
   @override
+  String dayStreak(int count) {
+    return 'Día $count Racha';
+  }
+
+  @override
+  String get keepGoing => '¡Sigue así!';
+
+  @override
   String get ok => 'Aceptar';
 }

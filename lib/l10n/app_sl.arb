@@ -253,5 +253,7 @@
   "recentlyUploaded": "Nedavno naloženo",
   "cannotLogFutureStreak": "Ni mogoče evidentirati prihodnjih datumov",
   "cannotLogFutureStreakDescription": "Lahko evidentirate nize samo za danes in pretekle datume. Prihodnji datumi se bodo odklenili, ko bodo prispeli!",
+  "dayStreak": "Dan {count} Niz",
+  "keepGoing": "Nadaljuj!",
   "ok": "V redu"
 }

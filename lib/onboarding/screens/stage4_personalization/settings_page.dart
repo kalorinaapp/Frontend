@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:get/get.dart';
@@ -45,7 +47,7 @@ class _SettingsPageState extends State<SettingsPage> {
       listenable: widget.themeProvider,
       builder: (context, _) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.white,
+          backgroundColor: ThemeHelper.background,
           child: SafeArea(
             child: SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
@@ -81,13 +83,14 @@ class _CardShell extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: ThemeHelper.background,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ThemeHelper.divider, width: 1),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
-            color: CupertinoColors.black.withOpacity(0.2),
+            color: ThemeHelper.isLightMode 
+                ? CupertinoColors.black.withOpacity(0.2)
+                : CupertinoColors.systemGrey.withOpacity(0.3),
             blurRadius: 8.0,
             offset: const Offset(0, 4),
             spreadRadius: 2,
@@ -118,7 +121,7 @@ class _UserCard extends StatelessWidget {
               style: const TextStyle(fontSize: 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemGrey6,
+                color: ThemeHelper.background,
                 borderRadius: BorderRadius.circular(8),
               ),
               autofocus: true,
@@ -126,11 +129,11 @@ class _UserCard extends StatelessWidget {
           ),
           actions: [
             CupertinoDialogAction(
-              child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
+              child: Text('Cancel', style: TextStyle(color: ThemeHelper.textPrimary)),
               onPressed: () => Navigator.of(context).pop(),
             ),
             CupertinoDialogAction(
-              child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
+              child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
               onPressed: () async {
                 final newName = controller.text.trim();
                 if (newName.isNotEmpty) {
@@ -174,7 +177,7 @@ class _UserCard extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Image.asset(avatarAsset, width: 35, height: 35),
+              Image.asset(avatarAsset, width: 35, height: 35, color: ThemeHelper.textPrimary),
               Row(
                 children: [
                   Text(
@@ -186,7 +189,7 @@ class _UserCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8.0),
-                  const Icon(CupertinoIcons.pencil, size: 18, color: CupertinoColors.systemGrey),
+                  Icon(CupertinoIcons.pencil, size: 18, color: ThemeHelper.textSecondary),
                 ],
               ),
               const SizedBox(width: 8.0),
@@ -208,7 +211,7 @@ class _InviteCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Image.asset(inviteAsset, width: 35, height: 35),
+          Image.asset(inviteAsset, width: 35, height: 35, color: ThemeHelper.textPrimary),
             
           Row(
             children: [
@@ -222,7 +225,7 @@ class _InviteCard extends StatelessWidget {
               ),
 
           const SizedBox(width: 8.0),
-          const Icon(CupertinoIcons.share_up, size: 18, color: CupertinoColors.systemGrey),
+          Icon(CupertinoIcons.share_up, size: 18, color: ThemeHelper.textSecondary),
             ],
           ),
           const SizedBox(width: 8.0),
@@ -278,7 +281,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                     children: [
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
+                        child: Text('Cancel', style: TextStyle(color: ThemeHelper.textPrimary)),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
@@ -287,7 +290,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                       ),
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
+                        child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
                         onPressed: () async {
                           await _updateUserField('weight', tempWeight);
                           Navigator.of(context).pop();
@@ -314,7 +317,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                               min: 30.0,
                               max: 200.0,
                               divisions: 170,
-                              activeColor: CupertinoColors.black,
+                              activeColor: ThemeHelper.textPrimary,
                               onChanged: (value) {
                                 setSheetState(() {
                                   tempWeight = value;
@@ -323,16 +326,16 @@ class _PersonalDetailsCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Padding(
                                 padding: EdgeInsets.only(left: 30),
-                                child: Text('30 kg', style: TextStyle(color: CupertinoColors.systemGrey)),
+                                child: Text('30 kg', style: TextStyle(color: ThemeHelper.textSecondary)),
                               ),
                               Padding(
                                 padding: EdgeInsets.only(right: 30),
-                                child: Text('200 kg', style: TextStyle(color: CupertinoColors.systemGrey)),
+                                child: Text('200 kg', style: TextStyle(color: ThemeHelper.textSecondary)),
                               ),
                             ],
                           ),
@@ -381,7 +384,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                     children: [
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
+                        child: Text('Cancel', style: TextStyle(color: ThemeHelper.textPrimary)),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
@@ -390,7 +393,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                       ),
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
+                        child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
                         onPressed: () async {
                           await _updateUserField('height', tempHeight);
                           Navigator.of(context).pop();
@@ -417,7 +420,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                               min: 120.0,
                               max: 220.0,
                               divisions: 100,
-                              activeColor: CupertinoColors.black,
+                              activeColor: ThemeHelper.textPrimary,
                               onChanged: (value) {
                                 setSheetState(() {
                                   tempHeight = value;
@@ -426,16 +429,16 @@ class _PersonalDetailsCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Padding(
                                 padding: EdgeInsets.only(left: 30),
-                                child: Text('120 cm', style: TextStyle(color: CupertinoColors.systemGrey)),
+                                child: Text('120 cm', style: TextStyle(color: ThemeHelper.textSecondary)),
                               ),
                               Padding(
                                 padding: EdgeInsets.only(right: 30),
-                                child: Text('220 cm', style: TextStyle(color: CupertinoColors.systemGrey)),
+                                child: Text('220 cm', style: TextStyle(color: ThemeHelper.textSecondary)),
                               ),
                             ],
                           ),
@@ -484,7 +487,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                     children: [
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
+                        child: Text('Cancel', style: TextStyle(color: ThemeHelper.textPrimary)),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
@@ -493,7 +496,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                       ),
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
+                        child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
                         onPressed: () {
                           final healthProvider = Get.find<HealthProvider>();
                           healthProvider.setStepsGoal(tempSteps);
@@ -521,7 +524,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                               min: 1000.0,
                               max: 30000.0,
                               divisions: 29,
-                              activeColor: CupertinoColors.black,
+                              activeColor: ThemeHelper.textPrimary,
                               onChanged: (value) {
                                 setSheetState(() {
                                   tempSteps = value.round();
@@ -530,16 +533,16 @@ class _PersonalDetailsCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Padding(
                                 padding: EdgeInsets.only(left: 30),
-                                child: Text('1,000', style: TextStyle(color: CupertinoColors.systemGrey)),
+                                child: Text('1,000', style: TextStyle(color: ThemeHelper.textSecondary)),
                               ),
                               Padding(
                                 padding: EdgeInsets.only(right: 30),
-                                child: Text('30,000', style: TextStyle(color: CupertinoColors.systemGrey)),
+                                child: Text('30,000', style: TextStyle(color: ThemeHelper.textSecondary)),
                               ),
                             ],
                           ),
@@ -565,21 +568,21 @@ class _PersonalDetailsCard extends StatelessWidget {
           content: const SizedBox(height: 20),
           actions: [
             CupertinoDialogAction(
-              child: Text(AppLocalizations.of(context)!.male, style: const TextStyle(color: CupertinoColors.black)),
+              child: Text(AppLocalizations.of(context)!.male, style: TextStyle(color: ThemeHelper.textPrimary)),
               onPressed: () async {
                 await _updateUserField('gender', 'male');
                 Navigator.of(context).pop();
               },
             ),
             CupertinoDialogAction(
-              child: Text(AppLocalizations.of(context)!.female, style: const TextStyle(color: CupertinoColors.black)),
+              child: Text(AppLocalizations.of(context)!.female, style: TextStyle(color: ThemeHelper.textPrimary)),
               onPressed: () async {
                 await _updateUserField('gender', 'female');
                 Navigator.of(context).pop();
               },
             ),
             CupertinoDialogAction(
-              child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(color: CupertinoColors.black)),
+              child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: ThemeHelper.textPrimary)),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -620,7 +623,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                     children: [
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        child: const Text('Cancel', style: TextStyle(color: CupertinoColors.black)),
+                        child: Text('Cancel', style: TextStyle(color: ThemeHelper.textPrimary)),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
@@ -629,7 +632,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                       ),
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        child: const Text('Save', style: TextStyle(color: CupertinoColors.black, fontWeight: FontWeight.w600)),
+                        child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
                         onPressed: () async {
                           // Calculate age from birthday
                           final now = DateTime.now();
@@ -689,7 +692,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(CupertinoIcons.pencil, size: 16, color: CupertinoColors.systemGrey2),
+              Icon(CupertinoIcons.pencil, size: 16, color: ThemeHelper.textSecondary),
             ],
           ),
         ),
@@ -714,13 +717,14 @@ class _PersonalDetailsCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
       decoration: BoxDecoration(
-        color: ThemeHelper.background,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ThemeHelper.divider, width: 1),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
-            color: CupertinoColors.black.withOpacity(0.2),
+            color: ThemeHelper.isLightMode 
+                ? CupertinoColors.black.withOpacity(0.2)
+                : CupertinoColors.systemGrey.withOpacity(0.3),
             blurRadius: 8.0,
             offset: const Offset(0, 4),
             spreadRadius: 2,
@@ -745,7 +749,7 @@ class _PersonalDetailsCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/icons/personal_details.png', width: 18, height: 18),
+                Image.asset('assets/icons/personal_details.png', width: 18, height: 18, color: ThemeHelper.textPrimary),
                 const SizedBox(width: 8),
                 Text(
                   AppLocalizations.of(context)!.personalDetails,
@@ -777,7 +781,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                 ),
                 CupertinoSwitch(
                   value: addBurnedCalories,
-                  activeColor: CupertinoColors.black,
+                  activeColor: ThemeHelper.textPrimary,
                   onChanged: (v) => _updateUserField('rolloverLeftOverCalories', v),
                 ),
               ],
@@ -796,7 +800,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                 ),
                 CupertinoSwitch(
                   value: addBurnedCalories,
-                  activeColor: CupertinoColors.black,
+                  activeColor: ThemeHelper.textPrimary,
                   onChanged: (v) => _updateUserField('addBurnedCaloriesToGoal', v),
                 ),
               ],
@@ -888,7 +892,7 @@ class _SettingsListCard extends StatelessWidget {
             width: 320,
             margin: const EdgeInsets.symmetric(horizontal: 30),
             decoration: BoxDecoration(
-              color: CupertinoColors.white,
+              color: ThemeHelper.cardBackground,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Padding(
@@ -905,10 +909,10 @@ class _SettingsListCard extends StatelessWidget {
                     children: [
                       Text(
                         AppLocalizations.of(context)!.deleteAccountTitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                         ),
                       ),
                       CupertinoButton(
@@ -917,16 +921,16 @@ class _SettingsListCard extends StatelessWidget {
                       child: Container(
                         width: 36,
                         height: 36,
-                        decoration: const BoxDecoration(
-                          color: CupertinoColors.white,
+                        decoration: BoxDecoration(
+                          color: ThemeHelper.background,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          weight: 30.0,
-                          CupertinoIcons.xmark_circle,
-                          color: CupertinoColors.black,
-                          size: 24,
-                        ),
+                        child:                           Icon(
+                            weight: 30.0,
+                            CupertinoIcons.xmark_circle,
+                            color: ThemeHelper.textPrimary,
+                            size: 24,
+                          ),
                       ),
                     ),
                     ],
@@ -935,10 +939,10 @@ class _SettingsListCard extends StatelessWidget {
                   // Subtitle
                   Text(
                     AppLocalizations.of(context)!.accountWillBePermanentlyDeleted,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: CupertinoColors.systemGrey,
+                      color: ThemeHelper.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -952,20 +956,20 @@ class _SettingsListCard extends StatelessWidget {
                           child: Container(
                             height: 48,
                             decoration: BoxDecoration(
-                              color: CupertinoColors.white,
+                              color: ThemeHelper.cardBackground,
                               border: Border.all(
-                                color: CupertinoColors.systemGrey3,
+                                color: ThemeHelper.divider,
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(24),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
                                 'No',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ),
                             ),
@@ -1024,7 +1028,7 @@ class _SettingsListCard extends StatelessWidget {
             width: 320,
             margin: const EdgeInsets.symmetric(horizontal: 30),
             decoration: BoxDecoration(
-              color: CupertinoColors.white,
+              color: ThemeHelper.cardBackground,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Padding(
@@ -1041,10 +1045,10 @@ class _SettingsListCard extends StatelessWidget {
                     children: [
                       Text(
                         AppLocalizations.of(context)!.logoutTitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                         ),
                       ),
                       CupertinoButton(
@@ -1053,14 +1057,14 @@ class _SettingsListCard extends StatelessWidget {
                         child: Container(
                           width: 36,
                           height: 36,
-                          decoration: const BoxDecoration(
-                            color: CupertinoColors.white,
+                          decoration: BoxDecoration(
+                            color: ThemeHelper.cardBackground,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child:                           Icon(
                             weight: 30.0,
                             CupertinoIcons.xmark_circle,
-                            color: CupertinoColors.black,
+                            color: ThemeHelper.textPrimary,
                             size: 24,
                           ),
                         ),
@@ -1071,10 +1075,10 @@ class _SettingsListCard extends StatelessWidget {
                   // Subtitle
                   Text(
                     AppLocalizations.of(context)!.areYouSureYouWantToLogOut,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: CupertinoColors.systemGrey,
+                      color: ThemeHelper.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -1088,20 +1092,20 @@ class _SettingsListCard extends StatelessWidget {
                           child: Container(
                             height: 48,
                             decoration: BoxDecoration(
-                              color: CupertinoColors.white,
+                              color: ThemeHelper.cardBackground,
                               border: Border.all(
-                                color: CupertinoColors.systemGrey3,
+                                color: ThemeHelper.divider,
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(24),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
                                 'No',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ),
                             ),
@@ -1142,16 +1146,16 @@ class _SettingsListCard extends StatelessWidget {
                           child: Container(
                             height: 48,
                             decoration: BoxDecoration(
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                               borderRadius: BorderRadius.circular(24),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
                                 'Yes',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.white,
+                                  color: ThemeHelper.background,
                                 ),
                               ),
                             ),
@@ -1174,7 +1178,7 @@ class _SettingsListCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            Image.asset(icon, width: 16, height: 16),
+            Image.asset(icon, width: 16, height: 16, color: ThemeHelper.textPrimary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -1186,7 +1190,7 @@ class _SettingsListCard extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(CupertinoIcons.chevron_right, size: 16, color: CupertinoColors.systemGrey2),
+            Icon(CupertinoIcons.chevron_right, size: 16, color: ThemeHelper.textSecondary),
           ],
         ),
         if (!isLast) ...[

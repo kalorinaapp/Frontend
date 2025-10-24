@@ -902,5 +902,13 @@ class AppLocalizationsRo extends AppLocalizations {
       'Poți înregistra serii doar pentru astăzi și datele trecute. Datele viitoare se vor debloca când vor ajunge!';
 
   @override
+  String dayStreak(int count) {
+    return 'Ziua $count Serie';
+  }
+
+  @override
+  String get keepGoing => 'Continuă!';
+
+  @override
   String get ok => 'OK';
 }

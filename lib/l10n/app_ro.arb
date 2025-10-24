@@ -304,6 +304,8 @@
   "recentlyUploaded": "Încărcat recent",
   "cannotLogFutureStreak": "Nu poți înregistra date viitoare",
   "cannotLogFutureStreakDescription": "Poți înregistra serii doar pentru astăzi și datele trecute. Datele viitoare se vor debloca când vor ajunge!",
+  "dayStreak": "Ziua {count} Serie",
+  "keepGoing": "Continuă!",
   "ok": "OK"
 }
 

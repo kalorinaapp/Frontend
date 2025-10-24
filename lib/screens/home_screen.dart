@@ -7,6 +7,7 @@ import '../onboarding/screens/stage4_personalization/settings_page.dart' show Se
 import '../providers/health_provider.dart' show HealthProvider;
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
+import '../utils/theme_helper.dart' show ThemeHelper;
 import 'dashboard_screen.dart';
 import 'log.screen.dart' show LogScreen;
 import 'progress_screen.dart';
@@ -18,6 +19,8 @@ import '../constants/app_constants.dart';
 import '../network/http_helper.dart';
 import '../services/meals_service.dart';
 import '../services/progress_service.dart';
+import '../services/streak_service.dart';
+import '../utils/user.prefs.dart' show UserPrefs;
 import 'meal_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -51,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _todayExercises = const [];
   Map<String, dynamic>? _dailyProgress;
   Map<String, dynamic>? _dailySummary; // Combined summary with calories consumed/burned
+  bool _isWeighInDueToday = false;
 
   @override
   void initState() {
@@ -59,6 +63,46 @@ class _HomeScreenState extends State<HomeScreen> {
     Get.put(ProgressService());
     _updateScreens();
     _loadInitialData();
+    _checkWeighInDue();
+  }
+
+  // Helper method to check if weigh-in is due today
+  Future<void> _checkWeighInDue() async {
+    final DateTime? lastWeighIn = await UserPrefs.getLastWeighInDate();
+    if (lastWeighIn == null) {
+      // If no previous weigh-in, suggest weighing in
+      if (mounted) {
+        setState(() {
+          _isWeighInDueToday = true;
+        });
+      }
+      return;
+    }
+    
+    final DateTime now = DateTime.now();
+    final int daysSince = now.difference(lastWeighIn).inDays;
+    
+    // Dynamic cadence based on user's weigh-in pattern
+    int suggestedCadence;
+    if (daysSince <= 3) {
+      suggestedCadence = 3; // Frequent weighers
+    } else if (daysSince <= 7) {
+      suggestedCadence = 7; // Regular weighers
+    } else {
+      suggestedCadence = 14; // Less frequent weighers
+    }
+    
+    final int remaining = suggestedCadence - daysSince;
+    if (mounted) {
+      setState(() {
+        _isWeighInDueToday = remaining >= 0; // Due today or overdue
+      });
+    }
+  }
+
+  // Method to refresh weigh-in status (can be called when user logs new weight)
+  void refreshWeighInStatus() {
+    _checkWeighInDue();
   }
 
   void _updateScreens() {
@@ -82,7 +126,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onCloseError: _closeErrorCard,
       ),
       LogScreen(themeProvider: widget.themeProvider),
-      ProgressScreen(themeProvider: widget.themeProvider, healthProvider: healthProvider), // Analytics
+      ProgressScreen(
+        themeProvider: widget.themeProvider, 
+        healthProvider: healthProvider,
+        onWeightLogged: refreshWeighInStatus,
+      ), // Analytics
       SettingsPage(
         themeProvider: widget.themeProvider,
       ), // Settings
@@ -139,14 +187,19 @@ class _HomeScreenState extends State<HomeScreen> {
       // Get the singleton ProgressService instance
       final progressService = Get.find<ProgressService>();
       
-      // Run both API calls in parallel for faster loading
+      // Initialize StreakService
+      final streakService = Get.put(StreakService());
+      
+      // Run all API calls in parallel for faster loading
       final results = await Future.wait([
         MealsService().fetchDailyMeals(userId: userId, dateYYYYMMDD: dateStr),
         progressService.fetchDailyProgress(dateYYYYMMDD: dateStr),
+        streakService.getStreakHistory(),
       ]);
       
       final mealsData = results[0];
       final progressData = results[1];
+      // results[2] is streak history - no need to process as it's handled by StreakService
       
       // Process meals data
       if (mealsData != null && mealsData['success'] == true) {
@@ -444,15 +497,15 @@ class _HomeScreenState extends State<HomeScreen> {
         return Stack(
           children: [
             CupertinoTabScaffold(
-          backgroundColor: const Color(0xFFFAFAFA), // Very light accent background
+          backgroundColor: ThemeHelper.background,
           tabBar: CupertinoTabBar(
             height: 60,
-            backgroundColor: CupertinoColors.white.withOpacity(0.9),
-            activeColor: CupertinoColors.black,
-            inactiveColor: CupertinoColors.systemGrey,
+            backgroundColor: ThemeHelper.cardBackground.withOpacity(0.95),
+            activeColor: ThemeHelper.textPrimary,
+            inactiveColor: ThemeHelper.textSecondary,
             border: Border(
               top: BorderSide(
-                color: CupertinoColors.systemGrey5,
+                color: ThemeHelper.divider,
                 width: 0.5,
               ),
             ),
@@ -466,7 +519,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: l10n.log,
               ),
               BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.chart_bar),
+                icon: _isWeighInDueToday 
+                  ? Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(CupertinoIcons.chart_bar),
+                        Positioned(
+                          right: -10,
+                          top: -2,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Icon(CupertinoIcons.chart_bar),
                 label: l10n.analytics,
               ),
               BottomNavigationBarItem(
@@ -490,11 +562,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: CupertinoColors.black.withOpacity(0.2),
+                              color: ThemeHelper.textPrimary.withOpacity(0.2),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -502,7 +574,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Icon(
                           CupertinoIcons.add,
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.background,
                           size: 24,
                         ),
                       ),
@@ -621,11 +693,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         height: 120,
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.1),
+              color: ThemeHelper.textPrimary.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -645,10 +717,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 8),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -657,9 +729,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: CupertinoColors.systemGrey,
+                    color: ThemeHelper.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),

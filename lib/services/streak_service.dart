@@ -180,26 +180,26 @@ class StreakService extends GetxController {
         date: date,
       );
     }
-    return null;
-
-    // final created = await createStreak(
-    //   streakType: streakType,
-    //   date: date,
-    // );
+    
+    // Create new streak if no existing one
+    final created = await createStreak(
+      streakType: streakType,
+      date: date,
+    );
 
     // If backend indicates it already exists, try update as a fallback
-    // if (created == null && errorMessage.value.toLowerCase().contains('already')) {
-    //   final fallbackId = getStreakId(date);
-    //   if (fallbackId != null && fallbackId.isNotEmpty) {
-    //     return await updateStreak(
-    //       streakId: fallbackId,
-    //       streakType: streakType,
-    //       date: date,
-    //     );
-    //   }
-    // }
+    if (created == null && errorMessage.value.toLowerCase().contains('already')) {
+      final fallbackId = getStreakId(date);
+      if (fallbackId != null && fallbackId.isNotEmpty) {
+        return await updateStreak(
+          streakId: fallbackId,
+          streakType: streakType,
+          date: date,
+        );
+      }
+    }
 
-    // return created;
+    return created;
   }
 
   // Delete/undo streak for a specific day

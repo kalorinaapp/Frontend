@@ -895,5 +895,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can only log streaks for today and past dates. Future dates will unlock as they arrive!';
 
   @override
+  String dayStreak(int count) {
+    return 'Day $count Streak';
+  }
+
+  @override
+  String get keepGoing => 'Keep going!';
+
+  @override
   String get ok => 'OK';
 }

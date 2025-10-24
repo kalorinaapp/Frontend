@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:get/get.dart';
 import '../controllers/create_food_controller.dart';
+import '../utils/theme_helper.dart';
 
 class CreateFoodScreen extends StatelessWidget {
   final bool isEditing;
@@ -34,7 +35,7 @@ class _CreateFoodView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.white,
+      backgroundColor: ThemeHelper.background,
       child: SafeArea(
         child: Column(
           children: [
@@ -55,7 +56,7 @@ class _CreateFoodView extends StatelessWidget {
                       'assets/icons/back.svg',
                       width: 24,
                       height: 24,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const Spacer(),
@@ -63,10 +64,10 @@ class _CreateFoodView extends StatelessWidget {
                     controller.isEditing.value 
                         ? (controller.currentPage.value == 0 ? 'Edit Food' : 'Edit Food') 
                         : (controller.currentPage.value == 0 ? 'Create Food' : 'Add Food'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   )),
                   const Spacer(),
@@ -77,10 +78,10 @@ class _CreateFoodView extends StatelessWidget {
                           },
                           child: Container(
                             padding: const EdgeInsets.all(8),
-                            child: const Icon(
+                            child: Icon(
                               CupertinoIcons.ellipsis_vertical,
                               size: 24,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                           ),
                         )
@@ -116,11 +117,11 @@ class _CreateFoodView extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.cardBackground,
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.25),
+                        color: ThemeHelper.textPrimary.withOpacity(0.25),
                         blurRadius: 5,
                         offset: const Offset(0, 0),
                         spreadRadius: 1,
@@ -195,16 +196,16 @@ class _CreateFoodView extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Text(
+                child: Text(
                   'Next',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.background,
                   ),
                 ),
               ),
@@ -233,14 +234,14 @@ class _CreateFoodView extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: CupertinoColors.black.withOpacity(0.3),
+                      color: ThemeHelper.divider,
                       width: 1,
                     ),
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.cardBackground,
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.25),
+                        color: ThemeHelper.textPrimary.withOpacity(0.25),
                         blurRadius: 5,
                         offset: const Offset(0, 0),
                         spreadRadius: 1,
@@ -349,22 +350,22 @@ class _CreateFoodView extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: controller.isSaving.value ? CupertinoColors.systemGrey : CupertinoColors.black,
+                  color: controller.isSaving.value ? CupertinoColors.systemGrey : ThemeHelper.textPrimary,
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: controller.isSaving.value
-                    ? const Center(
+                    ? Center(
                         child: CupertinoActivityIndicator(
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.background,
                         ),
                       )
                     : Obx(() => Text(
                         controller.currentPage.value == 0 ? 'Next' : 'Save Food',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.background,
                         ),
                       )),
               ),
@@ -391,8 +392,8 @@ class _CreateFoodView extends StatelessWidget {
           // Label
           Text(
             label,
-            style: const TextStyle(
-              color: CupertinoColors.black,
+            style: TextStyle(
+              color: ThemeHelper.textPrimary,
               fontSize: 10,
               fontWeight: FontWeight.w600,
             ),
@@ -409,7 +410,7 @@ class _CreateFoodView extends StatelessWidget {
                       textController.text,
                       textAlign: TextAlign.right,
                       style: TextStyle(
-                        color: CupertinoColors.black.withOpacity(0.6),
+                        color: ThemeHelper.textSecondary,
                         fontSize: 8,
                         fontWeight: FontWeight.w600,
                       ),
@@ -422,16 +423,16 @@ class _CreateFoodView extends StatelessWidget {
                       'g',
                       textAlign: TextAlign.right,
                       style: TextStyle(
-                        color: CupertinoColors.black.withOpacity(0.6),
+                        color: ThemeHelper.textSecondary,
                         fontSize: 8,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                const Icon(
+                Icon(
                   CupertinoIcons.pencil,
                   size: 8,
-                  color: CupertinoColors.systemGrey,
+                  color: ThemeHelper.textSecondary,
                 ),
               ],
             ),
@@ -461,8 +462,8 @@ class _CreateFoodView extends StatelessWidget {
           // Label
           Text(
             label,
-            style: const TextStyle(
-              color: CupertinoColors.black,
+            style: TextStyle(
+              color: ThemeHelper.textPrimary,
               fontSize: 10,
               fontWeight: FontWeight.w600,
             ),
@@ -479,16 +480,16 @@ class _CreateFoodView extends StatelessWidget {
                       textController.text,
                       textAlign: TextAlign.right,
                       style: TextStyle(
-                        color: CupertinoColors.black.withOpacity(0.6),
+                        color: ThemeHelper.textSecondary,
                         fontSize: 8,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                const Icon(
+                Icon(
                   CupertinoIcons.pencil,
                   size: 8,
-                  color: CupertinoColors.systemGrey,
+                  color: ThemeHelper.textSecondary,
                 ),
               ],
             ),
@@ -505,7 +506,7 @@ class _CreateFoodView extends StatelessWidget {
         border: Border(
           bottom: BorderSide(
             width: 1,
-            color: CupertinoColors.black.withOpacity(0.15),
+            color: ThemeHelper.divider,
           ),
         ),
       ),

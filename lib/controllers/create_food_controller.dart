@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../services/food_service.dart';
 import '../constants/app_constants.dart';
+import '../utils/theme_helper.dart';
 
 class CreateFoodController extends GetxController {
   // Page control
@@ -373,8 +374,8 @@ class CreateFoodController extends GetxController {
       Container(
         height: 300,
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
+        decoration: BoxDecoration(
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
@@ -385,10 +386,10 @@ class CreateFoodController extends GetxController {
             // Title
             Text(
               'Edit $label',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
             ),
             const SizedBox(height: 20),
@@ -397,10 +398,10 @@ class CreateFoodController extends GetxController {
             CupertinoTextField(
               controller: tempController,
               placeholder: placeholder ?? 'Enter $label',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16, color: ThemeHelper.textPrimary),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: const Color(0xFFE8E8E8),
+                  color: ThemeHelper.divider,
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(8),
@@ -419,22 +420,22 @@ class CreateFoodController extends GetxController {
                     onPressed: () {
                       Get.back();
                     },
-                    child: const Text(
+                    child: Text(
                       'Cancel',
-                      style: TextStyle(color: CupertinoColors.systemGrey),
+                      style: TextStyle(color: ThemeHelper.textSecondary),
                     ),
                   ),
                 ),
                 Expanded(
                   child: CupertinoButton(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     onPressed: () {
                       updateControllerText(controller, tempController.text);
                       Get.back();
                     },
-                    child: const Text(
+                    child: Text(
                       'Save',
-                      style: TextStyle(color: CupertinoColors.white),
+                      style: TextStyle(color: ThemeHelper.background),
                     ),
                   ),
                 ),
@@ -465,10 +466,10 @@ class CreateFoodController extends GetxController {
           onPressed: () {
             Get.back();
           },
-          child: const Text(
+          child: Text(
             'Cancel',
             style: TextStyle(
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -484,7 +485,7 @@ class CreateFoodController extends GetxController {
           width: 320,
           margin: const EdgeInsets.symmetric(horizontal: 30),
           decoration: BoxDecoration(
-            color: CupertinoColors.white,
+            color: ThemeHelper.cardBackground,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Padding(
@@ -499,12 +500,12 @@ class CreateFoodController extends GetxController {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       'Delete Food?',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     CupertinoButton(
@@ -513,13 +514,13 @@ class CreateFoodController extends GetxController {
                       child: Container(
                         width: 36,
                         height: 36,
-                        decoration: const BoxDecoration(
-                          color: CupertinoColors.white,
+                        decoration: BoxDecoration(
+                          color: ThemeHelper.background,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           CupertinoIcons.xmark_circle,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                           size: 24,
                         ),
                       ),
@@ -528,12 +529,12 @@ class CreateFoodController extends GetxController {
                 ),
                 const SizedBox(height: 8),
                 // Subtitle
-                const Text(
+                Text(
                   'This food will be permanently deleted',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: CupertinoColors.systemGrey,
+                    color: ThemeHelper.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -547,20 +548,20 @@ class CreateFoodController extends GetxController {
                         child: Container(
                           height: 48,
                           decoration: BoxDecoration(
-                            color: CupertinoColors.white,
+                            color: ThemeHelper.cardBackground,
                             border: Border.all(
-                              color: CupertinoColors.systemGrey3,
+                              color: ThemeHelper.divider,
                               width: 1,
                             ),
                             borderRadius: BorderRadius.circular(24),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'No',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: CupertinoColors.black,
+                                color: ThemeHelper.textPrimary,
                               ),
                             ),
                           ),

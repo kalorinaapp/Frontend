@@ -96,34 +96,35 @@ class _LogScreenState extends State<LogScreen> {
     final l10n = AppLocalizations.of(context)!;
     
     return CupertinoPageScaffold(
-      backgroundColor: widget.themeProvider.isLightMode ? CupertinoColors.white : CupertinoColors.black,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 60),
-              // Log Title
-              Text(
-                l10n.log,
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: CupertinoColors.black,
+      backgroundColor: ThemeHelper.background,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                // Log Title
+                Text(
+                  l10n.log,
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: ThemeHelper.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              
-              // Exercise Section
-              Text(
-                l10n.exercise,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF666666),
+                const SizedBox(height: 30),
+                
+                // Exercise Section
+                Text(
+                  l10n.exercise,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    color: ThemeHelper.textSecondary,
+                  ),
                 ),
-              ),
               const SizedBox(height: 16),
               
               // Exercise Cards
@@ -163,10 +164,10 @@ class _LogScreenState extends State<LogScreen> {
               // Food Section
               Text(
                 l10n.food,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF666666),
+                  color: ThemeHelper.textSecondary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -203,10 +204,11 @@ class _LogScreenState extends State<LogScreen> {
                 subtitle: l10n.directInputFoodSubtitle,
                 onTap: () => _navigateToMyMeals(4),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 80),
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -223,21 +225,21 @@ class _LogScreenState extends State<LogScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFFE5E5E5),
+            color: ThemeHelper.divider,
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.08),
+              color: ThemeHelper.textPrimary.withOpacity(0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.04),
+              color: ThemeHelper.textPrimary.withOpacity(0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
               spreadRadius: 0,
@@ -253,10 +255,11 @@ class _LogScreenState extends State<LogScreen> {
                       iconAsset,
                       width: 24,
                       height: 24,
+                      color: ThemeHelper.textPrimary,
                     )
                   : Icon(
                       icon,
-                      color: CupertinoColors.white,
+                      color: ThemeHelper.textPrimary,
                       size: 24,
                     ),
             ),
@@ -269,18 +272,18 @@ class _LogScreenState extends State<LogScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF666666),
+                      color: ThemeHelper.textSecondary,
                       height: 1.3,
                     ),
                   ),

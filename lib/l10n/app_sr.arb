@@ -253,6 +253,8 @@
   "recentlyUploaded": "Недавно преузето",
   "cannotLogFutureStreak": "Не можете евидентирати будуће датуме",
   "cannotLogFutureStreakDescription": "Можете евидентирати низове само за данас и прошле датуме. Будући датуми ће се откључати како буду долазили!",
+  "dayStreak": "Дан {count} Низ",
+  "keepGoing": "Настави!",
   "ok": "У реду"
 }
 

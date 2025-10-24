@@ -1818,6 +1818,18 @@ abstract class AppLocalizations {
   /// **'You can only log streaks for today and past dates. Future dates will unlock as they arrive!'**
   String get cannotLogFutureStreakDescription;
 
+  /// No description provided for @dayStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {count} Streak'**
+  String dayStreak(int count);
+
+  /// No description provided for @keepGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going!'**
+  String get keepGoing;
+
   /// No description provided for @ok.
   ///
   /// In en, this message translates to:

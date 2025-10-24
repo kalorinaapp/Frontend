@@ -902,5 +902,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Csak a mai napra és a múltbeli dátumokra rögzíthet sorozatokat. A jövőbeli dátumok feloldódnak, amikor megérkeznek!';
 
   @override
+  String dayStreak(int count) {
+    return 'Nap $count Sorozat';
+  }
+
+  @override
+  String get keepGoing => 'Folytasd!';
+
+  @override
   String get ok => 'Rendben';
 }

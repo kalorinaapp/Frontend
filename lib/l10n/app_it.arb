@@ -210,5 +210,7 @@
   "recentlyUploaded": "Caricato di recente",
   "cannotLogFutureStreak": "Impossibile registrare date future",
   "cannotLogFutureStreakDescription": "Puoi registrare serie solo per oggi e date passate. Le date future si sbloccheranno quando arriveranno!",
+  "dayStreak": "Giorno {count} Serie",
+  "keepGoing": "Continua!",
   "ok": "OK"
 }

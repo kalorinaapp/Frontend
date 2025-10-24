@@ -210,5 +210,7 @@
   "recentlyUploaded": "Récemment téléchargé",
   "cannotLogFutureStreak": "Impossible d'enregistrer des dates futures",
   "cannotLogFutureStreakDescription": "Vous ne pouvez enregistrer des séries que pour aujourd'hui et les dates passées. Les dates futures seront débloquées lorsqu'elles arriveront!",
+  "dayStreak": "Jour {count} Série",
+  "keepGoing": "Continuez!",
   "ok": "D'accord"
 }

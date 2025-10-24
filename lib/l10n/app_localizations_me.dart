@@ -882,4 +882,10 @@ class AppLocalizationsCg extends AppLocalizations {
 
   @override
   String get areYouSureYouWantToLogOut => 'Jeste li sigurni da se želite odjaviti?';
+
+  @override
+  String dayStreak(int count) => 'Dan $count Niz';
+
+  @override
+  String get keepGoing => 'Nastavi!';
 }

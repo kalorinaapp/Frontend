@@ -304,6 +304,8 @@
   "recentlyUploaded": "Наскоро качено",
   "cannotLogFutureStreak": "Не може да се записват бъдещи дати",
   "cannotLogFutureStreakDescription": "Можете да записвате серии само за днес и минали дати. Бъдещите дати ще се отключат, когато настъпят!",
+  "dayStreak": "Ден {count} Серия",
+  "keepGoing": "Продължавай!",
   "ok": "Добре"
 }
 

@@ -896,5 +896,13 @@ class AppLocalizationsBs extends AppLocalizations {
       'Možete evidentirati niz samo za današnji dan i prošle datume. Budući datumi će se otključati kako budu dolazili!';
 
   @override
+  String dayStreak(int count) {
+    return 'Dan $count Niz';
+  }
+
+  @override
+  String get keepGoing => 'Nastavi!';
+
+  @override
   String get ok => 'U redu';
 }

@@ -54,7 +54,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
   Widget build(BuildContext context) {
  
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemBackground,
+      backgroundColor: ThemeHelper.background,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +91,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   
@@ -146,7 +146,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: CupertinoColors.systemGrey6.withOpacity(0.5),
+                      color: ThemeHelper.cardBackground,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -160,7 +160,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                           'Automatski generiraj ciljeve uz pomoć\nstručnih nutricionističkih algoritama',
                           style: TextStyle(
                             fontSize: 14,
-                            color: CupertinoColors.systemGrey2,
+                            color: ThemeHelper.textSecondary,
                             height: 1.4,
                           ),
                           textAlign: TextAlign.center,
@@ -175,12 +175,12 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(width: 0.5, color: CupertinoColors.black),
+                      border: Border.all(width: 0.5, color: ThemeHelper.textPrimary),
                     ),
                     width: double.infinity,
                     child: CupertinoButton(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      color: CupertinoColors.white,
+                      color: ThemeHelper.background,
                       borderRadius: BorderRadius.circular(16),
                       onPressed: () {
                         Navigator.push(
@@ -194,7 +194,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                         ),
                       ),
                     ),
@@ -221,19 +221,19 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: CupertinoColors.systemGrey2,
+              color: ThemeHelper.textSecondary,
             ),
           ),
         ),
         Container(
           width: MediaQuery.of(context).size.width * 0.55,
           decoration: BoxDecoration(
-            color: CupertinoColors.systemGrey6.withOpacity(0.5),
+            color: ThemeHelper.cardBackground,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Shimmer.fromColors(
-            baseColor: CupertinoColors.systemGrey5,
-            highlightColor: CupertinoColors.systemGrey6,
+            baseColor: ThemeHelper.divider,
+            highlightColor: ThemeHelper.cardBackground,
             child: Container(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: Row(
@@ -243,7 +243,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                     child: Container(
                       height: 32,
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.background,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -254,7 +254,8 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                     child: Image.asset(
                       assetName, 
                       width: assetName == 'assets/icons/apple.png' ? 36 : 24, 
-                      height: assetName == 'assets/icons/apple.png' ? 36 : 24
+                      height: assetName == 'assets/icons/apple.png' ? 36 : 24,
+                      color: assetName == 'assets/icons/apple.png' ? ThemeHelper.textPrimary : null,
                     ),
                   ),
                 ],
@@ -277,14 +278,14 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: CupertinoColors.systemGrey2,
+                color: ThemeHelper.textSecondary,
               ),
             ),
           ),
         Container(
           width: MediaQuery.of(context).size.width * 0.55,
           decoration: BoxDecoration(
-            color: CupertinoColors.systemGrey6.withOpacity(0.5),
+            color: ThemeHelper.cardBackground,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -322,7 +323,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.normal,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                           );
                         },
@@ -331,7 +332,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                     
                     // Icon
                     Center(
-                      child: Image.asset(assetName, width: assetName == 'assets/icons/apple.png' ? 36 : 24, height: assetName == 'assets/icons/apple.png' ? 36 : 24),
+                      child: Image.asset(assetName, width: assetName == 'assets/icons/apple.png' ? 36 : 24, height: assetName == 'assets/icons/apple.png' ? 36 : 24, color: assetName == 'assets/icons/apple.png' ? ThemeHelper.textPrimary : null),
                     ),
                   ],
                 ),

@@ -304,6 +304,8 @@
   "recentlyUploaded": "Nemrég feltöltve",
   "cannotLogFutureStreak": "Jövőbeli dátumok nem rögzíthetők",
   "cannotLogFutureStreakDescription": "Csak a mai napra és a múltbeli dátumokra rögzíthet sorozatokat. A jövőbeli dátumok feloldódnak, amikor megérkeznek!",
+  "dayStreak": "Nap {count} Sorozat",
+  "keepGoing": "Folytasd!",
   "ok": "Rendben"
 }
 

@@ -906,5 +906,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous ne pouvez enregistrer des séries que pour aujourd\'hui et les dates passées. Les dates futures seront débloquées lorsqu\'elles arriveront!';
 
   @override
+  String dayStreak(int count) {
+    return 'Jour $count Série';
+  }
+
+  @override
+  String get keepGoing => 'Continuez!';
+
+  @override
   String get ok => 'D\'accord';
 }

@@ -9,6 +9,7 @@ import '../services/meals_service.dart';
 import 'ingredient_details_screen.dart';
 import 'edit_meal_name_screen.dart';
 import 'edit_macro_screen.dart';
+import '../utils/theme_helper.dart';
 
 class MealDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> mealData;
@@ -227,7 +228,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     final entries = (_currentMealData['entries'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
 
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.white,
+      backgroundColor: ThemeHelper.background,
       child: SafeArea(
         child: Column(
           children: [
@@ -242,7 +243,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                       'assets/icons/back.svg',
                       width: 24,
                       height: 24,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -264,16 +265,16 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                           Text(
                             mealName,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF1E1822),
+                              color: ThemeHelper.textPrimary,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(width: 8.0),
-                          const Icon(CupertinoIcons.pencil, size: 14, color: CupertinoColors.black),
+                          Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
                         ],
                       ),
                     ),
@@ -289,11 +290,11 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                               width: double.infinity,
                               height: 106,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF8F7FC),
+                                color: ThemeHelper.cardBackground,
                                 borderRadius: BorderRadius.circular(15),
-                                boxShadow: const [
+                                boxShadow: [
                                   BoxShadow(
-                                    color: Color(0x33000000),
+                                    color: ThemeHelper.textPrimary.withOpacity(0.2),
                                     blurRadius: 3,
                                     offset: Offset(0, 0),
                                     spreadRadius: 0,
@@ -309,7 +310,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                     child: Container(
                                       width: 91,
                                       height: 91,
-                                      color: CupertinoColors.white,
+                                      color: ThemeHelper.background,
                                       child: _buildImageWidget(imageUrl),
                                     ),
                                   ),
@@ -321,11 +322,11 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                       height: 30,
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: CupertinoColors.white,
+                                        color: ThemeHelper.background,
                                         borderRadius: BorderRadius.circular(13),
-                                        boxShadow: const [
+                                        boxShadow: [
                                           BoxShadow(
-                                            color: Color(0x3F000000),
+                                            color: ThemeHelper.textPrimary.withOpacity(0.25),
                                             blurRadius: 5,
                                             offset: Offset(0, 0),
                                             spreadRadius: 1,
@@ -338,17 +339,17 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                           Text(
                                             '$_servingAmount',
                                             textAlign: TextAlign.center,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
-                                              color: Color(0xFF1E1822),
+                                              color: ThemeHelper.textPrimary,
                                             ),
                                           ),
                                           const SizedBox(width: 6),
-                                          const Icon(
+                                          Icon(
                                             CupertinoIcons.pencil,
                                             size: 14,
-                                            color: Color(0xFF1E1822),
+                                            color: ThemeHelper.textPrimary,
                                           ),
                                         ],
                                       ),
@@ -409,11 +410,11 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.cardBackground,
                           borderRadius: BorderRadius.circular(13),
-                          boxShadow: const [
+                          boxShadow: [
                             BoxShadow(
-                              color: Color(0x3F000000),
+                              color: ThemeHelper.textPrimary.withOpacity(0.25),
                               blurRadius: 5,
                               offset: Offset(0, 0),
                               spreadRadius: 1,
@@ -422,26 +423,26 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                         ),
                         child: Row(
                           children: [
-                            Image.asset('assets/icons/flame_black.png', width: 28, height: 28),
+                            Image.asset('assets/icons/flame_black.png', width: 28, height: 28, color: ThemeHelper.textPrimary),
                             const SizedBox(width: 12),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Calories',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
-                                    color: Color(0xB21E1822),
+                                    color: ThemeHelper.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   '$calories',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xE61E1822),
+                                    color: ThemeHelper.textPrimary,
                                   ),
                                 ),
                               ],
@@ -459,11 +460,11 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.cardBackground,
                         borderRadius: BorderRadius.circular(13),
-                        boxShadow: const [
+                        boxShadow: [
                           BoxShadow(
-                            color: Color(0x3F000000),
+                            color: ThemeHelper.textPrimary.withOpacity(0.25),
                             blurRadius: 5,
                             offset: Offset(0, 0),
                             spreadRadius: 1,
@@ -477,12 +478,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 'Ingredients',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF1E1822),
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ),
                               Row(
@@ -491,11 +492,11 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: CupertinoColors.white,
+                                      color: ThemeHelper.background,
                                       borderRadius: BorderRadius.circular(13),
-                                      boxShadow: const [
+                                      boxShadow: [
                                         BoxShadow(
-                                          color: Color(0x3F000000),
+                                          color: ThemeHelper.textPrimary.withOpacity(0.25),
                                           blurRadius: 5,
                                           offset: Offset(0, 0),
                                           spreadRadius: 1,
@@ -508,16 +509,16 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                         'assets/icons/Spark.svg',
                         width: 16,
                         height: 16,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                                         const SizedBox(width: 6),
-                                        const Text(
+                                        Text(
                                           'Fix Issue',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w600,
-                                            color: Color(0xFF1E1822),
+                                            color: ThemeHelper.textPrimary,
                                           ),
                                         ),
                                       ],
@@ -530,11 +531,11 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: CupertinoColors.white,
+                                        color: ThemeHelper.background,
                                         borderRadius: BorderRadius.circular(13),
-                                        boxShadow: const [
+                                        boxShadow: [
                                           BoxShadow(
-                                            color: Color(0x3F000000),
+                                            color: ThemeHelper.textPrimary.withOpacity(0.25),
                                             blurRadius: 5,
                                             offset: Offset(0, 0),
                                             spreadRadius: 1,
@@ -543,17 +544,17 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                       ),
                                       child: Row(
                                         children: [
-                                          const Text(
+                                          Text(
                                             'Add More',
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontSize: 10,
                                               fontWeight: FontWeight.w600,
-                                              color: Color(0xFF1E1822),
+                                              color: ThemeHelper.textPrimary,
                                             ),
                                           ),
                                           const SizedBox(width: 6),
-                                          Icon(CupertinoIcons.pencil, size: 14, color: CupertinoColors.black),
+                                          Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
                                         ],
                                       ),
                                     ),
@@ -567,14 +568,14 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                           
                           // Ingredients list
                           if (entries.isEmpty)
-                            const Center(
+                            Center(
                               child: Padding(
                                 padding: EdgeInsets.all(20),
                                 child: Text(
                                   'No ingredients available',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Color(0x991E1822),
+                                    color: ThemeHelper.textSecondary,
                                   ),
                                 ),
                               ),
@@ -596,7 +597,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                         border: Border(
                                           bottom: BorderSide(
                                             width: 1,
-                                            color: CupertinoColors.black.withOpacity(0.15),
+                                            color: ThemeHelper.divider,
                                           ),
                                         ),
                                       ),
@@ -621,10 +622,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: CupertinoColors.white,
+                color: ThemeHelper.cardBackground,
                 boxShadow: [
                   BoxShadow(
-                    color: CupertinoColors.black.withOpacity(0.1),
+                    color: ThemeHelper.textPrimary.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, -2),
                     spreadRadius: 0,
@@ -653,25 +654,25 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                   width: 250,
                   height: 45,
                   decoration: BoxDecoration(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Center(
                     child: _isSaving 
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CupertinoActivityIndicator(
-                            color: CupertinoColors.white,
+                            color: ThemeHelper.background,
                           ),
                         )
                       : Text(
                           _getButtonText(),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: CupertinoColors.white,
+                            color: ThemeHelper.background,
                           ),
                         ),
                   ),
@@ -751,21 +752,21 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       onTap: () => _navigateToEditMacro(context, label, value, iconAsset),
       child: Container(
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFFE8E8E8),
+            color: ThemeHelper.divider,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.08),
+              color: ThemeHelper.textPrimary.withOpacity(0.08),
               blurRadius: 15,
               offset: const Offset(0, 4),
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.04),
+              color: ThemeHelper.textPrimary.withOpacity(0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
               spreadRadius: 0,
@@ -778,8 +779,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 8),
-              decoration: const BoxDecoration(
-                color: CupertinoColors.systemGrey6,
+              decoration: BoxDecoration(
+                color: ThemeHelper.background,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -788,14 +789,14 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(iconAsset, width: 12, height: 12),
+                  Image.asset(iconAsset, width: 12, height: 12, color: ThemeHelper.textPrimary),
                   const SizedBox(width: 4),
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: CupertinoColors.systemGrey,
+                      color: ThemeHelper.textSecondary,
                       letterSpacing: 0.1,
                     ),
                   ),
@@ -807,10 +808,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                 ),
               ),
             ),
@@ -839,10 +840,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                 width: 180,
                 child: Text(
                   foodName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -855,17 +856,17 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               Text(
                 '$calories cal',
                 textAlign: TextAlign.right,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 8,
                   fontWeight: FontWeight.w600,
-                  color: Color(0x991E1822),
+                  color: ThemeHelper.textSecondary,
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(
+              Icon(
                 CupertinoIcons.pencil,
                 size: 12,
-                color: Color(0x991E1822),
+                color: ThemeHelper.textSecondary,
               ),
             ],
           ),
@@ -931,8 +932,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       builder: (BuildContext context) => Container(
         height: 300,
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
+        decoration: BoxDecoration(
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
@@ -940,12 +941,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
         ),
         child: Column(
           children: [
-            const Text(
+            Text(
               'Enter Amount',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
             ),
             const SizedBox(height: 20),
@@ -954,10 +955,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               controller: controller,
               keyboardType: TextInputType.number,
               placeholder: 'Enter amount',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16, color: ThemeHelper.textPrimary),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: const Color(0xFFE8E8E8),
+                  color: ThemeHelper.divider,
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(8),
@@ -973,15 +974,15 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                 Expanded(
                   child: CupertinoButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
-                      style: TextStyle(color: CupertinoColors.systemGrey),
+                      style: TextStyle(color: ThemeHelper.textSecondary),
                     ),
                   ),
                 ),
                 Expanded(
                   child: CupertinoButton(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     onPressed: () {
                       final newAmount = int.tryParse(controller.text) ?? 1;
                       setState(() {
@@ -989,9 +990,9 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                       });
                       Navigator.of(context).pop();
                     },
-                    child: const Text(
+                    child: Text(
                       'Save',
-                      style: TextStyle(color: CupertinoColors.white),
+                      style: TextStyle(color: ThemeHelper.background),
                     ),
                   ),
                 ),
@@ -1012,8 +1013,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       builder: (BuildContext context) => Container(
         height: 300,
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
+        decoration: BoxDecoration(
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
@@ -1021,12 +1022,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
         ),
         child: Column(
           children: [
-            const Text(
+            Text(
               'Enter Calories',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
             ),
             const SizedBox(height: 20),
@@ -1035,10 +1036,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               controller: controller,
               keyboardType: TextInputType.number,
               placeholder: 'Enter calories',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16, color: ThemeHelper.textPrimary),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: const Color(0xFFE8E8E8),
+                  color: ThemeHelper.divider,
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(8),
@@ -1054,15 +1055,15 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                 Expanded(
                   child: CupertinoButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
-                      style: TextStyle(color: CupertinoColors.systemGrey),
+                      style: TextStyle(color: ThemeHelper.textSecondary),
                     ),
                   ),
                 ),
                 Expanded(
                   child: CupertinoButton(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     onPressed: () async {
                       final newCalories = int.tryParse(controller.text) ?? 0;
                       setState(() {
@@ -1076,9 +1077,9 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                         await _updateMeal();
                       }
                     },
-                    child: const Text(
+                    child: Text(
                       'Save',
-                      style: TextStyle(color: CupertinoColors.white),
+                      style: TextStyle(color: ThemeHelper.background),
                     ),
                   ),
                 ),
@@ -1165,8 +1166,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       context: context,
       builder: (BuildContext context) => Container(
         height: MediaQuery.of(context).size.height * 0.6,
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
+        decoration: BoxDecoration(
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
@@ -1177,10 +1178,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
             // Header
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: Color(0xFFE8E8E8),
+                    color: ThemeHelper.divider,
                     width: 1,
                   ),
                 ),
@@ -1189,21 +1190,21 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
                       style: TextStyle(
                         fontSize: 16,
-                        color: CupertinoColors.systemGrey,
+                        color: ThemeHelper.textSecondary,
                       ),
                     ),
                   ),
                   const Spacer(),
-                  const Text(
+                  Text(
                     'Add Ingredient',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const Spacer(),
@@ -1262,12 +1263,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                         await _updateMeal();
                       }
                     },
-                    child: const Text(
+                    child: Text(
                       'Add',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                   ),
@@ -1283,30 +1284,30 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Name Field (Required)
-                    const Text(
+                    Text(
                       'Ingredient Name *',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
                     CupertinoTextField(
                       controller: nameController,
                       placeholder: 'Enter ingredient name',
-                      placeholderStyle: const TextStyle(
-                        color: Color(0xFF999999),
+                      placeholderStyle: TextStyle(
+                        color: ThemeHelper.textSecondary,
                         fontSize: 16,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.background,
                         border: Border.all(
-                          color: const Color(0xFFE8E8E8),
+                          color: ThemeHelper.divider,
                           width: 1.5,
                         ),
                         borderRadius: BorderRadius.circular(12),
@@ -1318,12 +1319,12 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                     const SizedBox(height: 24),
                     
                     // Calories Field
-                    const Text(
+                    Text(
                       'Calories',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -1331,18 +1332,18 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                       controller: caloriesController,
                       placeholder: 'Enter calories',
                       keyboardType: TextInputType.number,
-                      placeholderStyle: const TextStyle(
-                        color: Color(0xFF999999),
+                      placeholderStyle: TextStyle(
+                        color: ThemeHelper.textSecondary,
                         fontSize: 16,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.background,
                         border: Border.all(
-                          color: const Color(0xFFE8E8E8),
+                          color: ThemeHelper.divider,
                           width: 1.5,
                         ),
                         borderRadius: BorderRadius.circular(12),

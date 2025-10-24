@@ -900,5 +900,13 @@ class AppLocalizationsBg extends AppLocalizations {
       'Можете да записвате серии само за днес и минали дати. Бъдещите дати ще се отключат, когато настъпят!';
 
   @override
+  String dayStreak(int count) {
+    return 'Ден $count Серия';
+  }
+
+  @override
+  String get keepGoing => 'Продължавай!';
+
+  @override
   String get ok => 'Добре';
 }

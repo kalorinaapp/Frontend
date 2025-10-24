@@ -895,5 +895,13 @@ class AppLocalizationsSr extends AppLocalizations {
       'Можете евидентирати низове само за данас и прошле датуме. Будући датуми ће се откључати како буду долазили!';
 
   @override
+  String dayStreak(int count) {
+    return 'Дан $count Низ';
+  }
+
+  @override
+  String get keepGoing => 'Настави!';
+
+  @override
   String get ok => 'У реду';
 }

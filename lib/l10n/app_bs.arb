@@ -253,5 +253,7 @@
   "recentlyUploaded": "Nedavno preneseno",
   "cannotLogFutureStreak": "Nije moguće evidentirati buduće datume",
   "cannotLogFutureStreakDescription": "Možete evidentirati niz samo za današnji dan i prošle datume. Budući datumi će se otključati kako budu dolazili!",
+  "dayStreak": "Dan {count} Niz",
+  "keepGoing": "Nastavi!",
   "ok": "U redu"
 }

@@ -901,5 +901,13 @@ class AppLocalizationsMk extends AppLocalizations {
       'Можете да евидентирате низови само за денес и минати датуми. Идните датуми ќе се отклучат кога ќе пристигнат!';
 
   @override
+  String dayStreak(int count) {
+    return 'Day $count Streak';
+  }
+
+  @override
+  String get keepGoing => 'Keep going!';
+
+  @override
   String get ok => 'Во ред';
 }

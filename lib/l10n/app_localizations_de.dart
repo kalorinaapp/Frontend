@@ -903,5 +903,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Sie können Streaks nur für heute und vergangene Daten erfassen. Zukünftige Daten werden freigeschaltet, sobald sie eintreffen!';
 
   @override
+  String dayStreak(int count) {
+    return 'Tag $count Streak';
+  }
+
+  @override
+  String get keepGoing => 'Weiter so!';
+
+  @override
   String get ok => 'OK';
 }

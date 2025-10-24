@@ -1,9 +1,12 @@
+// ignore_for_file: unused_element
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 import '../services/streak_service.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/theme_helper.dart' show ThemeHelper;
 
 class LogStreakScreen extends StatefulWidget {
   const LogStreakScreen({super.key});
@@ -63,7 +66,7 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
     final int today = now.day;
 
     return CupertinoPageScaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: ThemeHelper.background,
       child: SafeArea(
         bottom: false,
         child: Column(
@@ -81,13 +84,13 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                     padding: EdgeInsets.zero,
                     minSize: 24,
                     onPressed: () => Navigator.of(context).maybePop(),
-                    child: const SizedBox(
+                    child: SizedBox(
                       width: 24,
                       height: 24,
                       child: Text(
                         '←',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: ThemeHelper.textPrimary,
                           fontSize: 28,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,
@@ -108,8 +111,8 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                       child: Text(
                         l10n.howDoesItWork,
                         textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          color: Color(0xB21E1822),
+                        style: TextStyle(
+                          color: ThemeHelper.textSecondary,
                           fontSize: 12,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,
@@ -127,8 +130,8 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                child: Text(
                  l10n.logStreak,
                  textAlign: TextAlign.center,
-                 style: const TextStyle(
-                   color: Colors.black,
+                 style: TextStyle(
+                   color: ThemeHelper.textPrimary,
                    fontSize: 28,
                    fontFamily: 'Instrument Sans',
                    fontWeight: FontWeight.w700,
@@ -167,7 +170,7 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
             Container(
               width: double.infinity,
               height: 1,
-              color: Colors.black.withOpacity(0.15),
+              color: ThemeHelper.divider,
             ),
 
             const SizedBox(height: 12),
@@ -178,8 +181,8 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   monthTitle,
-                  style: const TextStyle(
-                    color: Colors.black,
+                  style: TextStyle(
+                    color: ThemeHelper.textPrimary,
                     fontSize: 22,
                     fontFamily: 'Instrument Sans',
                     fontWeight: FontWeight.w700,
@@ -212,13 +215,13 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
     return Container(
       height: 36,
       decoration: ShapeDecoration(
-        color: Colors.white,
+        color: ThemeHelper.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
         ),
-        shadows: const [
+        shadows: [
           BoxShadow(
-            color: Color(0x33000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.1),
             blurRadius: 3,
             offset: Offset(0, 0),
             spreadRadius: 0,
@@ -233,8 +236,8 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
             const SizedBox(width: 8),
             Text(
               text,
-              style: const TextStyle(
-                color: Colors.black,
+              style: TextStyle(
+                color: ThemeHelper.textPrimary,
                 fontSize: 14,
                 fontFamily: 'Instrument Sans',
                 fontWeight: FontWeight.w600,
@@ -252,10 +255,10 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
       context: context,
       barrierDismissible: true,
       builder: (context) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: ThemeHelper.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFFE5E5E5), width: 1),
+          side: BorderSide(color: ThemeHelper.divider, width: 1),
         ),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
@@ -268,8 +271,8 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
               Center(
                 child: Text(
                   l10n.howDoesItWorkTitle,
-                  style: const TextStyle(
-                    color: Colors.black,
+                  style: TextStyle(
+                    color: ThemeHelper.textPrimary,
                     fontSize: 24,
                     fontFamily: 'Instrument Sans',
                     fontWeight: FontWeight.w700,
@@ -280,8 +283,8 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
               // Content - left aligned
               Text(
                 l10n.howDoesItWorkDescription,
-                style: const TextStyle(
-                  color: Colors.black,
+                style: TextStyle(
+                  color: ThemeHelper.textPrimary,
                   fontSize: 16,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -297,8 +300,8 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                   Expanded(
                     child: Text(
                       l10n.successfulDescription,
-                      style: const TextStyle(
-                        color: Colors.black,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
                         fontSize: 16,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w400,
@@ -317,8 +320,8 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
                   Expanded(
                     child: Text(
                       l10n.failedDescription,
-                      style: const TextStyle(
-                        color: Colors.black,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
                         fontSize: 16,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w400,
@@ -331,8 +334,8 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
               const SizedBox(height: 20),
               Text(
                 l10n.streakExplanation,
-                style: const TextStyle(
-                  color: Colors.black,
+                style: TextStyle(
+                  color: ThemeHelper.textPrimary,
                   fontSize: 16,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -439,13 +442,13 @@ class _DayTile extends StatelessWidget {
       child: Container(
         height: 130,
         decoration: ShapeDecoration(
-          color: const Color(0xFFF8F7FC),
+          color: ThemeHelper.cardBackground,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          shadows: const [
+          shadows: [
             BoxShadow(
-              color: Color(0x3F000000),
+              color: ThemeHelper.textPrimary.withOpacity(0.1),
               blurRadius: 3,
               offset: Offset(0, 0),
               spreadRadius: 0,
@@ -470,7 +473,7 @@ class _DayTile extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: Colors.black.withOpacity(0.6),
+                color: ThemeHelper.textSecondary,
                 fontSize: 12,
                 fontFamily: 'Instrument Sans',
                 fontWeight: FontWeight.w500,
@@ -502,10 +505,10 @@ class _DayTile extends StatelessWidget {
       context: context,
       barrierDismissible: true,
       builder: (context) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: ThemeHelper.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFFE5E5E5), width: 1),
+          side: BorderSide(color: ThemeHelper.divider, width: 1),
         ),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
@@ -518,14 +521,14 @@ class _DayTile extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F7FC),
+                  color: ThemeHelper.cardBackground,
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Center(
                   child: Icon(
                     CupertinoIcons.calendar_badge_minus,
                     size: 32,
-                    color: Colors.black.withOpacity(0.6),
+                    color: ThemeHelper.textSecondary,
                   ),
                 ),
               ),
@@ -534,8 +537,8 @@ class _DayTile extends StatelessWidget {
               Text(
                 l10n.cannotLogFutureStreak,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black,
+                style: TextStyle(
+                  color: ThemeHelper.textPrimary,
                   fontSize: 20,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w700,
@@ -547,7 +550,7 @@ class _DayTile extends StatelessWidget {
                 l10n.cannotLogFutureStreakDescription,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.black.withOpacity(0.7),
+                  color: ThemeHelper.textSecondary,
                   fontSize: 16,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -559,14 +562,14 @@ class _DayTile extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                   borderRadius: BorderRadius.circular(12),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(
                     l10n.ok,
-                    style: const TextStyle(
-                      color: CupertinoColors.white,
+                    style: TextStyle(
+                      color: ThemeHelper.background,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -590,13 +593,13 @@ class _DayTile extends StatelessWidget {
         child: Container(
           width: 60,
           decoration: ShapeDecoration(
-            color: Colors.white,
+            color: ThemeHelper.cardBackground,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(6),
             ),
-            shadows: const [
+            shadows: [
               BoxShadow(
-                color: Color(0x4C000000),
+                color: ThemeHelper.textPrimary.withOpacity(0.3),
                 blurRadius: 3,
                 offset: Offset(0, 0),
                 spreadRadius: 0,
@@ -622,8 +625,8 @@ class _DayTile extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         l10n.successfulDay,
-                        style: const TextStyle(
-                          color: Colors.black,
+                        style: TextStyle(
+                          color: ThemeHelper.textPrimary,
                           fontSize: 13,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,
@@ -637,7 +640,7 @@ class _DayTile extends StatelessWidget {
               Container(
                 width: 300,
                 height: 1,
-                color: Colors.black.withOpacity(0.10),
+                color: ThemeHelper.divider,
               ),
               // Failed day option
               GestureDetector(
@@ -655,8 +658,8 @@ class _DayTile extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         l10n.failedDay,
-                        style: const TextStyle(
-                          color: Colors.black,
+                        style: TextStyle(
+                          color: ThemeHelper.textPrimary,
                           fontSize: 13,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,
@@ -670,7 +673,7 @@ class _DayTile extends StatelessWidget {
               Container(
                 width: 300,
                 height: 1,
-                color: Colors.black.withOpacity(0.10),
+                color: ThemeHelper.divider,
               ),
               // Undo option
               GestureDetector(
@@ -688,8 +691,8 @@ class _DayTile extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         l10n.undo,
-                        style: const TextStyle(
-                          color: Colors.black,
+                        style: TextStyle(
+                          color: ThemeHelper.textPrimary,
                           fontSize: 13,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,

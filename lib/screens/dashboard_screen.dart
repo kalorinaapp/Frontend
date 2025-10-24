@@ -107,13 +107,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     final startDate = weekDates.first;
     final endDate = weekDates.last;
     
-    await Future.wait([
-      streakService.getStreaksForDateRange(
-        startDate: startDate,
-        endDate: endDate,
-      ),
-      streakService.getStreakHistory(),
-    ]);
+    // Only load streaks for the current week since full history is already loaded in home screen
+    await streakService.getStreaksForDateRange(
+      startDate: startDate,
+      endDate: endDate,
+    );
   }
 
   @override
@@ -176,7 +174,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 child: Row(
                   children: [
                     // App Title
-                    Image.asset('assets/icons/apple.png', width: 48, height: 48),
+                    Image.asset('assets/icons/apple.png', width: 48, height: 48, color: ThemeHelper.textPrimary),
                     Text(
                       l10n.appTitle,
                       style: TextStyle(
@@ -328,16 +326,16 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                           child: CircularProgressIndicator(
                                             value: progressValue,
                                             strokeWidth: 6,
-                                            backgroundColor: CupertinoColors.systemGrey5,
+                                            backgroundColor: ThemeHelper.divider,
                                             valueColor: AlwaysStoppedAnimation<Color>(
-                                              CupertinoColors.black,
+                                              ThemeHelper.textPrimary,
                                             ),
                                           ),
                                         );
                                       },
                                     ),
                                     // Center apple icon
-                                    Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                                    Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
                                   ],
                                 ),
                               ),
@@ -475,8 +473,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                 padding: const EdgeInsets.only(bottom: 12),
                                 child: Text(
                                   l10n.recentlyUploaded,
-                                  style: const TextStyle(
-                                    color: Color(0xFF1E1822),
+                                  style: TextStyle(
+                                    color: ThemeHelper.textPrimary,
                                     fontSize: 20,
                                     fontFamily: 'Instrument Sans',
                                     fontWeight: FontWeight.w700,
@@ -500,18 +498,18 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     if (widget.isLoadingInitialData) ...[
                       // Show shimmer loading effect while fetching initial data
                       Shimmer.fromColors(
-                        baseColor: const Color(0xFFE8E8E8),
-                        highlightColor: const Color(0xFFF5F5F5),
+                        baseColor: ThemeHelper.divider,
+                        highlightColor: ThemeHelper.cardBackground,
                         child: Container(
                           width: double.infinity,
                           height: 120,
                           margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF8F7FC),
+                            color: ThemeHelper.cardBackground,
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
-                                color: Color(0x33000000),
+                                color: ThemeHelper.textPrimary.withOpacity(0.1),
                                 blurRadius: 3,
                                 offset: Offset(0, 0),
                                 spreadRadius: 0,
@@ -527,7 +525,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                   width: 96,
                                   height: 96,
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: ThemeHelper.background,
                                     borderRadius: BorderRadius.circular(15),
                                   ),
                                 ),
@@ -543,7 +541,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                         width: double.infinity,
                                         height: 14,
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
+                                          color: ThemeHelper.background,
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                       ),
@@ -557,7 +555,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                                 width: 70,
                                                 height: 24,
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white,
+                                                  color: widget.themeProvider.isLightMode 
+                                                      ? Colors.white 
+                                                      : const Color(0xFF1A1A1A),
                                                   borderRadius: BorderRadius.circular(6),
                                                 ),
                                               ),
@@ -566,7 +566,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                                 width: 70,
                                                 height: 24,
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white,
+                                                  color: widget.themeProvider.isLightMode 
+                                                      ? Colors.white 
+                                                      : const Color(0xFF1A1A1A),
                                                   borderRadius: BorderRadius.circular(6),
                                                 ),
                                               ),
@@ -579,7 +581,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                                 width: 70,
                                                 height: 24,
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white,
+                                                  color: widget.themeProvider.isLightMode 
+                                                      ? Colors.white 
+                                                      : const Color(0xFF1A1A1A),
                                                   borderRadius: BorderRadius.circular(6),
                                                 ),
                                               ),
@@ -588,7 +592,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                                 width: 70,
                                                 height: 24,
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white,
+                                                  color: widget.themeProvider.isLightMode 
+                                                      ? Colors.white 
+                                                      : const Color(0xFF1A1A1A),
                                                   borderRadius: BorderRadius.circular(6),
                                                 ),
                                               ),
@@ -652,7 +658,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           });
                         },
                         child: Container(
-                          color: CupertinoColors.black.withOpacity(0.5),
+                          color: ThemeHelper.textPrimary.withOpacity(0.5),
                         ),
                       ),
                     ),
@@ -879,7 +885,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: ThemeHelper.textSecondary,
+                            color: widget.themeProvider.isLightMode ? Colors.black : Colors.white,
                             letterSpacing: 0.1,
                           ),
                         ),
@@ -1002,7 +1008,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           AppLocalizations.of(context)!.tapPlusToTrack,
           style: TextStyle(
             fontSize: 16,
-            color: CupertinoColors.systemGrey,
+            color: ThemeHelper.textSecondary,
             height: 1.4,
           ),
           textAlign: TextAlign.center,
@@ -1017,13 +1023,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       height: 106,
       margin: const EdgeInsets.only(bottom: 12),
       decoration: ShapeDecoration(
-        color: const Color(0xFFF8F7FC),
+        color: ThemeHelper.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
         shadows: [
           BoxShadow(
-            color: Color(0x33000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.2),
             blurRadius: 3,
             offset: Offset(0, 0),
             spreadRadius: 0,
@@ -1082,7 +1088,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     child: Text(
                       'Retry',
                       style: TextStyle(
-                        color: Colors.black,
+                        color: ThemeHelper.textPrimary,
                         fontSize: 12,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w500,
@@ -1103,7 +1109,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.black,
+                    color: ThemeHelper.textPrimary,
                     width: 1,
                   ),
                 ),
@@ -1111,7 +1117,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   child: Icon(
                     CupertinoIcons.xmark,
                     size: 12,
-                    color: Colors.black,
+                    color: ThemeHelper.textPrimary,
                   ),
                 ),
               ),
@@ -1127,14 +1133,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       width: double.infinity,
       height: 106,
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: const ShapeDecoration(
-        color: Color(0xFFF8F7FC),
+      decoration: ShapeDecoration(
+        color: ThemeHelper.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(15)),
         ),
         shadows: [
           BoxShadow(
-            color: Color(0x33000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.1),
             blurRadius: 3,
             offset: Offset(0, 0),
             spreadRadius: 0,
@@ -1177,8 +1183,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   // Analyzing text
                   Text(
                     AppLocalizations.of(context)!.analyzing,
-                    style: const TextStyle(
-                      color: Color(0xFF1E1822),
+                    style: TextStyle(
+                      color: ThemeHelper.textPrimary,
                       fontSize: 12,
                       fontFamily: 'Instrument Sans',
                       fontWeight: FontWeight.w600,
@@ -1217,10 +1223,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             Container(
               width: 24,
               height: 24,
-              child: const Icon(
+              child: Icon(
                 CupertinoIcons.chevron_right,
                 size: 24,
-                color: CupertinoColors.systemGrey,
+                color: ThemeHelper.textSecondary,
               ),
             ),
           ],
@@ -1233,14 +1239,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     return Container(
       width: 70,
       height: 24,
-      decoration: const ShapeDecoration(
-        color: Colors.white,
+      decoration: ShapeDecoration(
+        color: ThemeHelper.background,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(6)),
         ),
         shadows: [
           BoxShadow(
-            color: Color(0x3F000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.1),
             blurRadius: 5,
             offset: Offset(0, 0),
             spreadRadius: 1,
@@ -1257,7 +1263,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1822).withOpacity(0.1),
+                color: ThemeHelper.textPrimary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1272,7 +1278,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     width: 35,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E1822),
+                      color: ThemeHelper.textPrimary,
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
@@ -1284,7 +1290,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     width: 20,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E1822),
+                      color: ThemeHelper.textPrimary,
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
@@ -1304,13 +1310,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       width: 70,
       height: 30,
       decoration: ShapeDecoration(
-        color: Colors.white,
+        color: ThemeHelper.background,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
         ),
         shadows: [
           BoxShadow(
-            color: Color(0x3F000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.1),
             blurRadius: 5,
             offset: Offset(0, 0),
             spreadRadius: 1,
@@ -1334,7 +1340,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 Text(
                   '$value g',
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.90),
+                    color: ThemeHelper.textPrimary,
                     fontSize: 9,
                     fontFamily: 'Instrument Sans',
                     fontWeight: FontWeight.w600,
@@ -1343,7 +1349,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 Text(
                   label,
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.70),
+                    color: ThemeHelper.textSecondary,
                     fontSize: 7,
                     fontFamily: 'Instrument Sans',
                     fontWeight: FontWeight.w400,
@@ -1381,13 +1387,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       height: 120,
       margin: const EdgeInsets.only(left: 0, right: 0, bottom: 12),
       decoration: ShapeDecoration(
-        color: const Color(0xFFF8F7FC),
+        color: ThemeHelper.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
         shadows: [
           BoxShadow(
-            color: Color(0x33000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.2),
             blurRadius: 3,
             offset: Offset(0, 0),
             spreadRadius: 0,
@@ -1404,10 +1410,12 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               height: 96,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15),
-                color: Colors.white,
+                color: widget.themeProvider.isLightMode 
+                    ? Colors.white 
+                    : const Color(0xFF1A1A1A),
               ),
               child: Center(
-                child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
               ),
             ),
             const SizedBox(width: 12),
@@ -1421,7 +1429,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         child: Text(
                           l10n.todaysLunchTotals,
                           style: TextStyle(
-                            color: const Color(0xFF1E1822),
+                            color: ThemeHelper.textPrimary,
                             fontSize: 14,
                             fontFamily: 'Instrument Sans',
                             fontWeight: FontWeight.w600,
@@ -1432,13 +1440,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: ShapeDecoration(
-                        color: Colors.white,
+                        color: ThemeHelper.background,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         shadows: [
                           BoxShadow(
-                            color: Color(0x33000000),
+                            color: ThemeHelper.textPrimary.withOpacity(0.2),
                             blurRadius: 3,
                             offset: Offset(0, 0),
                             spreadRadius: 0,
@@ -1448,7 +1456,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       child: Text(
                         timeString,
                         style: TextStyle(
-                          color: const Color(0xFF1E1822),
+                          color: ThemeHelper.textPrimary,
                           fontSize: 9,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w400,
@@ -1486,7 +1494,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               child: Icon(
                 CupertinoIcons.chevron_right,
                 size: 16,
-                color: CupertinoColors.systemGrey,
+                color: ThemeHelper.textSecondary,
               ),
             ),
           ],
@@ -1527,13 +1535,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       height: 120,
       margin: const EdgeInsets.only(left: 0, right: 0, bottom: 12),
       decoration: ShapeDecoration(
-        color: const Color(0xFFF8F7FC),
+        color: ThemeHelper.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
         shadows: [
           BoxShadow(
-            color: Color(0x33000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.2),
             blurRadius: 3,
             offset: Offset(0, 0),
             spreadRadius: 0,
@@ -1549,7 +1557,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               child: Container(
                 width: 96,
                 height: 96,
-                color: Colors.white,
+                color: widget.themeProvider.isLightMode 
+                    ? Colors.white 
+                    : const Color(0xFF1A1A1A),
                 child: imageUrl != null && imageUrl.isNotEmpty
                     ? CachedNetworkImage(
                         imageUrl: imageUrl,
@@ -1562,11 +1572,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           ),
                         ),
                         errorWidget: (context, url, error) => Center(
-                          child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                          child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
                         ),
                       )
                     : Center(
-                        child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                        child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
                       ),
               ),
             ),
@@ -1582,8 +1592,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           mealName != null && mealName.isNotEmpty ? mealName : l10n.mealTotals,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF1E1822),
+                          style: TextStyle(
+                            color: ThemeHelper.textPrimary,
                             fontSize: 14,
                             fontFamily: 'Instrument Sans',
                             fontWeight: FontWeight.w600,
@@ -1600,7 +1610,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             ),
                             shadows: [
                               BoxShadow(
-                                color: Color(0x33000000),
+                                color: ThemeHelper.textPrimary.withOpacity(0.2),
                                 blurRadius: 3,
                                 offset: Offset(0, 0),
                                 spreadRadius: 0,
@@ -1645,10 +1655,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             SizedBox(
               width: 24,
               height: 24,
-              child: const Icon(
+              child: Icon(
                 CupertinoIcons.chevron_right,
                 size: 24,
-                color: CupertinoColors.systemGrey,
+                color: ThemeHelper.textSecondary,
               ),
             ),
           ],
@@ -1687,14 +1697,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       width: double.infinity,
       height: 106,
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: const ShapeDecoration(
-        color: Color(0xFFF8F7FC),
+      decoration: ShapeDecoration(
+        color: ThemeHelper.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(15)),
         ),
         shadows: [
           BoxShadow(
-            color: Color(0x33000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.1),
             blurRadius: 3,
             offset: Offset(0, 0),
             spreadRadius: 0,
@@ -1709,8 +1719,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             Container(
               width: 50,
               height: 50,
-              decoration: const ShapeDecoration(
-                color: Colors.white,
+              decoration: ShapeDecoration(
+                color: widget.themeProvider.isLightMode 
+                    ? Colors.white 
+                    : const Color(0xFF1A1A1A),
                 shape: OvalBorder(),
               ),
               child: Center(
@@ -1734,10 +1746,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
+                        child:                         Text(
                           exerciseName,
-                          style: const TextStyle(
-                            color: Color(0xFF1E1822),
+                          style: TextStyle(
+                            color: ThemeHelper.textPrimary,
                             fontSize: 12,
                             fontFamily: 'Instrument Sans',
                             fontWeight: FontWeight.w400,
@@ -1748,14 +1760,16 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         Container(
                           width: 24,
                           height: 12,
-                          decoration: const ShapeDecoration(
-                            color: Colors.white,
+                          decoration: ShapeDecoration(
+                            color: widget.themeProvider.isLightMode 
+                                ? Colors.white 
+                                : const Color(0xFF1A1A1A),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.all(Radius.circular(15)),
                             ),
                             shadows: [
                               BoxShadow(
-                                color: Color(0x33000000),
+                                color: ThemeHelper.textPrimary.withOpacity(0.2),
                                 blurRadius: 3,
                                 offset: Offset(0, 0),
                                 spreadRadius: 0,
@@ -1766,8 +1780,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             child: Text(
                               timeString,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color(0xFF1E1822),
+                              style: TextStyle(
+                                color: ThemeHelper.textPrimary,
                                 fontSize: 6,
                                 fontFamily: 'Instrument Sans',
                                 fontWeight: FontWeight.w400,
@@ -1784,8 +1798,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   Container(
                     width: 70,
                     height: 24,
-                    decoration: const ShapeDecoration(
-                      color: Colors.white,
+                    decoration: ShapeDecoration(
+                      color: widget.themeProvider.isLightMode 
+                          ? Colors.white 
+                          : const Color(0xFF1A1A1A),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(6)),
                       ),
@@ -1805,6 +1821,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         children: [
                           Image.asset(
                             'assets/icons/apple.png',
+                            color: ThemeHelper.textPrimary,
                             width: 12,
                             height: 12,
                           ),
@@ -1815,7 +1832,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                               Text(
                                 caloriesBurned.toString(),
                                 style: TextStyle(
-                                  color: Colors.black.withOpacity(0.90),
+                                  color: ThemeHelper.textPrimary,
                                   fontSize: 7,
                                   fontFamily: 'Instrument Sans',
                                   fontWeight: FontWeight.w600,
@@ -1824,7 +1841,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                               Text(
                                 l10n.calories,
                                 style: TextStyle(
-                                  color: Colors.black.withOpacity(0.70),
+                                  color: ThemeHelper.textSecondary,
                                   fontSize: 6,
                                   fontFamily: 'Instrument Sans',
                                   fontWeight: FontWeight.w400,
@@ -1846,10 +1863,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               child: Container(
                 width: 24,
                 height: 24,
-                child: const Icon(
+                child: Icon(
                   CupertinoIcons.chevron_right,
                   size: 24,
-                  color: CupertinoColors.systemGrey,
+                  color: ThemeHelper.textSecondary,
                 ),
               ),
             ),
@@ -1910,7 +1927,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               // App icon and name
               Row(
                 children: [
-                  Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                  Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
                   const SizedBox(width: 6),
                   Text(
                     l10n.kalorina,
@@ -2044,7 +2061,7 @@ class CircleProgressPainter extends CustomPainter {
 
     // Background circle (light grey outline)
     final backgroundPaint = Paint()
-      ..color = CupertinoColors.systemGrey5
+      ..color = ThemeHelper.divider
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
@@ -2082,7 +2099,7 @@ class DashedCirclePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = CupertinoColors.systemGrey4
+      ..color = ThemeHelper.divider
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 

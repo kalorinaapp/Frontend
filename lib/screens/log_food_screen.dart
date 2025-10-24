@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:shimmer/shimmer.dart';
@@ -10,6 +12,7 @@ import 'create_food_screen.dart';
 import 'edit_macro_screen.dart';
 import 'meal_details_screen.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/theme_helper.dart';
 
 class LogFoodScreen extends StatelessWidget {
   final ThemeProvider themeProvider;
@@ -190,7 +193,7 @@ class _LogFoodView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.white,
+      backgroundColor: ThemeHelper.background,
       child: SafeArea(
         child: Column(
           children: [
@@ -205,16 +208,16 @@ class _LogFoodView extends StatelessWidget {
                       'assets/icons/back.svg',
                       width: 24,
                       height: 24,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const Spacer(),
                   Text(
                     l10n.logFood,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const Spacer(),
@@ -233,7 +236,7 @@ class _LogFoodView extends StatelessWidget {
                   Container(
                     height: 1,
                     width: double.infinity,
-                    color: const Color(0xFFE8E8E8),
+                    color: ThemeHelper.divider,
                   ),
                 ],
               ),
@@ -276,21 +279,21 @@ class _LogFoodView extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: CupertinoColors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFFE8E8E8),
+                    color: ThemeHelper.cardBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: ThemeHelper.divider,
                         width: 1.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: CupertinoColors.black.withOpacity(0.06),
+                          color: ThemeHelper.textPrimary.withOpacity(0.06),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                           spreadRadius: 0,
                         ),
                         BoxShadow(
-                          color: CupertinoColors.black.withOpacity(0.03),
+                          color: ThemeHelper.textPrimary.withOpacity(0.03),
                           blurRadius: 5,
                           offset: const Offset(0, 1),
                           spreadRadius: 0,
@@ -299,23 +302,23 @@ class _LogFoodView extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           CupertinoIcons.search,
                           size: 20,
-                          color: Color(0xFF999999),
+                          color: ThemeHelper.textSecondary,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: CupertinoTextField(
                             controller: searchCtrl,
                             placeholder: placeholder,
-                            placeholderStyle: const TextStyle(
-                              color: Color(0xFF999999),
+                            placeholderStyle: TextStyle(
+                              color: ThemeHelper.textSecondary,
                               fontSize: 16,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                             decoration: const BoxDecoration(),
                             padding: EdgeInsets.zero,
@@ -330,12 +333,12 @@ class _LogFoodView extends StatelessWidget {
                                 onTap: () {
                                   searchCtrl.clear();
                                 },
-                                child: const Padding(
+                                child: Padding(
                                   padding: EdgeInsets.only(left: 8),
                                   child: Icon(
                                     CupertinoIcons.clear_circled_solid,
                                     size: 20,
-                                    color: Color(0xFF999999),
+                                    color: ThemeHelper.textSecondary,
                                   ),
                                 ),
                               );
@@ -370,21 +373,21 @@ class _LogFoodView extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: CupertinoColors.white,
+                color: ThemeHelper.cardBackground,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFFE8E8E8),
+                  color: ThemeHelper.divider,
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CupertinoColors.black.withOpacity(0.08),
+                    color: ThemeHelper.textPrimary.withOpacity(0.08),
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                     spreadRadius: 0,
                   ),
                   BoxShadow(
-                    color: CupertinoColors.black.withOpacity(0.04),
+                    color: ThemeHelper.textPrimary.withOpacity(0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                     spreadRadius: 0,
@@ -396,10 +399,10 @@ class _LogFoodView extends StatelessWidget {
                 children: [
                   Text(
                     l10n.suggestions,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -416,9 +419,9 @@ class _LogFoodView extends StatelessWidget {
                             ? Center(
                                 child: Text(
                                   l10n.noSuggestionsAvailable,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
-                                    color: Color(0xFF999999),
+                                    color: ThemeHelper.textSecondary,
                                   ),
                                 ),
                               )
@@ -471,9 +474,9 @@ class _LogFoodView extends StatelessWidget {
                         ? Center(
                             child: Text(
                               l10n.noMealsSavedYet,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
-                                color: Color(0xFF999999),
+                                color: ThemeHelper.textSecondary,
                               ),
                             ),
                           )
@@ -512,8 +515,8 @@ class _LogFoodView extends StatelessWidget {
 
   Widget _buildShimmerItem() {
     return Shimmer.fromColors(
-      baseColor: const Color(0xFFE8E8E8),
-      highlightColor: const Color(0xFFF5F5F5),
+      baseColor: ThemeHelper.divider,
+      highlightColor: ThemeHelper.cardBackground,
       child: Row(
         children: [
           // Flame icon placeholder
@@ -521,7 +524,7 @@ class _LogFoodView extends StatelessWidget {
             width: 16,
             height: 16,
             decoration: BoxDecoration(
-              color: CupertinoColors.white,
+              color: ThemeHelper.background,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -581,21 +584,21 @@ class _LogFoodView extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFE8E8E8),
+            color: ThemeHelper.divider,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.06),
+              color: ThemeHelper.textPrimary.withOpacity(0.06),
               blurRadius: 8,
               offset: const Offset(0, 2),
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.03),
+              color: ThemeHelper.textPrimary.withOpacity(0.03),
               blurRadius: 4,
               offset: const Offset(0, 1),
               spreadRadius: 0,
@@ -605,7 +608,7 @@ class _LogFoodView extends StatelessWidget {
         child: Row(
           children: [
             // Flame icon
-            Image.asset('assets/icons/flame_black.png', width: 16, height: 16),
+            Image.asset('assets/icons/flame_black.png', width: 16, height: 16, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
             const SizedBox(width: 8),
             
             // Content
@@ -615,18 +618,18 @@ class _LogFoodView extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$calories ${l10n.calories}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF666666),
+                      color: ThemeHelper.textSecondary,
                     ),
                   ),
                 ],
@@ -634,10 +637,10 @@ class _LogFoodView extends StatelessWidget {
             ),
             
             // Arrow icon
-            const Icon(
+            Icon(
               CupertinoIcons.chevron_right,
               size: 16,
-              color: Color(0xFF999999),
+              color: ThemeHelper.textSecondary,
             ),
           ],
         ),
@@ -657,21 +660,21 @@ class _LogFoodView extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFE8E8E8),
+            color: ThemeHelper.divider,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.06),
+              color: ThemeHelper.textPrimary.withOpacity(0.06),
               blurRadius: 8,
               offset: const Offset(0, 2),
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.03),
+              color: ThemeHelper.textPrimary.withOpacity(0.03),
               blurRadius: 4,
               offset: const Offset(0, 1),
               spreadRadius: 0,
@@ -681,7 +684,7 @@ class _LogFoodView extends StatelessWidget {
         child: Row(
           children: [
             // Flame icon
-            Image.asset('assets/icons/flame_black.png', width: 16, height: 16),
+            Image.asset('assets/icons/flame_black.png', width: 16, height: 16, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
             const SizedBox(width: 8),
             
             // Content
@@ -691,18 +694,18 @@ class _LogFoodView extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$calories ${l10n.calories}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF666666),
+                      color: ThemeHelper.textSecondary,
                     ),
                   ),
                 ],
@@ -710,10 +713,10 @@ class _LogFoodView extends StatelessWidget {
             ),
             
             // Arrow icon
-            const Icon(
+            Icon(
               CupertinoIcons.chevron_right,
               size: 16,
-              color: Color(0xFF999999),
+              color: ThemeHelper.textSecondary,
             ),
           ],
         ),
@@ -731,7 +734,7 @@ class _LogFoodView extends StatelessWidget {
     return Row(
       children: [
         // Flame icon
-        Image.asset('assets/icons/flame_black.png', width: 16, height: 16),
+        Image.asset('assets/icons/flame_black.png', width: 16, height: 16, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
         const SizedBox(width: 8),
         
         // Content
@@ -741,18 +744,18 @@ class _LogFoodView extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 '$calories calories',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF666666),
+                  color: ThemeHelper.textSecondary,
                 ),
               ),
             ],
@@ -766,26 +769,26 @@ class _LogFoodView extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: CupertinoColors.white,
+              color: ThemeHelper.cardBackground,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: CupertinoColors.black.withOpacity(0.15),
+                  color: ThemeHelper.textPrimary.withOpacity(0.15),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: CupertinoColors.black.withOpacity(0.08),
+                  color: ThemeHelper.textPrimary.withOpacity(0.08),
                   blurRadius: 3,
                   offset: const Offset(0, 1),
                   spreadRadius: 0,
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               CupertinoIcons.add,
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
               size: 18,
             ),
           ),
@@ -816,7 +819,7 @@ class _LogFoodView extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: isSelected ? CupertinoColors.black : const Color(0x00000000),
+                    color: isSelected ? ThemeHelper.textPrimary : const Color(0x00000000),
                     width: 2,
                   ),
                 ),
@@ -826,7 +829,7 @@ class _LogFoodView extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? CupertinoColors.black : const Color(0xFF999999),
+                  color: isSelected ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
                 ),
               ),
             ),
@@ -881,9 +884,9 @@ class _LogFoodView extends StatelessWidget {
                         ? Center(
                             child: Text(
                               l10n.noFoodsCreatedYet,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
-                                color: Color(0xFF999999),
+                                color: ThemeHelper.textSecondary,
                               ),
                             ),
                           )
@@ -915,22 +918,22 @@ class _LogFoodView extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: CupertinoColors.white,
-              border: const Border(
+              color: ThemeHelper.background,
+              border: Border(
                 top: BorderSide(
-                  color: Color(0xFFE8E8E8),
+                  color: ThemeHelper.divider,
                   width: 1,
                 ),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: CupertinoColors.black.withOpacity(0.05),
+                  color: ThemeHelper.textPrimary.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: CupertinoColors.black.withOpacity(0.02),
+                  color: ThemeHelper.textPrimary.withOpacity(0.02),
                   blurRadius: 5,
                   offset: const Offset(0, -1),
                   spreadRadius: 0,
@@ -970,21 +973,21 @@ class _LogFoodView extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(
-                    color: const Color(0xFFE8E8E8),
+                    color: ThemeHelper.divider,
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.08),
+                      color: ThemeHelper.textPrimary.withOpacity(0.08),
                       blurRadius: 12,
                       offset: const Offset(0, 3),
                       spreadRadius: 0,
                     ),
                     BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.04),
+                      color: ThemeHelper.textPrimary.withOpacity(0.04),
                       blurRadius: 6,
                       offset: const Offset(0, 1),
                       spreadRadius: 0,
@@ -994,10 +997,10 @@ class _LogFoodView extends StatelessWidget {
                 child: Text(
                   l10n.createFood,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.background,
                   ),
                 ),
               ), // Close inner Container
@@ -1036,8 +1039,8 @@ class _LogFoodView extends StatelessWidget {
                 child: Text(
                   l10n.yourSavedScansWillAppearHere,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xB21E1822),
+                  style: TextStyle(
+                    color: ThemeHelper.textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1081,9 +1084,9 @@ class _LogFoodView extends StatelessWidget {
         Center(
           child: Text(
             l10n.savedScansContentComingSoon,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Color(0xFF999999),
+              color: ThemeHelper.textSecondary,
             ),
           ),
         ),
@@ -1115,7 +1118,7 @@ class _LogFoodView extends StatelessWidget {
                   child: Icon(
                     CupertinoIcons.bookmark,
                     size: 24,
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                   ),
                 ),
                 
@@ -1124,21 +1127,21 @@ class _LogFoodView extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFFE8E8E8),
+                color: ThemeHelper.cardBackground,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: ThemeHelper.divider,
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.08),
+                        color: ThemeHelper.textPrimary.withOpacity(0.08),
                         blurRadius: 15,
                         offset: const Offset(0, 4),
                         spreadRadius: 0,
                       ),
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.04),
+                        color: ThemeHelper.textPrimary.withOpacity(0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                         spreadRadius: 0,
@@ -1148,22 +1151,22 @@ class _LogFoodView extends StatelessWidget {
                   child: CupertinoTextField(
                     controller: controller.foodNameController,
                     placeholder: l10n.editName,
-                    placeholderStyle: const TextStyle(
-                      color: Color(0xFF999999),
+                    placeholderStyle: TextStyle(
+                      color: ThemeHelper.textSecondary,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                     decoration: const BoxDecoration(),
                     padding: EdgeInsets.zero,
-                    suffix: const Icon(
+                    suffix: Icon(
                       CupertinoIcons.pencil,
                       size: 20,
-                      color: Color(0xFF666666),
+                      color: ThemeHelper.textSecondary,
                     ),
                   ),
                 ),
@@ -1173,21 +1176,21 @@ class _LogFoodView extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFFE8E8E8),
+                color: ThemeHelper.cardBackground,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: ThemeHelper.divider,
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.08),
+                        color: ThemeHelper.textPrimary.withOpacity(0.08),
                         blurRadius: 15,
                         offset: const Offset(0, 4),
                         spreadRadius: 0,
                       ),
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.04),
+                        color: ThemeHelper.textPrimary.withOpacity(0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                         spreadRadius: 0,
@@ -1196,7 +1199,7 @@ class _LogFoodView extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Image.asset('assets/icons/flame_black.png', width: 28, height: 28),
+                      Image.asset('assets/icons/flame_black.png', width: 28, height: 28, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
@@ -1204,9 +1207,9 @@ class _LogFoodView extends StatelessWidget {
                           children: [
                             Text(
                               l10n.caloriesLabel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: Color(0xFF666666),
+                                color: ThemeHelper.textSecondary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -1214,15 +1217,15 @@ class _LogFoodView extends StatelessWidget {
                               controller: controller.caloriesController,
                               placeholder: l10n.caloriesPlaceholder,
                               keyboardType: TextInputType.number,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: CupertinoColors.black,
+                                color: ThemeHelper.textPrimary,
                               ),
-                              placeholderStyle: const TextStyle(
+                              placeholderStyle: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF999999),
+                                color: ThemeHelper.textSecondary,
                               ),
                               decoration: const BoxDecoration(),
                               padding: EdgeInsets.zero,
@@ -1283,10 +1286,10 @@ class _LogFoodView extends StatelessWidget {
                   children: [
                     Text(
                       l10n.ingredients,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     Builder(
@@ -1297,15 +1300,15 @@ class _LogFoodView extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: CupertinoColors.white,
+                            color: ThemeHelper.cardBackground,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: const Color(0xFFE8E8E8),
+                              color: ThemeHelper.divider,
                               width: 1.5,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: CupertinoColors.black.withOpacity(0.06),
+                                color: ThemeHelper.textPrimary.withOpacity(0.06),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                                 spreadRadius: 0,
@@ -1317,17 +1320,17 @@ class _LogFoodView extends StatelessWidget {
                             children: [
                               Text(
                                 l10n.addMore,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ),
                               SizedBox(width: 4),
                               Icon(
                                 CupertinoIcons.pencil,
                                 size: 14,
-                                color: CupertinoColors.black,
+                                color: ThemeHelper.textPrimary,
                               ),
                             ],
                           ),
@@ -1368,10 +1371,10 @@ class _LogFoodView extends StatelessWidget {
                       children: [
                         Text(
                           l10n.amount,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: CupertinoColors.black,
+                            color: ThemeHelper.textPrimary,
                           ),
                         ),
                         GestureDetector(
@@ -1381,15 +1384,15 @@ class _LogFoodView extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: CupertinoColors.white,
+                              color: ThemeHelper.cardBackground,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: const Color(0xFFE8E8E8),
+                                color: ThemeHelper.divider,
                                 width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: CupertinoColors.black.withOpacity(0.06),
+                                  color: ThemeHelper.textPrimary.withOpacity(0.06),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                   spreadRadius: 0,
@@ -1401,17 +1404,17 @@ class _LogFoodView extends StatelessWidget {
                               children: [
                                 Text(
                                   '$amount',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: CupertinoColors.black,
+                                    color: ThemeHelper.textPrimary,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                const Icon(
+                                Icon(
                                   CupertinoIcons.pencil,
                                   size: 14,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ],
                             ),
@@ -1441,22 +1444,22 @@ class _LogFoodView extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: controller.isSavingDirectInput.value ? CupertinoColors.systemGrey : CupertinoColors.black,
+                  color: controller.isSavingDirectInput.value ? CupertinoColors.systemGrey : ThemeHelper.textPrimary,
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: controller.isSavingDirectInput.value
-                    ? const Center(
+                    ? Center(
                         child: CupertinoActivityIndicator(
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.background,
                         ),
                       )
                     : Text(
                         l10n.saveFood,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.background,
                         ),
                       ),
               ),
@@ -1490,8 +1493,8 @@ class _LogFoodView extends StatelessWidget {
       builder: (BuildContext context) => Container(
         height: 300,
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
+        decoration: BoxDecoration(
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
@@ -1502,10 +1505,10 @@ class _LogFoodView extends StatelessWidget {
             // Title
             Text(
               l10n.enterAmount,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
             ),
             const SizedBox(height: 20),
@@ -1518,7 +1521,7 @@ class _LogFoodView extends StatelessWidget {
               style: const TextStyle(fontSize: 16),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: const Color(0xFFE8E8E8),
+                  color: ThemeHelper.divider,
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(8),
@@ -1545,7 +1548,7 @@ class _LogFoodView extends StatelessWidget {
                 ),
                 Expanded(
                   child: CupertinoButton(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     onPressed: () {
                       final value = int.tryParse(amountController.text);
                       if (value != null && value > 0) {
@@ -1555,7 +1558,7 @@ class _LogFoodView extends StatelessWidget {
                     },
                     child: Text(
                       l10n.save,
-                      style: const TextStyle(color: CupertinoColors.white),
+                      style: TextStyle(color: ThemeHelper.background),
                     ),
                   ),
                 ),
@@ -1572,21 +1575,21 @@ class _LogFoodView extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFFE8E8E8),
+            color: ThemeHelper.divider,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.08),
+              color: ThemeHelper.textPrimary.withOpacity(0.08),
               blurRadius: 15,
               offset: const Offset(0, 4),
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.04),
+              color: ThemeHelper.textPrimary.withOpacity(0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
               spreadRadius: 0,
@@ -1631,7 +1634,7 @@ class _LogFoodView extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                 ),
               ),
             ),
@@ -1647,22 +1650,22 @@ class _LogFoodView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: CupertinoColors.white,
-        border: const Border(
+        color: ThemeHelper.background,
+        border: Border(
           top: BorderSide(
-            color: Color(0xFFE8E8E8),
+            color: ThemeHelper.divider,
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.05),
+            color: ThemeHelper.textPrimary.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.02),
+            color: ThemeHelper.textPrimary.withOpacity(0.02),
             blurRadius: 5,
             offset: const Offset(0, -1),
             spreadRadius: 0,
@@ -1712,13 +1715,13 @@ class _LogFoodView extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: CupertinoColors.black.withOpacity(0.08),
+                color: ThemeHelper.textPrimary.withOpacity(0.08),
                 blurRadius: 12,
                 offset: const Offset(0, 3),
                 spreadRadius: 0,
               ),
               BoxShadow(
-                color: CupertinoColors.black.withOpacity(0.04),
+                color: ThemeHelper.textPrimary.withOpacity(0.04),
                 blurRadius: 6,
                 offset: const Offset(0, 1),
                 spreadRadius: 0,
@@ -1741,13 +1744,13 @@ class _LogFoodView extends StatelessWidget {
 
   Widget _buildShimmerMealCard() {
     return Shimmer.fromColors(
-      baseColor: const Color(0xFFE8E8E8),
-      highlightColor: const Color(0xFFF5F5F5),
+      baseColor: ThemeHelper.divider,
+      highlightColor: ThemeHelper.cardBackground,
       child: Container(
         width: double.infinity,
         height: 120,
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: ThemeHelper.background,
           borderRadius: BorderRadius.circular(15),
         ),
       ),
@@ -1783,12 +1786,12 @@ class _LogFoodView extends StatelessWidget {
       child: Container(
       width: double.infinity,
       height: 120,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF8F7FC),
+      decoration: BoxDecoration(
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.all(Radius.circular(15)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x33000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.2),
             blurRadius: 3,
             offset: Offset(0, 0),
             spreadRadius: 0,
@@ -1805,7 +1808,7 @@ class _LogFoodView extends StatelessWidget {
               child: Container(
                 width: 96,
                 height: 96,
-                color: CupertinoColors.white,
+                color: ThemeHelper.background,
                 child: imageUrl != null && imageUrl.isNotEmpty
                     ? CachedNetworkImage(
                         imageUrl: imageUrl,
@@ -1839,8 +1842,8 @@ class _LogFoodView extends StatelessWidget {
                           mealName != null && mealName.isNotEmpty ? mealName : l10n.scannedMeal,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF1E1822),
+                          style: TextStyle(
+                            color: ThemeHelper.textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1849,12 +1852,12 @@ class _LogFoodView extends StatelessWidget {
                       if (timeString.isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: const BoxDecoration(
-                            color: CupertinoColors.white,
+                          decoration: BoxDecoration(
+                            color: ThemeHelper.background,
                             borderRadius: BorderRadius.all(Radius.circular(12)),
                             boxShadow: [
                               BoxShadow(
-                                color: Color(0x33000000),
+                                color: ThemeHelper.textPrimary.withOpacity(0.2),
                                 blurRadius: 3,
                                 offset: Offset(0, 0),
                                 spreadRadius: 0,
@@ -1863,8 +1866,8 @@ class _LogFoodView extends StatelessWidget {
                           ),
                           child: Text(
                             timeString,
-                            style: const TextStyle(
-                              color: Color(0xFF1E1822),
+                            style: TextStyle(
+                              color: ThemeHelper.textPrimary,
                               fontSize: 9,
                               fontWeight: FontWeight.w400,
                             ),
@@ -1917,12 +1920,12 @@ class _LogFoodView extends StatelessWidget {
     return Container(
       width: 70,
       height: 30,
-      decoration: const BoxDecoration(
-        color: CupertinoColors.white,
+      decoration: BoxDecoration(
+        color: ThemeHelper.background,
         borderRadius: BorderRadius.all(Radius.circular(6)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x3F000000),
+            color: ThemeHelper.textPrimary.withOpacity(0.25),
             blurRadius: 5,
             offset: Offset(0, 0),
             spreadRadius: 1,
@@ -1945,16 +1948,16 @@ class _LogFoodView extends StatelessWidget {
               children: [
                 Text(
                   '$value g',
-                  style: const TextStyle(
-                    color: Color(0xE61E1822),
+                  style: TextStyle(
+                    color: ThemeHelper.textPrimary,
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: Color(0xB21E1822),
+                  style: TextStyle(
+                    color: ThemeHelper.textPrimary,
                     fontSize: 7,
                     fontWeight: FontWeight.w400,
                   ),
@@ -1985,15 +1988,15 @@ class _LogFoodView extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFE8E8E8),
+            color: ThemeHelper.divider,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.04),
+              color: ThemeHelper.textPrimary.withOpacity(0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
               spreadRadius: 0,
@@ -2008,20 +2011,20 @@ class _LogFoodView extends StatelessWidget {
                 Expanded(
                   child: Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                 ),
                 if (quantity.isNotEmpty && unit.isNotEmpty)
                   Text(
                     '$quantity $unit',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF666666),
+                      color: ThemeHelper.textSecondary,
                     ),
                   ),
                 const SizedBox(width: 8),
@@ -2029,10 +2032,10 @@ class _LogFoodView extends StatelessWidget {
                   onTap: () {
                     controller.removeDirectInputIngredient(ingredient);
                   },
-                  child: const Icon(
+                  child: Icon(
                     CupertinoIcons.xmark_circle_fill,
                     size: 20,
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                   ),
                 ),
               ],
@@ -2062,19 +2065,19 @@ class _LogFoodView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: CupertinoColors.white,
+        color: ThemeHelper.background,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: CupertinoColors.black,
+          color: ThemeHelper.textPrimary,
           width: 1,
         ),
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: CupertinoColors.black,
+          color: ThemeHelper.textPrimary,
         ),
       ),
     );
@@ -2120,8 +2123,8 @@ class _LogFoodView extends StatelessWidget {
       context: context,
       builder: (BuildContext context) => Container(
         height: MediaQuery.of(context).size.height * 0.75,
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
+        decoration: BoxDecoration(
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
@@ -2132,10 +2135,10 @@ class _LogFoodView extends StatelessWidget {
             // Header
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: Color(0xFFE8E8E8),
+                    color: ThemeHelper.divider,
                     width: 1,
                   ),
                 ),
@@ -2155,11 +2158,11 @@ class _LogFoodView extends StatelessWidget {
                   const Spacer(),
                   Text(
                     isEditing ? l10n.editIngredient : l10n.addIngredient,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: CupertinoColors.black,
-                    ),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: ThemeHelper.textPrimary,
+                      ),
                   ),
                   const Spacer(),
                   GestureDetector(
@@ -2201,10 +2204,10 @@ class _LogFoodView extends StatelessWidget {
                     },
                     child: Text(
                       isEditing ? l10n.save : l10n.add,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                   ),
@@ -2222,28 +2225,28 @@ class _LogFoodView extends StatelessWidget {
                     // Name Field (Mandatory)
                     Text(
                       l10n.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
                     CupertinoTextField(
                       controller: nameController,
                       placeholder: l10n.enterIngredientName,
-                      placeholderStyle: const TextStyle(
-                        color: Color(0xFF999999),
+                      placeholderStyle: TextStyle(
+                        color: ThemeHelper.textSecondary,
                         fontSize: 16,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.background,
                         border: Border.all(
-                          color: const Color(0xFFE8E8E8),
+                          color: ThemeHelper.divider,
                           width: 1.5,
                         ),
                         borderRadius: BorderRadius.circular(12),
@@ -2256,10 +2259,10 @@ class _LogFoodView extends StatelessWidget {
                     // Quantity Section
                     Text(
                       l10n.quantityUnit,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -2271,18 +2274,18 @@ class _LogFoodView extends StatelessWidget {
                             controller: quantityController,
                             placeholder: l10n.amountPlaceholder,
                             keyboardType: TextInputType.number,
-                            placeholderStyle: const TextStyle(
-                              color: Color(0xFF999999),
+                            placeholderStyle: TextStyle(
+                              color: ThemeHelper.textSecondary,
                               fontSize: 16,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                             decoration: BoxDecoration(
                               color: CupertinoColors.white,
                               border: Border.all(
-                                color: const Color(0xFFE8E8E8),
+                                color: ThemeHelper.divider,
                                 width: 1.5,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -2296,18 +2299,18 @@ class _LogFoodView extends StatelessWidget {
                           child: CupertinoTextField(
                             controller: unitController,
                             placeholder: l10n.unitPlaceholder,
-                            placeholderStyle: const TextStyle(
-                              color: Color(0xFF999999),
+                            placeholderStyle: TextStyle(
+                              color: ThemeHelper.textSecondary,
                               fontSize: 16,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                             decoration: BoxDecoration(
                               color: CupertinoColors.white,
                               border: Border.all(
-                                color: const Color(0xFFE8E8E8),
+                                color: ThemeHelper.divider,
                                 width: 1.5,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -2323,10 +2326,10 @@ class _LogFoodView extends StatelessWidget {
                     // Nutrition Information
                     Text(
                       l10n.nutritionOptional,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -2336,18 +2339,18 @@ class _LogFoodView extends StatelessWidget {
                       controller: caloriesController,
                       placeholder: l10n.caloriesPlaceholder2,
                       keyboardType: TextInputType.number,
-                      placeholderStyle: const TextStyle(
-                        color: Color(0xFF999999),
+                      placeholderStyle: TextStyle(
+                        color: ThemeHelper.textSecondary,
                         fontSize: 16,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.background,
                         border: Border.all(
-                          color: const Color(0xFFE8E8E8),
+                          color: ThemeHelper.divider,
                           width: 1.5,
                         ),
                         borderRadius: BorderRadius.circular(12),
@@ -2365,18 +2368,18 @@ class _LogFoodView extends StatelessWidget {
                             controller: proteinController,
                             placeholder: l10n.proteinG,
                             keyboardType: TextInputType.number,
-                            placeholderStyle: const TextStyle(
-                              color: Color(0xFF999999),
+                            placeholderStyle: TextStyle(
+                              color: ThemeHelper.textSecondary,
                               fontSize: 16,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                             decoration: BoxDecoration(
                               color: CupertinoColors.white,
                               border: Border.all(
-                                color: const Color(0xFFE8E8E8),
+                                color: ThemeHelper.divider,
                                 width: 1.5,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -2390,18 +2393,18 @@ class _LogFoodView extends StatelessWidget {
                             controller: carbsController,
                             placeholder: l10n.carbsG,
                             keyboardType: TextInputType.number,
-                            placeholderStyle: const TextStyle(
-                              color: Color(0xFF999999),
+                            placeholderStyle: TextStyle(
+                              color: ThemeHelper.textSecondary,
                               fontSize: 16,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                             decoration: BoxDecoration(
                               color: CupertinoColors.white,
                               border: Border.all(
-                                color: const Color(0xFFE8E8E8),
+                                color: ThemeHelper.divider,
                                 width: 1.5,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -2419,18 +2422,18 @@ class _LogFoodView extends StatelessWidget {
                       controller: fatController,
                       placeholder: l10n.fatG,
                       keyboardType: TextInputType.number,
-                      placeholderStyle: const TextStyle(
-                        color: Color(0xFF999999),
+                      placeholderStyle: TextStyle(
+                        color: ThemeHelper.textSecondary,
                         fontSize: 16,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.background,
                         border: Border.all(
-                          color: const Color(0xFFE8E8E8),
+                          color: ThemeHelper.divider,
                           width: 1.5,
                         ),
                         borderRadius: BorderRadius.circular(12),

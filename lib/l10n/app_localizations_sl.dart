@@ -897,5 +897,13 @@ class AppLocalizationsSl extends AppLocalizations {
       'Lahko evidentirate nize samo za danes in pretekle datume. Prihodnji datumi se bodo odklenili, ko bodo prispeli!';
 
   @override
+  String dayStreak(int count) {
+    return 'Dan $count Niz';
+  }
+
+  @override
+  String get keepGoing => 'Nadaljuj!';
+
+  @override
   String get ok => 'V redu';
 }

@@ -210,5 +210,7 @@
   "recentlyUploaded": "Kürzlich hochgeladen",
   "cannotLogFutureStreak": "Zukünftige Daten können nicht erfasst werden",
   "cannotLogFutureStreakDescription": "Sie können Streaks nur für heute und vergangene Daten erfassen. Zukünftige Daten werden freigeschaltet, sobald sie eintreffen!",
+  "dayStreak": "Tag {count} Streak",
+  "keepGoing": "Weiter so!",
   "ok": "OK"
 }
