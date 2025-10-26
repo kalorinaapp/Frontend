@@ -142,7 +142,7 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
           child: Text(
             'What is your desired weight?',
             style: ThemeHelper.title3.copyWith(
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
               fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
@@ -157,7 +157,7 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey6,
+              color: ThemeHelper.cardBackground,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -170,13 +170,13 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(
-                      color: _isLbs ? CupertinoColors.white : CupertinoColors.systemGrey6,
+                      color: _isLbs ? ThemeHelper.background : ThemeHelper.cardBackground,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       'lbs',
                       style: ThemeHelper.headline.copyWith(
-                        color: _isLbs ? CupertinoColors.black : CupertinoColors.systemGrey,
+                        color: _isLbs ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -190,13 +190,13 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(
-                      color: !_isLbs ? CupertinoColors.white : CupertinoColors.systemGrey6,
+                      color: !_isLbs ? ThemeHelper.background : ThemeHelper.cardBackground,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       'Kg',
                       style: ThemeHelper.headline.copyWith(
-                        color: !_isLbs ? CupertinoColors.black : CupertinoColors.systemGrey,
+                        color: !_isLbs ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -214,7 +214,7 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
           child: Text(
             _getGoalText(),
             style: ThemeHelper.body1.copyWith(
-              color: CupertinoColors.systemGrey,
+              color: ThemeHelper.textSecondary,
               fontSize: 16,
             ),
           ),
@@ -227,7 +227,7 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
           child: Text(
             _formatWeight(_currentWeight),
             style: ThemeHelper.title1.copyWith(
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
               fontSize: 48,
               fontWeight: FontWeight.bold,
             ),
@@ -279,7 +279,7 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
                         child: Container(
                           width: 1,
                           height: tickHeight,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                         ),
                       );
                     }),
@@ -295,8 +295,8 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              CupertinoColors.systemGrey.withOpacity(0.8), // Darker at top
-                              CupertinoColors.systemGrey.withOpacity(0.5), // Lighter at bottom
+                              ThemeHelper.textSecondary.withOpacity(0.8), // Darker at top
+                              ThemeHelper.textSecondary.withOpacity(0.5), // Lighter at bottom
                             ],
                           ),
                           borderRadius: BorderRadius.circular(1.5),
@@ -311,7 +311,7 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
                         width: 2,
                         height: 75, // Extended height
                         decoration: BoxDecoration(
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                           borderRadius: BorderRadius.circular(1),
                         ),
                       ),

@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:math';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../../providers/theme_provider.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../utils/theme_helper.dart';
 
 class CalorieTransferPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -79,6 +80,7 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
   Widget build(BuildContext context) {
     super.build(context);
 
+    final l10n = AppLocalizations.of(context)!;
     final int yesterdayGoal = _calculateDailyCalorieGoal();
     final int transferableCalories = _calculateTransferableCalories();
     final int todayGoal = yesterdayGoal + transferableCalories;
@@ -94,7 +96,7 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
     return Container(
       width: 393,
       height: 852,
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: ThemeHelper.background),
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -107,10 +109,10 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
               SizedBox(
                 width: 339,
                 child: Text(
-                  'Prebaci dodatne kalorije na sljedeći dan?',
+                  l10n.transferExtraCaloriesToNextDay,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: const Color(0xFF1E1822),
+                    color: ThemeHelper.textPrimary,
                     fontSize: 30,
                     fontFamily: 'Instrument Sans',
                     fontWeight: FontWeight.w600,
@@ -124,10 +126,10 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
               SizedBox(
                 width: 311,
                 child: Text(
-                  '(Recommended)',
+                  l10n.recommended,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: const Color(0xFF1E1822),
+                    color: ThemeHelper.textPrimary,
                     fontSize: 20,
                     fontFamily: 'Instrument Sans',
                     fontWeight: FontWeight.w600,
@@ -144,13 +146,15 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                   width: 274,
                   height: 176,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: ThemeHelper.cardBackground,
                     borderRadius: BorderRadius.circular(15),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x3F000000),
+                        color: ThemeHelper.isLightMode
+                            ? const Color(0x3F000000)
+                            : CupertinoColors.black.withOpacity(0.3),
                         blurRadius: 4,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                         spreadRadius: 0,
                       ),
                     ],
@@ -170,9 +174,9 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Yesterday',
+                            l10n.yesterday,
                             style: TextStyle(
-                              color: const Color(0xFF1E1822),
+                              color: ThemeHelper.textPrimary,
                               fontSize: 16,
                               fontFamily: 'Instrument Sans',
                               fontWeight: FontWeight.w500,
@@ -187,7 +191,7 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                       Text(
                         '$yesterdayEaten/$yesterdayGoal',
                         style: TextStyle(
-                          color: const Color(0xFF1E1822),
+                          color: ThemeHelper.textPrimary,
                           fontSize: 32,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.bold,
@@ -202,9 +206,9 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                           Container(
                             width: 175,
                             height: 6,
-                            decoration: const ShapeDecoration(
-                              color: Color(0x261E1822),
-                              shape: RoundedRectangleBorder(
+                            decoration: ShapeDecoration(
+                              color: ThemeHelper.divider,
+                              shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(25)),
                               ),
                             ),
@@ -226,9 +230,9 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                       
                       // Calories left text
                       Text(
-                        'Calories Left',
+                        l10n.caloriesLeft,
                         style: TextStyle(
-                          color: const Color(0xFF1E1822),
+                          color: ThemeHelper.textPrimary,
                           fontSize: 14,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,
@@ -249,13 +253,15 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                   width: 274,
                   height: 178,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: ThemeHelper.cardBackground,
                     borderRadius: BorderRadius.circular(15),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x3F000000),
+                        color: ThemeHelper.isLightMode
+                            ? const Color(0x3F000000)
+                            : CupertinoColors.black.withOpacity(0.3),
                         blurRadius: 4,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                         spreadRadius: 0,
                       ),
                     ],
@@ -275,9 +281,9 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Today',
+                            l10n.today,
                             style: TextStyle(
-                              color: const Color(0xFF1E1822),
+                              color: ThemeHelper.textPrimary,
                               fontSize: 16,
                               fontFamily: 'Instrument Sans',
                               fontWeight: FontWeight.w500,
@@ -308,9 +314,9 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                           Container(
                             width: 175,
                             height: 6,
-                            decoration: const ShapeDecoration(
-                              color: Color(0x261E1822),
-                              shape: RoundedRectangleBorder(
+                            decoration: ShapeDecoration(
+                              color: ThemeHelper.divider,
+                              shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(25)),
                               ),
                             ),
@@ -338,8 +344,8 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                                 ),
                                 child: Text(
                                   '+$transferableCalories',
-                                  style: TextStyle(
-                                    color: const Color(0xFF0CC0DF),
+                                  style: const TextStyle(
+                                    color: Color(0xFF0CC0DF),
                                     fontSize: 12,
                                     fontFamily: 'Instrument Sans',
                                     fontWeight: FontWeight.w600,
@@ -354,9 +360,9 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                       
                       // Calories left text
                       Text(
-                        'Calories Left',
+                        l10n.caloriesLeft,
                         style: TextStyle(
-                          color: const Color(0xFF1E1822),
+                          color: ThemeHelper.textPrimary,
                           fontSize: 14,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,

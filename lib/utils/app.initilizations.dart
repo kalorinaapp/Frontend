@@ -42,6 +42,10 @@ class AppInitializationMethods with RefreshToken {
     // Enable debug logs before calling `configure`.
     await Purchases.setLogLevel(LogLevel.debug);
 
+    print('===== REVENUECAT API KEY =====');
+    print('API Key: ${EntitleMents.appleApiKey}');
+    print('================================');
+
     PurchasesConfiguration configuration;
 
     if (StoreConfig.isForAmazonAppstore()) {

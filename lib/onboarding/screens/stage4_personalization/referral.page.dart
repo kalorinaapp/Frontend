@@ -101,7 +101,7 @@ class _ReferralPageState extends State<ReferralPage>
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                         height: 1.2,
                       ),
                       textAlign: TextAlign.center,
@@ -115,7 +115,7 @@ class _ReferralPageState extends State<ReferralPage>
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.normal,
-                        color: CupertinoColors.systemGrey,
+                        color: ThemeHelper.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -126,7 +126,7 @@ class _ReferralPageState extends State<ReferralPage>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey6,
+                        color: ThemeHelper.cardBackground,
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Row(
@@ -138,12 +138,12 @@ class _ReferralPageState extends State<ReferralPage>
                               placeholder: l10n.influencerCode,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: CupertinoColors.black,
+                                color: ThemeHelper.textPrimary,
                                 fontWeight: FontWeight.normal,
                               ),
                               placeholderStyle: TextStyle(
                                 fontSize: 16,
-                                color: CupertinoColors.placeholderText,
+                                color: ThemeHelper.textSecondary,
                                 fontWeight: FontWeight.normal,
                               ),
                               padding: const EdgeInsets.symmetric(
@@ -197,11 +197,11 @@ class _ReferralPageState extends State<ReferralPage>
                         Image.asset('assets/icons/check.png', width: 16, height: 16),
                         const SizedBox(width: 12),
                         Text(
-                          'Applied',
+                          l10n.applied,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.normal,
-                            color: CupertinoColors.systemGrey,
+                            color: ThemeHelper.textSecondary,
                           ),
                         ),
                       ],

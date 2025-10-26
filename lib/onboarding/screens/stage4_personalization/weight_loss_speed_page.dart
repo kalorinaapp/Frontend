@@ -90,7 +90,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
           Text(
             'Pick your weight loss speed',
             style: ThemeHelper.title1.copyWith(
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
               fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
@@ -103,7 +103,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
           Text(
             _formatSpeed(_currentSpeed),
             style: ThemeHelper.title2.copyWith(
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
               fontSize: 24,
               fontWeight: FontWeight.w500,
             ),
@@ -129,7 +129,12 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                       child: Column(
                         children: [
                           // Slow icon placeholder
-                          Image.asset('assets/icons/slow.png', width: 36, height: 36),
+                          Image.asset(
+                            'assets/icons/slow.png',
+                            width: 36,
+                            height: 36,
+                            color: ThemeHelper.textPrimary,
+                          ),
                         ],
                       ),
                     ),
@@ -141,7 +146,12 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                       child: Column(
                         children: [
                           // Medium icon placeholder
-                          Image.asset('assets/icons/fast.png', width: 36, height: 36),
+                          Image.asset(
+                            'assets/icons/fast.png',
+                            width: 36,
+                            height: 36,
+                            color: ThemeHelper.textPrimary,
+                          ),
                         ],
                       ),
                     ),
@@ -153,7 +163,12 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                       child: Column(
                         children: [
                           // Fast icon placeholder
-                          Image.asset('assets/icons/swift.png', width: 36, height: 36),
+                          Image.asset(
+                            'assets/icons/swift.png',
+                            width: 36,
+                            height: 36,
+                            color: ThemeHelper.textPrimary,
+                          ),
                         ],
                       ),
                     ),
@@ -169,7 +184,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                           Text(
                             '${_slowSpeed.toStringAsFixed(1)} kg',
                             style: ThemeHelper.body1.copyWith(
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                             ),
@@ -188,7 +203,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                           Text(
                             '${_mediumSpeed.toStringAsFixed(1)} kg',
                             style: ThemeHelper.body1.copyWith(
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                             ),
@@ -207,7 +222,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                           Text(
                             '${_fastSpeed.toStringAsFixed(1)} kg',
                             style: ThemeHelper.body1.copyWith(
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                             ),
@@ -243,8 +258,8 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                               value: _maxSpeed - _currentSpeed + _minSpeed, // Invert the value
                               min: _minSpeed,
                               max: _maxSpeed,
-                              activeColor: CupertinoColors.black, // Black slider
-                              inactiveColor: CupertinoColors.systemGrey4, // Grey track
+                              activeColor: ThemeHelper.textPrimary,
+                              inactiveColor: ThemeHelper.divider,
                               onChanged: (double value) {
                                 _updateSpeed(_maxSpeed - value + _minSpeed); // Invert the value back
                               },
@@ -275,12 +290,12 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                 debugPrint('==========================================');
                 _controller.goToNextPage();
               },
-              color: CupertinoColors.white,
+              color: ThemeHelper.cardBackground,
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: CupertinoColors.systemGrey4,
+                    color: ThemeHelper.divider,
                     width: 1,
                   ),
                   borderRadius: BorderRadius.circular(25),
@@ -289,7 +304,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                   child: Text(
                     _getSpeedLevel(),
                     style: ThemeHelper.headline.copyWith(
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

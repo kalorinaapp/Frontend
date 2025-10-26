@@ -1,9 +1,9 @@
 // ignore_for_file: deprecated_member_use
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
+import '../../../utils/theme_helper.dart';
 
 class GoalGenerationPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -89,7 +89,7 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
       listenable: widget.themeProvider,
       builder: (context, child) {
         return CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemBackground,
+          backgroundColor: ThemeHelper.background,
           // navigationBar: CupertinoNavigationBar(
           //   backgroundColor: CupertinoColors.systemBackground,
           //   border: null,
@@ -135,7 +135,7 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
                           style: TextStyle(
                             fontSize: 72,
                             fontWeight: FontWeight.bold,
-                            color: CupertinoColors.black,
+                            color: ThemeHelper.textPrimary,
                             height: 1.0,
                           ),
                           textAlign: TextAlign.center,
@@ -151,7 +151,7 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                         height: 1.2,
                       ),
                       textAlign: TextAlign.center,
@@ -164,7 +164,7 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
                       width: double.infinity,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey5,
+                        color: ThemeHelper.divider,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: AnimatedBuilder(
@@ -197,15 +197,17 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
                       width: double.infinity,
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.cardBackground,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: CupertinoColors.systemGrey4,
+                          color: ThemeHelper.divider,
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: CupertinoColors.black.withOpacity(0.05),
+                            color: ThemeHelper.isLightMode
+                                ? CupertinoColors.black.withOpacity(0.05)
+                                : CupertinoColors.black.withOpacity(0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 2),
                           ),
@@ -219,7 +221,7 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: CupertinoColors.black,
+                              color: ThemeHelper.textPrimary,
                             ),
                           ),
                           
@@ -262,7 +264,7 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.normal,
-            color: CupertinoColors.black,
+            color: ThemeHelper.textPrimary,
           ),
         ),
       ],

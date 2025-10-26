@@ -1835,6 +1835,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OK'**
   String get ok;
+
+  /// No description provided for @whatWouldYouLikeToAchieve.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to achieve?'**
+  String get whatWouldYouLikeToAchieve;
+
+  /// No description provided for @stayMotivatedAndDisciplined.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay motivated and disciplined'**
+  String get stayMotivatedAndDisciplined;
+
+  /// No description provided for @feelBetterAboutYourBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Feel better about your body'**
+  String get feelBetterAboutYourBody;
+
+  /// No description provided for @improveHealthLongTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve health long-term'**
+  String get improveHealthLongTerm;
+
+  /// No description provided for @increaseMoodAndEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase mood and energy'**
+  String get increaseMoodAndEnergy;
+
+  /// No description provided for @youHaveGreatPotential.
+  ///
+  /// In en, this message translates to:
+  /// **'You have great potential to achieve your goal'**
+  String get youHaveGreatPotential;
+
+  /// No description provided for @yourJourneyToBetterHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Your journey to better health starts now'**
+  String get yourJourneyToBetterHealth;
+
+  /// No description provided for @youTookFirstStepToHealthier.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve taken the first step towards a healthier you'**
+  String get youTookFirstStepToHealthier;
+
+  /// No description provided for @trackYourFoodAndExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your food and exercise'**
+  String get trackYourFoodAndExercise;
+
+  /// No description provided for @focusOnNutrientDenseFoods.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on nutrient-dense foods'**
+  String get focusOnNutrientDenseFoods;
+
+  /// No description provided for @maintainYourHealthyHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintain your healthy habits'**
+  String get maintainYourHealthyHabits;
+
+  /// No description provided for @balanceCarbsProteinAndFats.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance carbs, protein and fats'**
+  String get balanceCarbsProteinAndFats;
+
+  /// No description provided for @stickToYourPersonalizedPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Stick to your personalized plan'**
+  String get stickToYourPersonalizedPlan;
+
+  /// No description provided for @focusOnWholeUnprocessedFoods.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on whole, unprocessed foods'**
+  String get focusOnWholeUnprocessedFoods;
+
+  /// No description provided for @followYourPersonalizedMealPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow your personalized meal plan'**
+  String get followYourPersonalizedMealPlan;
+
+  /// No description provided for @focusOnPortionControlAndNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on portion control and nutrition'**
+  String get focusOnPortionControlAndNutrition;
+
+  /// No description provided for @followYourPersonalizedPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow your personalized plan'**
+  String get followYourPersonalizedPlan;
+
+  /// No description provided for @stayConsistentSeeRealResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay consistent, see real results'**
+  String get stayConsistentSeeRealResults;
+
+  /// No description provided for @enableNotificationsForBetterResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications for better results'**
+  String get enableNotificationsForBetterResults;
+
+  /// No description provided for @recommended.
+  ///
+  /// In en, this message translates to:
+  /// **'(Recommended)'**
+  String get recommended;
+
+  /// No description provided for @kalorinaHelpsYouKeepTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Kalorina helps you keep track — Get daily reminders'**
+  String get kalorinaHelpsYouKeepTrack;
+
+  /// No description provided for @dontAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t Allow'**
+  String get dontAllow;
+
+  /// No description provided for @allow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get allow;
+
+  /// No description provided for @countBurnedCaloriesTowardsGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Count burned calories towards your daily goal?'**
+  String get countBurnedCaloriesTowardsGoal;
+
+  /// No description provided for @todaysGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s goal:'**
+  String get todaysGoal;
+
+  /// No description provided for @stepsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps:'**
+  String get stepsLabel;
+
+  /// No description provided for @transferExtraCaloriesToNextDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer extra calories to the next day?'**
+  String get transferExtraCaloriesToNextDay;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @caloriesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories Left'**
+  String get caloriesLeft;
+
+  /// No description provided for @everydayLogFireReflect.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day, you can log your 🔥 to reflect on whether you truly achieved what you wanted. Your fires build streaks that show your consistency.'**
+  String get everydayLogFireReflect;
+
+  /// No description provided for @longLastingHealthEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll see long-lasting effects on your health'**
+  String get longLastingHealthEffects;
+
+  /// No description provided for @ninetyPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'90%'**
+  String get ninetyPercent;
+
+  /// No description provided for @usersStayConsistentMaintainWeight.
+  ///
+  /// In en, this message translates to:
+  /// **' of users who stay consistent maintain their weight even '**
+  String get usersStayConsistentMaintainWeight;
+
+  /// No description provided for @twelveMonthsLater.
+  ///
+  /// In en, this message translates to:
+  /// **'12 months later'**
+  String get twelveMonthsLater;
+
+  /// No description provided for @leaveUsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave us a review'**
+  String get leaveUsReview;
+
+  /// No description provided for @joinOver10000People.
+  ///
+  /// In en, this message translates to:
+  /// **'Join over 10,000\npeople just like you'**
+  String get joinOver10000People;
+
+  /// No description provided for @applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied'**
+  String get applied;
 }
 
 class _AppLocalizationsDelegate

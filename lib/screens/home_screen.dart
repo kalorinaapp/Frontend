@@ -40,6 +40,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final HealthProvider healthProvider = HealthProvider();
   final List<Widget> _screens = [];
+  int _currentIndex = 0;
   bool _showAddModal = false;
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
@@ -95,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final int remaining = suggestedCadence - daysSince;
     if (mounted) {
       setState(() {
-        _isWeighInDueToday = remaining >= 0; // Due today or overdue
+        _isWeighInDueToday = remaining <= 0; // Due today or overdue
       });
     }
   }
@@ -487,6 +488,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onTabTapped(int index) {
+    if (index == 2) {
+      // Center button (Add)
+      _showAddOptions();
+      return;
+    }
+    setState(() {
+      _currentIndex = index > 2 ? index - 1 : index; // Adjust for center button
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -496,93 +508,88 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, child) {
         return Stack(
           children: [
-            CupertinoTabScaffold(
-          backgroundColor: ThemeHelper.background,
-          tabBar: CupertinoTabBar(
-            height: 60,
-            backgroundColor: ThemeHelper.cardBackground.withOpacity(0.95),
-            activeColor: ThemeHelper.textPrimary,
-            inactiveColor: ThemeHelper.textSecondary,
-            border: Border(
-              top: BorderSide(
-                color: ThemeHelper.divider,
-                width: 0.5,
-              ),
-            ),
-            items: [
-              BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.home),
-                label: l10n.home,
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.pencil),
-                label: l10n.log,
-              ),
-              BottomNavigationBarItem(
-                icon: _isWeighInDueToday 
-                  ? Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Icon(CupertinoIcons.chart_bar),
-                        Positioned(
-                          right: -10,
-                          top: -2,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Icon(CupertinoIcons.chart_bar),
-                label: l10n.analytics,
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.settings),
-                label: l10n.settings,
-              ),
-            ],
-          ),
-          tabBuilder: (context, index) {
-            return Stack(
-              children: [
-                _screens[index],
-                // Floating Action Button
-                if (index == 0) // Only show on Home tab
+            CupertinoPageScaffold(
+              backgroundColor: ThemeHelper.background,
+              child: Stack(
+                children: [
+                  // Main content
+                  Positioned.fill(
+                    child: _screens[_currentIndex],
+                  ),
+                  // Custom Bottom Navigation Bar
                   Positioned(
-                    right: 20,
-                    bottom: 100, // Above the tab bar
-                    child: GestureDetector(
-                      onTap: _showAddOptions,
-                      child: Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: ThemeHelper.textPrimary,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: ThemeHelper.textPrimary.withOpacity(0.2),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: ThemeHelper.cardBackground,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0x19000000),
+                            blurRadius: 10,
+                            offset: const Offset(0, -2),
+                            spreadRadius: 0,
+                          )
+                        ],
+                      ),
+                      child: SafeArea(
+                        top: false,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildNavItem(
+                              iconAsset: 'assets/icons/home.png', // TODO: Replace with your asset name
+                              label: l10n.home,
+                              index: 0,
+                              isActive: _currentIndex == 0,
+                            ),
+                            _buildNavItem(
+                              iconAsset: 'assets/icons/pencil.png', // TODO: Replace with your asset name
+                              label: l10n.log,
+                              index: 1,
+                              isActive: _currentIndex == 1,
+                            ),
+                            // Center Add Button
+                            GestureDetector(
+                              onTap: () => _onTabTapped(2),
+                              child: Container(
+                                width: 37,
+                                height: 37,
+                                decoration: ShapeDecoration(
+                                  color: ThemeHelper.textPrimary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                ),
+                                child: Icon(
+                                  CupertinoIcons.add,
+                                  color: ThemeHelper.background,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                            _buildNavItem(
+                              iconAsset: 'assets/icons/graph.png', // TODO: Replace with your asset name
+                              label: 'Progress',
+                              index: 3,
+                              isActive: _currentIndex == 2,
+                              showDot: _isWeighInDueToday,
+                            ),
+                            _buildNavItem(
+                              iconAsset: 'assets/icons/settings.png', // TODO: Replace with your asset name
+                              label: l10n.settings,
+                              index: 4,
+                              isActive: _currentIndex == 3,
                             ),
                           ],
-                        ),
-                        child: Icon(
-                          CupertinoIcons.add,
-                          color: ThemeHelper.background,
-                          size: 24,
                         ),
                       ),
                     ),
                   ),
-              ],
-            );
-          },
+                ],
+              ),
             ),
             // Add Options Modal
             if (_showAddModal) _buildAddOptionsModal(),
@@ -738,6 +745,66 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required String iconAsset,
+    required String label,
+    required int index,
+    required bool isActive,
+    bool showDot = false,
+  }) {
+    return GestureDetector(
+      onTap: () => _onTabTapped(index),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Image.asset(
+                  iconAsset,
+                  width: 20,
+                  height: 20,
+                  color: isActive 
+                      ? ThemeHelper.textPrimary 
+                      : ThemeHelper.textSecondary,
+                ),
+                if (showDot)
+                  Positioned(
+                    right: -4,
+                    top: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isActive 
+                    ? ThemeHelper.textPrimary 
+                    : ThemeHelper.textSecondary,
+                fontSize: 8,
+                fontFamily: 'Instrument Sans',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

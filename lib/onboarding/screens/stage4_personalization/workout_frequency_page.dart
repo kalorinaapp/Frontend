@@ -36,7 +36,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
             child: Text(
               'Koliko treninga radiš tjedno',
               style: ThemeHelper.title1.copyWith(
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -48,7 +48,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey6,
+              color: ThemeHelper.cardBackground,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -56,7 +56,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                 'Odaberite opciju koja vam najviše odgovara',
                 style: ThemeHelper.caption1.copyWith(
                   fontSize: 13,
-                  color: CupertinoColors.systemGrey,
+                  color: ThemeHelper.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -80,12 +80,12 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('workout_frequency') == '0' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('workout_frequency') == '0'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -100,8 +100,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                           width: 24,
                           height: 24,
                           color: _controller.getStringData('workout_frequency') == '0'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
+                              ? ThemeHelper.background
+                              : ThemeHelper.textPrimary,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -112,8 +112,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                             '0',
                             style: ThemeHelper.headline.copyWith(
                               color: _controller.getStringData('workout_frequency') == '0'
-                                  ? CupertinoColors.white
-                                  : CupertinoColors.black,
+                                  ? ThemeHelper.background
+                                  : ThemeHelper.textPrimary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -122,8 +122,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                             'Ne treniram',
                             style: ThemeHelper.subhead.copyWith(
                               color: _controller.getStringData('workout_frequency') == '0'
-                                  ? CupertinoColors.white
-                                  : CupertinoColors.black,
+                                  ? ThemeHelper.background
+                                  : ThemeHelper.textPrimary,
                             ),
                           ),
                         ],
@@ -145,12 +145,12 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('workout_frequency') == '1-2' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('workout_frequency') == '1-2'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -165,8 +165,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                           width: 24,
                           height: 24,
                           color: _controller.getStringData('workout_frequency') == '1-2'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
+                              ? ThemeHelper.background
+                              : ThemeHelper.textPrimary,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -178,8 +178,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                               '1-2',
                               style: ThemeHelper.headline.copyWith(
                                 color: _controller.getStringData('workout_frequency') == '1-2'
-                                    ? CupertinoColors.white
-                                    : CupertinoColors.black,
+                                    ? ThemeHelper.background
+                                    : ThemeHelper.textPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -188,8 +188,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                               'Treninzi s vremena na vrijeme',
                               style: ThemeHelper.subhead.copyWith(
                                 color: _controller.getStringData('workout_frequency') == '1-2'
-                                    ? CupertinoColors.white
-                                    : CupertinoColors.black,
+                                    ? ThemeHelper.background
+                                    : ThemeHelper.textPrimary,
                               ),
                             ),
                           ],
@@ -212,12 +212,12 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('workout_frequency') == '3-5' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('workout_frequency') == '3-5'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -232,8 +232,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                           width: 24,
                           height: 24,
                           color: _controller.getStringData('workout_frequency') == '3-5'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
+                              ? ThemeHelper.background
+                              : ThemeHelper.textPrimary,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -245,8 +245,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                               '3-5',
                               style: ThemeHelper.headline.copyWith(
                                 color: _controller.getStringData('workout_frequency') == '3-5'
-                                    ? CupertinoColors.white
-                                    : CupertinoColors.black,
+                                    ? ThemeHelper.background
+                                    : ThemeHelper.textPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -255,8 +255,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                               'Nekoliko treninga tjedno',
                               style: ThemeHelper.subhead.copyWith(
                                 color: _controller.getStringData('workout_frequency') == '3-5'
-                                    ? CupertinoColors.white
-                                    : CupertinoColors.black,
+                                    ? ThemeHelper.background
+                                    : ThemeHelper.textPrimary,
                               ),
                             ),
                           ],
@@ -278,12 +278,12 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('workout_frequency') == '6-7' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('workout_frequency') == '6-7'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -298,8 +298,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                           width: 24,
                           height: 24,
                           color: _controller.getStringData('workout_frequency') == '6-7'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
+                              ? ThemeHelper.background
+                              : ThemeHelper.textPrimary,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -310,8 +310,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                             '6-7',
                             style: ThemeHelper.headline.copyWith(
                               color: _controller.getStringData('workout_frequency') == '6-7'
-                                  ? CupertinoColors.white
-                                  : CupertinoColors.black,
+                                  ? ThemeHelper.background
+                                  : ThemeHelper.textPrimary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -320,8 +320,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                             'Predani sportaš',
                             style: ThemeHelper.subhead.copyWith(
                               color: _controller.getStringData('workout_frequency') == '6-7'
-                                  ? CupertinoColors.white
-                                  : CupertinoColors.black,
+                                  ? ThemeHelper.background
+                                  : ThemeHelper.textPrimary,
                             ),
                           ),
                         ],

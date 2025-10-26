@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../controller/onboarding.controller.dart';
 
 class ProgressMotivationPage extends StatefulWidget {
@@ -44,51 +45,51 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
   }
 
   // Get personalized title based on weight category
-  String _getPersonalizedTitle() {
+  String _getPersonalizedTitle(AppLocalizations l10n) {
     final double currentWeight = _getCurrentWeight();
     
     if (currentWeight < 60) {
-      return 'Imaš veliki potencijal ostvariti svoj cilj';
+      return l10n.youHaveGreatPotential;
     } else if (currentWeight < 80) {
-      return 'Imaš veliki potencijal ostvariti svoj cilj';
+      return l10n.youHaveGreatPotential;
     } else if (currentWeight < 100) {
-      return 'Tvoj put ka boljem zdravlju počinje sada';
+      return l10n.yourJourneyToBetterHealth;
     } else {
-      return 'Napravio si prvi korak ka zdravijoj verziji sebe';
+      return l10n.youTookFirstStepToHealthier;
     }
   }
 
   // Get personalized tip cards based on weight category
-  List<Map<String, String>> _getPersonalizedTips() {
+  List<Map<String, String>> _getPersonalizedTips(AppLocalizations l10n) {
     final double currentWeight = _getCurrentWeight();
     
     if (currentWeight < 60) {
       return [
-        {'icon': 'assets/icons/track.png', 'text': 'Track your food and exercise'},
-        {'icon': 'assets/icons/cutlery.png', 'text': 'Focus on nutrient-dense foods'},
-        {'icon': 'assets/icons/apple.png', 'text': 'Maintain your healthy habits'},
-        {'icon': 'assets/icons/up.png', 'text': 'Stay consistent, see results'},
+        {'icon': 'assets/icons/track.png', 'text': l10n.trackYourFoodAndExercise},
+        {'icon': 'assets/icons/cutlery.png', 'text': l10n.focusOnNutrientDenseFoods},
+        {'icon': 'assets/icons/apple.png', 'text': l10n.maintainYourHealthyHabits},
+        {'icon': 'assets/icons/up.png', 'text': l10n.stayConsistentSeeRealResults},
       ];
     } else if (currentWeight < 80) {
       return [
-        {'icon': 'assets/icons/track.png', 'text': 'Track your food and exercise'},
-        {'icon': 'assets/icons/cutlery.png', 'text': 'Balance carbs, protein and fats'},
-        {'icon': 'assets/icons/apple.png', 'text': 'Stick to your personalized plan'},
-        {'icon': 'assets/icons/up.png', 'text': 'Stay consistent, see real results'},
+        {'icon': 'assets/icons/track.png', 'text': l10n.trackYourFoodAndExercise},
+        {'icon': 'assets/icons/cutlery.png', 'text': l10n.balanceCarbsProteinAndFats},
+        {'icon': 'assets/icons/apple.png', 'text': l10n.stickToYourPersonalizedPlan},
+        {'icon': 'assets/icons/up.png', 'text': l10n.stayConsistentSeeRealResults},
       ];
     } else if (currentWeight < 100) {
       return [
-        {'icon': 'assets/icons/track.png', 'text': 'Track your food and exercise'},
-        {'icon': 'assets/icons/cutlery.png', 'text': 'Focus on whole, unprocessed foods'},
-        {'icon': 'assets/icons/apple.png', 'text': 'Follow your personalized meal plan'},
-        {'icon': 'assets/icons/up.png', 'text': 'Stay consistent, see real results'},
+        {'icon': 'assets/icons/track.png', 'text': l10n.trackYourFoodAndExercise},
+        {'icon': 'assets/icons/cutlery.png', 'text': l10n.focusOnWholeUnprocessedFoods},
+        {'icon': 'assets/icons/apple.png', 'text': l10n.followYourPersonalizedMealPlan},
+        {'icon': 'assets/icons/up.png', 'text': l10n.stayConsistentSeeRealResults},
       ];
     } else {
       return [
-        {'icon': 'assets/icons/track.png', 'text': 'Track your food and exercise'},
-        {'icon': 'assets/icons/cutlery.png', 'text': 'Focus on portion control and nutrition'},
-        {'icon': 'assets/icons/apple.png', 'text': 'Follow your personalized plan'},
-        {'icon': 'assets/icons/up.png', 'text': 'Stay consistent, see real results'},
+        {'icon': 'assets/icons/track.png', 'text': l10n.trackYourFoodAndExercise},
+        {'icon': 'assets/icons/cutlery.png', 'text': l10n.focusOnPortionControlAndNutrition},
+        {'icon': 'assets/icons/apple.png', 'text': l10n.followYourPersonalizedPlan},
+        {'icon': 'assets/icons/up.png', 'text': l10n.stayConsistentSeeRealResults},
       ];
     }
   }
@@ -97,6 +98,7 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return SingleChildScrollView(
       child: Container(
@@ -108,9 +110,9 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
             
             // Main title
             Text(
-              _getPersonalizedTitle(),
+              _getPersonalizedTitle(l10n),
               style: ThemeHelper.title1.copyWith(
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
@@ -119,7 +121,7 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
             const SizedBox(height: 40),
             
             // Tip cards
-            ..._getPersonalizedTips().asMap().entries.map((entry) {
+            ..._getPersonalizedTips(l10n).asMap().entries.map((entry) {
               final int index = entry.key;
               final Map<String, String> tip = entry.value;
               return Column(
@@ -156,9 +158,9 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
     return Container(
       width: 250,
       height: 36, // Increased from 30 to 35
-      decoration: const ShapeDecoration(
-        color: Color(0xFFF8F7FC),
-        shape: RoundedRectangleBorder(
+      decoration: ShapeDecoration(
+        color: ThemeHelper.cardBackground,
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(2)),
         ),
       ),
@@ -171,6 +173,7 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
               icon,
               width: isAppleIcon ? 20 : 16, // Apple icon is bigger
               height: isAppleIcon ? 20 : 16, // Apple icon is bigger
+              color: ThemeHelper.textPrimary,
             ),
           ),
           
@@ -181,7 +184,7 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
             child: Text(
               text,
               style: ThemeHelper.body1.copyWith(
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.normal,
               ),

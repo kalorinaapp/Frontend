@@ -37,7 +37,7 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
               child: Text(
                 'Gdje ste čuli za nas?',
                 style: ThemeHelper.title3.copyWith(
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -59,12 +59,12 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('hear_about_us') == 'google_play' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('hear_about_us') == 'google_play'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -78,8 +78,8 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                           'Google Play',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'google_play'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -99,12 +99,12 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('hear_about_us') == 'youtube' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('hear_about_us') == 'youtube'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -118,8 +118,8 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                           'YouTube',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'youtube'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -139,12 +139,12 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('hear_about_us') == 'tiktok' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('hear_about_us') == 'tiktok'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -158,8 +158,8 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                           'TikTok',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'tiktok'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -181,12 +181,12 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('hear_about_us') == 'instagram' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('hear_about_us') == 'instagram'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -200,8 +200,8 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                           'Instagram',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'instagram'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -221,12 +221,12 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('hear_about_us') == 'influencer' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('hear_about_us') == 'influencer'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -240,8 +240,8 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                             'Influencer',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'influencer'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -260,12 +260,12 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('hear_about_us') == 'friends_family' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('hear_about_us') == 'friends_family'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -279,8 +279,8 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                           'Friends or Family',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'friends_family'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -301,12 +301,12 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('hear_about_us') == 'other' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('hear_about_us') == 'other'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -320,8 +320,8 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                           'Other',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'other'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),

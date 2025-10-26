@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../controller/onboarding.controller.dart';
 
 class PersonalGoalsPage extends StatefulWidget {
@@ -24,6 +25,8 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -34,9 +37,9 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
           // Title
           Text(
             textAlign: TextAlign.center,
-            'Što biste željeli postići?',
+            l10n.whatWouldYouLikeToAchieve,
             style: ThemeHelper.title2.copyWith(
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
             ),
           ),
           
@@ -56,12 +59,12 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('personal_goal') == 'stay_motivated' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('personal_goal') == 'stay_motivated'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -70,18 +73,19 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
                     children: [
                       const SizedBox(width: 8.0),
                       Image.asset('assets/icons/broccoli.png', width: 48, height: 48),
-                      const SizedBox(width: 4.0),
-                      Text(
-                        'ostati motiviran i discipliniran',
-                        style: ThemeHelper.headline.copyWith(
-                          color: _controller.getStringData('personal_goal') == 'stay_motivated'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: Text(
+                          l10n.stayMotivatedAndDisciplined,
+                          style: ThemeHelper.headline.copyWith(
+                            color: _controller.getStringData('personal_goal') == 'stay_motivated'
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      const Spacer()
+                      const SizedBox(width: 8.0),
                     ],
                   ),
                 ),
@@ -98,12 +102,12 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('personal_goal') == 'feel_better_body' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('personal_goal') == 'feel_better_body'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -112,18 +116,19 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
                     children: [
                       const SizedBox(width: 8.0),
                       Image.asset('assets/icons/lightning.png', width: 48, height: 48),
-                      const SizedBox(width: 4.0),
-                      Text(
-                        'osjecati se bolje u vezi svog tijela',
-                        style: ThemeHelper.headline.copyWith(
-                          color: _controller.getStringData('personal_goal') == 'feel_better_body'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: Text(
+                          l10n.feelBetterAboutYourBody,
+                          style: ThemeHelper.headline.copyWith(
+                            color: _controller.getStringData('personal_goal') == 'feel_better_body'
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      const Spacer()
+                      const SizedBox(width: 8.0),
                     ],
                   ),
                 ),
@@ -140,12 +145,12 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('personal_goal') == 'improve_health' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('personal_goal') == 'improve_health'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -154,18 +159,19 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
                     children: [
                       const SizedBox(width: 8.0),
                       Image.asset('assets/icons/wrist.png', width: 48, height: 48),
-                      const SizedBox(width: 4.0),
-                      Text(
-                        'dugoročno poboljšati zdravije',
-                        style: ThemeHelper.headline.copyWith(
-                          color: _controller.getStringData('personal_goal') == 'improve_health'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: Text(
+                          l10n.improveHealthLongTerm,
+                          style: ThemeHelper.headline.copyWith(
+                            color: _controller.getStringData('personal_goal') == 'improve_health'
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      const Spacer()
+                      const SizedBox(width: 8.0),
                     ],
                   ),
                 ),
@@ -181,12 +187,12 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('personal_goal') == 'increase_mood_energy' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('personal_goal') == 'increase_mood_energy'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -195,18 +201,19 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage> {
                     children: [
                       const SizedBox(width: 8.0),
                       Image.asset('assets/icons/flex.png', width: 48, height: 48),
-                      const SizedBox(width: 4.0),
-                      Text(
-                        'povecati raspolozenje i energiju',
-                        style: ThemeHelper.headline.copyWith(
-                          color: _controller.getStringData('personal_goal') == 'increase_mood_energy'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: Text(
+                          l10n.increaseMoodAndEnergy,
+                          style: ThemeHelper.headline.copyWith(
+                            color: _controller.getStringData('personal_goal') == 'increase_mood_energy'
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      const Spacer()
+                      const SizedBox(width: 8.0),
                     ],
                   ),
                 ),

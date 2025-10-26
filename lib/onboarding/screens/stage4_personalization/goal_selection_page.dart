@@ -25,6 +25,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: ThemeHelper.background,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,7 +37,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
             child: Text(
               'Koji je tvoj cilj',
               style: ThemeHelper.title3.copyWith(
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -65,7 +66,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                   'Odaberite cilj koji vam najviše odgovara',
                   style: ThemeHelper.caption1.copyWith(
                     fontSize: 13,
-                    color: CupertinoColors.systemGrey,
+                    color: ThemeHelper.textSecondary,
                   ),
                 ),
               ),
@@ -88,12 +89,12 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('goal') == 'lose_weight' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('goal') == 'lose_weight'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -106,16 +107,16 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                         width: 24,
                         height: 24,
                         color: _controller.getStringData('goal') == 'lose_weight'
-                            ? CupertinoColors.white
-                            : CupertinoColors.black,
+                            ? ThemeHelper.background
+                            : ThemeHelper.textPrimary,
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'Smršati',
                         style: ThemeHelper.headline.copyWith(
                           color: _controller.getStringData('goal') == 'lose_weight'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
+                              ? ThemeHelper.background
+                              : ThemeHelper.textPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -135,12 +136,12 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('goal') == 'maintain_weight' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('goal') == 'maintain_weight'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -153,16 +154,16 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                         width: 24,
                         height: 24,
                         color: _controller.getStringData('goal') == 'maintain_weight'
-                            ? CupertinoColors.white
-                            : CupertinoColors.black,
+                            ? ThemeHelper.background
+                            : ThemeHelper.textPrimary,
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'Održavati Težinu',
                         style: ThemeHelper.headline.copyWith(
                           color: _controller.getStringData('goal') == 'maintain_weight'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
+                              ? ThemeHelper.background
+                              : ThemeHelper.textPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -181,12 +182,12 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                   decoration: BoxDecoration(
                     color: _controller.getStringData('goal') == 'gain_weight' 
-                        ? CupertinoColors.black
-                        : CupertinoColors.white,
+                        ? ThemeHelper.textPrimary
+                        : ThemeHelper.cardBackground,
                     border: Border.all(
                       color: _controller.getStringData('goal') == 'gain_weight'
-                          ? CupertinoColors.black
-                          : CupertinoColors.systemGrey4,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.divider,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -199,16 +200,16 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                         width: 24,
                         height: 24,
                         color: _controller.getStringData('goal') == 'gain_weight'
-                            ? CupertinoColors.white
-                            : CupertinoColors.black,
+                            ? ThemeHelper.background
+                            : ThemeHelper.textPrimary,
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'Dobiti na Težini',
                         style: ThemeHelper.headline.copyWith(
                           color: _controller.getStringData('goal') == 'gain_weight'
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
+                              ? ThemeHelper.background
+                              : ThemeHelper.textPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

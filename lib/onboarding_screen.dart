@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'package:calorie_ai_app/authentication/create.account.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:get/get.dart';
@@ -45,7 +44,10 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   final PageController _pageController = PageController();
   late AnimationController _animationController;
   late OnboardingController _controller;
@@ -63,6 +65,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     } else {
       _controller.setDualButtonMode(false);
     }
+    
+    // Ensure first page (CreateAccountPage) always has button enabled
+    if (page == 0) {
+      _controller.isNextButtonEnabled.value = true;
+    }
   }
 
         // final InAppReview inAppReview = InAppReview.instance;
@@ -73,10 +80,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void initState() {
     super.initState();
 
+    // Initialize the controller first to get current page
+    _controller = Get.find<OnboardingController>();
+    
     // Initialize onboarding pages
     _pages = [
       CreateAccountPage(themeProvider: widget.themeProvider, isLogin: true),
-      CalorieTrackingExperiencePage(themeProvider: widget.themeProvider, pageIndex: 0),
+      CalorieTrackingExperiencePage(themeProvider: widget.themeProvider),
       HowItWorksPage(themeProvider: widget.themeProvider),
       GIFScreen(themeProvider: widget.themeProvider,),
       GenderSelectionPage(themeProvider: widget.themeProvider),
@@ -125,11 +135,25 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       //ConsistencyHealthPage(themeProvider: widget.themeProvider),
     ];
 
-    // Initialize the controller and set total pages
-    _controller = Get.put(OnboardingController());
+    // Set total pages
     _controller.setTotalPages(_pages.length);
+    
+    // Sync PageController to current page after frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(_controller.currentPage.value);
+      }
+    });
 
     // Register page validations
+    _controller.registerPageValidation(
+      1, // Calorie tracking experience page
+      PageValidationConfig(
+        dataKey: 'calorie_tracking_experience',
+        validationType: ValidationType.singleChoice,
+      ),
+    );
+    
     _controller.registerPageValidation(
       4, // Gender selection page (index 2)
       PageValidationConfig(
@@ -337,7 +361,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: _controller.isNextButtonEnabled.value
-                              ? CupertinoColors.white
+                              ? ThemeHelper.background
                               : ThemeHelper.textSecondary,
                         ),
                       ),
@@ -362,7 +386,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               child: CupertinoButton(
                 sizeStyle: CupertinoButtonSize.small,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                color: CupertinoColors.black,
+                color: ThemeHelper.cardBackground,
                 borderRadius: BorderRadius.circular(12),
                 onPressed: () {
                   HapticFeedback.mediumImpact();
@@ -375,12 +399,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   
                   _nextPage();
                 },
-                child: const Text(
+                child: Text(
                   'No',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.textPrimary,
                   ),
                 ),
               ),
@@ -404,12 +428,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   
                   _nextPage();
                 },
-                child: const Text(
+                child: Text(
                   'Yes',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.background,
                   ),
                 ),
               ),
@@ -422,13 +446,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return ListenableBuilder(
       listenable: widget.themeProvider,
       builder: (context, child) {
         return CupertinoPageScaffold(
-          backgroundColor: _controller.currentPage.value == 5 || _controller.currentPage.value == 10
-                                ? null
-                                : ThemeHelper.background,
+          backgroundColor:  ThemeHelper.background,
           navigationBar: null,
           child: Column(
             children: [
@@ -450,9 +473,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: _controller.currentPage.value == 5 || _controller.currentPage.value == 10
-                              ? null
-                              : ThemeHelper.background,
+                          color:  ThemeHelper.background,
                           border: null,
                         ),
                         child: Row(
@@ -478,9 +499,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                               child: Container(
                                 height: 6,
                                 decoration: BoxDecoration(
-                                  color: _controller.currentPage.value == 5 || _controller.currentPage.value == 10
-                                      ? null
-                                      : ThemeHelper.divider,
+                                  color:  ThemeHelper.divider,
                                   borderRadius: BorderRadius.circular(100),
                                 ),
                                 child: LayoutBuilder(
@@ -573,9 +592,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                            color:  ThemeHelper.background,
                            border: Border(
                              top: BorderSide(
-                               color: _controller.currentPage.value == 5 || _controller.currentPage.value == 10
-                                   ? Colors.transparent
-                                   : ThemeHelper.divider,
+                               color: ThemeHelper.divider,
                                width: 1.0,
                              ),
                            ),

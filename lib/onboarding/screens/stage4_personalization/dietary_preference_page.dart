@@ -37,7 +37,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
               child: Text(
                 'Pridržavate li se određene dijete?',
                 style: ThemeHelper.title3.copyWith(
-                  color: CupertinoColors.black,
+                  color: ThemeHelper.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -50,7 +50,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemGrey6,
+                color: ThemeHelper.cardBackground,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -64,7 +64,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                       'Pomoći ćemo vam pratiti kalorije prema vašem načinu prehrane',
                       style: ThemeHelper.caption1.copyWith(
                         fontSize: 13,
-                        color: CupertinoColors.systemGrey,
+                        color: ThemeHelper.textSecondary,
                       ),
                     ),
                   ),
@@ -88,12 +88,12 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('dietary_preference') == 'classic' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('dietary_preference') == 'classic'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -102,14 +102,18 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                       // mainAxisAlignment: MainAxisAlignment.,
                       children: [
                       const SizedBox(width: 16),
-                       Image.asset('assets/icons/plates.png', width: 48, height: 48),
+                       Image.asset(
+                         'assets/icons/plates.png',
+                         width: 48,
+                         height: 48,
+                       ),
                         const SizedBox(width: 12),
                         Text(
                           'klasična',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'classic'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
@@ -132,12 +136,12 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('dietary_preference') == 'carnivore' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('dietary_preference') == 'carnivore'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -145,14 +149,18 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                     child: Row(
                       children: [
                         const SizedBox(width: 16),
-                       Image.asset('assets/icons/chicken.png', width: 48, height: 48),
+                       Image.asset(
+                         'assets/icons/chicken.png',
+                         width: 48,
+                         height: 48,
+                       ),
                         const SizedBox(width: 12),
                         Text(
                           'carnivore',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'carnivore'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
@@ -174,12 +182,12 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('dietary_preference') == 'keto' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('dietary_preference') == 'keto'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -187,14 +195,18 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                     child: Row(
                       children: [
                         const SizedBox(width: 16),
-                     Image.asset('assets/icons/avacado.png', width: 48, height: 48),
+                     Image.asset(
+                       'assets/icons/avacado.png',
+                       width: 48,
+                       height: 48,
+                     ),
                       const SizedBox(width: 12),
                         Text(
                           'keto',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'keto'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
@@ -216,12 +228,12 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('dietary_preference') == 'vegan' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('dietary_preference') == 'vegan'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -229,14 +241,18 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                     child: Row(
                       children: [
 const SizedBox(width: 16),
-                     Image.asset('assets/icons/vegan.png', width: 48, height: 48),
+                     Image.asset(
+                       'assets/icons/vegan.png',
+                       width: 48,
+                       height: 48,
+                     ),
                       const SizedBox(width: 12),
                         Text(
                           'vegan',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'vegan'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
@@ -257,12 +273,12 @@ const SizedBox(width: 16),
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     decoration: BoxDecoration(
                       color: _controller.getStringData('dietary_preference') == 'vegetarian' 
-                          ? CupertinoColors.black
-                          : CupertinoColors.white,
+                          ? ThemeHelper.textPrimary
+                          : ThemeHelper.cardBackground,
                       border: Border.all(
                         color: _controller.getStringData('dietary_preference') == 'vegetarian'
-                            ? CupertinoColors.black
-                            : CupertinoColors.systemGrey4,
+                            ? ThemeHelper.textPrimary
+                            : ThemeHelper.divider,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -270,14 +286,18 @@ const SizedBox(width: 16),
                     child: Row(
                       children: [
                         const SizedBox(width: 16),
-                     Image.asset('assets/icons/vegetarian.png', width: 48, height: 48),
+                     Image.asset(
+                       'assets/icons/vegetarian.png',
+                       width: 48,
+                       height: 48,
+                     ),
                       const SizedBox(width: 12),
                         Text(
                           'vegetarian',
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'vegetarian'
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
+                                ? ThemeHelper.background
+                                : ThemeHelper.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,

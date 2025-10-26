@@ -906,4 +906,138 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get ok => 'V redu';
+
+  @override
+  String get whatWouldYouLikeToAchieve => 'Kaj bi radi dosegli?';
+
+  @override
+  String get stayMotivatedAndDisciplined => 'Ostati motiviran in discipliniran';
+
+  @override
+  String get feelBetterAboutYourBody =>
+      'Počutiti se bolje glede svojega telesa';
+
+  @override
+  String get improveHealthLongTerm => 'Dolgoročno izboljšati zdravje';
+
+  @override
+  String get increaseMoodAndEnergy => 'Povečati razpoloženje in energijo';
+
+  @override
+  String get youHaveGreatPotential =>
+      'Imaš velik potencial za dosego svojega cilja';
+
+  @override
+  String get yourJourneyToBetterHealth =>
+      'Tvoja pot do boljšega zdravja se začne zdaj';
+
+  @override
+  String get youTookFirstStepToHealthier =>
+      'Naredil si prvi korak k bolj zdravi različici sebe';
+
+  @override
+  String get trackYourFoodAndExercise => 'Sledi svoji hrani in vadbi';
+
+  @override
+  String get focusOnNutrientDenseFoods =>
+      'Osredotoči se na hrano, bogato s hranili';
+
+  @override
+  String get maintainYourHealthyHabits => 'Ohranjaj svoje zdrave navade';
+
+  @override
+  String get balanceCarbsProteinAndFats =>
+      'Uravnoteži ogljikove hidrate, beljakovine in maščobe';
+
+  @override
+  String get stickToYourPersonalizedPlan =>
+      'Drži se svojega personaliziranega načrta';
+
+  @override
+  String get focusOnWholeUnprocessedFoods =>
+      'Osredotoči se na celostno, neobdelano hrano';
+
+  @override
+  String get followYourPersonalizedMealPlan =>
+      'Sledi svojemu personaliziranemu načrtu obrokov';
+
+  @override
+  String get focusOnPortionControlAndNutrition =>
+      'Osredotoči se na nadzor porcij in prehrano';
+
+  @override
+  String get followYourPersonalizedPlan =>
+      'Sledi svojemu personaliziranemu načrtu';
+
+  @override
+  String get stayConsistentSeeRealResults =>
+      'Ostani dosleden, vidi prave rezultate';
+
+  @override
+  String get enableNotificationsForBetterResults =>
+      'Omogoči obvestila za boljše rezultate';
+
+  @override
+  String get recommended => '(Priporočeno)';
+
+  @override
+  String get kalorinaHelpsYouKeepTrack =>
+      'Kalorina ti pomaga slediti — Prejemaj dnevne opomnike';
+
+  @override
+  String get dontAllow => 'Ne dovoli';
+
+  @override
+  String get allow => 'Dovoli';
+
+  @override
+  String get countBurnedCaloriesTowardsGoal =>
+      'Štetje zažganih kalorij za dnevni cilj?';
+
+  @override
+  String get todaysGoal => 'Današnji cilj:';
+
+  @override
+  String get stepsLabel => 'Koraki:';
+
+  @override
+  String get transferExtraCaloriesToNextDay =>
+      'Prenesi dodatne kalorije na naslednji dan?';
+
+  @override
+  String get yesterday => 'Včeraj';
+
+  @override
+  String get today => 'Danes';
+
+  @override
+  String get caloriesLeft => 'Preostale Kalorije';
+
+  @override
+  String get everydayLogFireReflect =>
+      'Vsak dan lahko zabeleži svoj 🔥, da razmisliš, ali si res dosegel, kar si želel. Tvoji požari gradijo nize, ki kažejo tvojo doslednost.';
+
+  @override
+  String get longLastingHealthEffects =>
+      'Videl boš dolgotrajne učinke na svoje zdravje';
+
+  @override
+  String get ninetyPercent => '90%';
+
+  @override
+  String get usersStayConsistentMaintainWeight =>
+      ' uporabnikov, ki ostanejo dosledni, ohranja svojo težo celo ';
+
+  @override
+  String get twelveMonthsLater => '12 mesecev kasneje';
+
+  @override
+  String get leaveUsReview => 'Pustite nam oceno';
+
+  @override
+  String get joinOver10000People =>
+      'Pridružite se več kot 10.000\nljudem prav kot vi';
+
+  @override
+  String get applied => 'Uporabljeno';
 }

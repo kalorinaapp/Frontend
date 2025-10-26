@@ -2,6 +2,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/language_provider.dart';
@@ -134,14 +135,23 @@ class _UserCard extends StatelessWidget {
             ),
             CupertinoDialogAction(
               child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
-              onPressed: () async {
+              onPressed: () {
                 final newName = controller.text.trim();
                 if (newName.isNotEmpty) {
                   final parts = newName.split(' ');
                   final firstName = parts.isNotEmpty ? parts[0] : '';
                   final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
                   
-                  await userController.updateUser(
+                  // Store old values for rollback
+                  final oldFirstName = userController.userData['firstName'];
+                  final oldLastName = userController.userData['lastName'];
+                  
+                  // Optimistically update the UI
+                  userController.userData['firstName'] = firstName;
+                  userController.userData['lastName'] = lastName;
+                  
+                  // Make the API call in the background
+                  userController.updateUser(
                     AppConstants.userId,
                     {
                       'firstName': firstName,
@@ -150,7 +160,13 @@ class _UserCard extends StatelessWidget {
                     context,
                     Get.find<ThemeProvider>(),
                     Get.find<LanguageProvider>(),
-                  );
+                  ).catchError((error) {
+                    // If the API call fails, revert the change
+                    debugPrint('Error updating name: $error');
+                    userController.userData['firstName'] = oldFirstName;
+                    userController.userData['lastName'] = oldLastName;
+                    return false;
+                  });
                 }
                 Navigator.of(context).pop();
               },
@@ -177,7 +193,7 @@ class _UserCard extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Image.asset(avatarAsset, width: 35, height: 35, color: ThemeHelper.textPrimary),
+              Image.asset(avatarAsset, width: 35, height: 35),
               Row(
                 children: [
                   Text(
@@ -205,31 +221,57 @@ class _InviteCard extends StatelessWidget {
   final String inviteAsset;
   const _InviteCard({required this.inviteAsset});
 
+  Future<void> _shareApp(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    
+    // App store links
+    const String appStoreLink = 'https://apps.apple.com/app/kalorina/id123456789'; // TODO: Replace with actual App Store link
+    const String playStoreLink = 'https://play.google.com/store/apps/details?id=com.kalorina.app'; // TODO: Replace with actual Play Store link
+    
+    // Share message with localization
+    final String shareMessage = '${l10n.inviteFriends}!\n\n'
+        'Download Kalorina - AI Calorie Tracker:\n'
+        'iOS: $appStoreLink\n'
+        'Android: $playStoreLink';
+    
+    try {
+      await Share.share(
+        shareMessage,
+        subject: 'Join me on Kalorina!',
+      );
+    } catch (e) {
+      debugPrint('Error sharing: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return _CardShell(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Image.asset(inviteAsset, width: 35, height: 35, color: ThemeHelper.textPrimary),
-            
-          Row(
-            children: [
-              Text(
-                AppLocalizations.of(context)!.inviteFriends,
-                style: ThemeHelper.textStyleWithColorAndSize(
-                  ThemeHelper.body1,
-                  ThemeHelper.textSecondary,
-                  16,
+    return GestureDetector(
+      onTap: () => _shareApp(context),
+      child: _CardShell(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Image.asset(inviteAsset, width: 35, height: 35),
+              
+            Row(
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.inviteFriends,
+                  style: ThemeHelper.textStyleWithColorAndSize(
+                    ThemeHelper.body1,
+                    ThemeHelper.textSecondary,
+                    16,
+                  ),
                 ),
-              ),
 
-          const SizedBox(width: 8.0),
-          Icon(CupertinoIcons.share_up, size: 18, color: ThemeHelper.textSecondary),
-            ],
-          ),
-          const SizedBox(width: 8.0),
-        ],
+            const SizedBox(width: 8.0),
+            Icon(CupertinoIcons.share_up, size: 18, color: ThemeHelper.textSecondary),
+              ],
+            ),
+            const SizedBox(width: 8.0),
+          ],
+        ),
       ),
     );
   }
@@ -238,15 +280,26 @@ class _InviteCard extends StatelessWidget {
 class _PersonalDetailsCard extends StatelessWidget {
   const _PersonalDetailsCard();
 
-  Future<void> _updateUserField(String field, dynamic value) async {
+  void _updateUserField(String field, dynamic value) {
     final userController = Get.find<UserController>();
-    await userController.updateUser(
+    final oldValue = userController.userData[field];
+    
+    // Optimistically update the UI
+    userController.userData[field] = value;
+    
+    // Make the API call in the background
+    userController.updateUser(
       AppConstants.userId,
       {field: value},
       Get.context!,
       Get.find<ThemeProvider>(),
       Get.find<LanguageProvider>(),
-    );
+    ).catchError((error) {
+      // If the API call fails, revert the change
+      debugPrint('Error updating $field: $error');
+      userController.userData[field] = oldValue;
+      return false;
+    });
   }
 
   void _showWeightDialog(BuildContext context, double currentWeight) {
@@ -291,8 +344,8 @@ class _PersonalDetailsCard extends StatelessWidget {
                       CupertinoButton(
                         padding: EdgeInsets.zero,
                         child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
-                        onPressed: () async {
-                          await _updateUserField('weight', tempWeight);
+                        onPressed: () {
+                          _updateUserField('weight', tempWeight);
                           Navigator.of(context).pop();
                         },
                       ),
@@ -394,8 +447,8 @@ class _PersonalDetailsCard extends StatelessWidget {
                       CupertinoButton(
                         padding: EdgeInsets.zero,
                         child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
-                        onPressed: () async {
-                          await _updateUserField('height', tempHeight);
+                        onPressed: () {
+                          _updateUserField('height', tempHeight);
                           Navigator.of(context).pop();
                         },
                       ),
@@ -457,6 +510,8 @@ class _PersonalDetailsCard extends StatelessWidget {
 
   void _showStepsDialog(BuildContext context, int currentSteps) {
     int tempSteps = currentSteps;
+    final healthProvider = Get.find<HealthProvider>();
+    
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -498,7 +553,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                         padding: EdgeInsets.zero,
                         child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
                         onPressed: () {
-                          final healthProvider = Get.find<HealthProvider>();
+                          // Optimistically update and close immediately
                           healthProvider.setStepsGoal(tempSteps);
                           Navigator.of(context).pop();
                         },
@@ -569,15 +624,15 @@ class _PersonalDetailsCard extends StatelessWidget {
           actions: [
             CupertinoDialogAction(
               child: Text(AppLocalizations.of(context)!.male, style: TextStyle(color: ThemeHelper.textPrimary)),
-              onPressed: () async {
-                await _updateUserField('gender', 'male');
+              onPressed: () {
+                _updateUserField('gender', 'male');
                 Navigator.of(context).pop();
               },
             ),
             CupertinoDialogAction(
               child: Text(AppLocalizations.of(context)!.female, style: TextStyle(color: ThemeHelper.textPrimary)),
-              onPressed: () async {
-                await _updateUserField('gender', 'female');
+              onPressed: () {
+                _updateUserField('gender', 'female');
                 Navigator.of(context).pop();
               },
             ),
@@ -633,14 +688,14 @@ class _PersonalDetailsCard extends StatelessWidget {
                       CupertinoButton(
                         padding: EdgeInsets.zero,
                         child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
-                        onPressed: () async {
+                        onPressed: () {
                           // Calculate age from birthday
                           final now = DateTime.now();
                           final age = now.year - tempBirthday.year - 
                             ((now.month > tempBirthday.month || 
                               (now.month == tempBirthday.month && now.day >= tempBirthday.day)) ? 0 : 1);
                           
-                          await _updateUserField('age', age);
+                          _updateUserField('age', age);
                           Navigator.of(context).pop();
                         },
                       ),
@@ -737,7 +792,9 @@ class _PersonalDetailsCard extends StatelessWidget {
         final age = userController.userData['age'] as int? ?? 24;
         final gender = (userController.userData['gender'] as String? ?? 'male').capitalize ?? 'Male';
         final stepsGoal = healthProvider.stepsGoal;
-        final addBurnedCalories = userController.userData['addBurnedCaloriesToGoal'] ?? false;
+        // Use the actual backend field names from the API response
+        final rolloverCalories = userController.userData['rolloverCalories'] ?? false;
+        final addBurnedCalories = userController.userData['includeStepCaloriesInGoal'] ?? false;
         
         // Calculate birthday from age (approximate)
         final now = DateTime.now();
@@ -780,9 +837,9 @@ class _PersonalDetailsCard extends StatelessWidget {
                   ),
                 ),
                 CupertinoSwitch(
-                  value: addBurnedCalories,
+                  value: rolloverCalories,
                   activeColor: ThemeHelper.textPrimary,
-                  onChanged: (v) => _updateUserField('rolloverLeftOverCalories', v),
+                  onChanged: (v) => _updateUserField('rolloverCalories', v),
                 ),
               ],
             ),
@@ -801,7 +858,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                 CupertinoSwitch(
                   value: addBurnedCalories,
                   activeColor: ThemeHelper.textPrimary,
-                  onChanged: (v) => _updateUserField('addBurnedCaloriesToGoal', v),
+                  onChanged: (v) => _updateUserField('includeStepCaloriesInGoal', v),
                 ),
               ],
             ),
@@ -872,17 +929,60 @@ class _SettingsListCard extends StatelessWidget {
     }
   }
 
-  void _handleDeleteAccount(BuildContext context) {
-
-
+  Future<void> _handleDeleteAccount(BuildContext context) async {
+    // Call the delete API
+    final userController = Get.find<UserController>();
     
-    // TODO: Implement actual account deletion logic
-    // This would typically involve:
-    // 1. Calling an API to delete the account
-    // 2. Clearing local storage/cache
-    // 3. Navigating back to login/onboarding screen
+    final success = await userController.deleteUser(AppConstants.userId);
     
-    // For now, just show a confirmation
+    if (success) {
+      // Clear all user data
+      userController.userData.clear();
+      
+      // Clear SharedPreferences
+      await UserPrefs.clearUserData();
+      
+      // Clear AppConstants
+      AppConstants.userId = '';
+      AppConstants.authToken = '';
+      AppConstants.userEmail = '';
+      AppConstants.userName = '';
+      AppConstants.refreshToken = '';
+      
+      // Navigate to onboarding screen and remove all previous routes
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          CupertinoPageRoute(
+            builder: (context) => OnboardingScreen(
+              themeProvider: Get.find<ThemeProvider>(),
+            ),
+          ),
+          (route) => false, // Remove all previous routes
+        );
+      }
+    } else {
+      // Show error dialog if deletion failed
+      if (context.mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+            title: Text(AppLocalizations.of(context)!.error),
+            content: Text(userController.errorMessage.value),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  void _showDeleteAccountConfirmation(BuildContext context) {
+    // Show confirmation dialog
     showCupertinoDialog(
       context: context,
       barrierDismissible: true,
@@ -980,9 +1080,9 @@ class _SettingsListCard extends StatelessWidget {
                       // Yes button
                       Expanded(
                         child: GestureDetector(
-                          onTap: () {
+                          onTap: () async {
                             Navigator.of(context).pop();
-                            _handleDeleteAccount(context);
+                            await _handleDeleteAccount(context);
                           },
                           child: Container(
                             height: 48,
@@ -1238,7 +1338,7 @@ class _SettingsListCard extends StatelessWidget {
             child: _tile(AppLocalizations.of(context)!.termsAndConditions, 'assets/icons/terms.png'),
           ),
           GestureDetector(
-            onTap: () => _handleDeleteAccount(context),
+            onTap: () => _showDeleteAccountConfirmation(context),
             child: _tile(AppLocalizations.of(context)!.deleteAccount, 'assets/icons/delete_account.png'),
           ),
           const SizedBox(height: 20),

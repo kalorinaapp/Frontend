@@ -71,7 +71,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        backgroundColor: CupertinoColors.systemBackground,
+        backgroundColor: ThemeHelper.background,
         border: null,
         leading: GestureDetector(
           onTap: () {
@@ -85,7 +85,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
           ),
         ),
       ),
-      backgroundColor: CupertinoColors.systemBackground,
+      backgroundColor: ThemeHelper.background,
       child: Column(
         children: [
           // Header with back button and title
@@ -107,7 +107,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                       ),
                     ),
                   ],
@@ -154,18 +154,20 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: isSelected 
-                              ? CupertinoColors.black 
-                              : CupertinoColors.white,
+                              ? ThemeHelper.textPrimary 
+                              : ThemeHelper.cardBackground,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected 
-                                ? CupertinoColors.black 
-                                : CupertinoColors.systemGrey4,
+                                ? ThemeHelper.textPrimary 
+                                : ThemeHelper.divider,
                             width: isSelected ? 2 : 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: CupertinoColors.black.withOpacity(0.05),
+                              color: ThemeHelper.isLightMode
+                                  ? CupertinoColors.black.withOpacity(0.05)
+                                  : CupertinoColors.black.withOpacity(0.2),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -180,8 +182,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                                 color: isSelected 
-                                    ? CupertinoColors.white 
-                                    : CupertinoColors.black,
+                                    ? ThemeHelper.background 
+                                    : ThemeHelper.textPrimary,
                               ),
                             ),
                             const SizedBox(width: 8),

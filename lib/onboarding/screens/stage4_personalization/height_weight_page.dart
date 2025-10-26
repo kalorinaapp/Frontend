@@ -154,7 +154,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
             child: Text(
               'Visina i težina',
               style: ThemeHelper.title1.copyWith(
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -166,7 +166,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey6,
+              color: ThemeHelper.cardBackground,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -174,7 +174,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                 'Ova informacija nam pomaže da personaliziramo vaše dnevne kalorijske i nutritivne ciljeve.',
                 style: ThemeHelper.caption1.copyWith(
                   fontSize: 13,
-                  color: CupertinoColors.systemGrey,
+                  color: ThemeHelper.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -192,7 +192,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                 Text(
                   "Imperial",
                   style: ThemeHelper.headline.copyWith(
-                    color: _isMetric ? CupertinoColors.systemGrey : CupertinoColors.black,
+                    color: _isMetric ? ThemeHelper.textSecondary : ThemeHelper.textPrimary,
                   ),
                 ),
                 const SizedBox(width: 32),
@@ -224,13 +224,13 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                       _initializeScrollControllers();
                     });
                   },
-                  activeColor: CupertinoColors.black,
+                  activeColor: ThemeHelper.textPrimary,
                 ),
                 const SizedBox(width: 32),
                 Text(
                   "Metrički",
                   style: ThemeHelper.headline.copyWith(
-                    color: _isMetric ? CupertinoColors.black : CupertinoColors.systemGrey,
+                    color: _isMetric ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
                   ),
                 ),
               ],
@@ -252,7 +252,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                         "Visina",
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                           fontSize: 18,
                         ),
                       ),
@@ -280,7 +280,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                                 _formatHeightForDisplay(value, _isMetric),
                                 style: ThemeHelper.body1.copyWith(
                                   fontWeight: FontWeight.w400,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                   fontSize: 18,
                                 ),
                               ),
@@ -299,7 +299,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                         "Težina",
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                           fontSize: 18,
                         ),
                       ),
@@ -327,7 +327,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                                 _formatWeightForDisplay(value, _isMetric),
                                 style: ThemeHelper.body1.copyWith(
                                   fontWeight: FontWeight.w400,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                   fontSize: 18,
                                 ),
                               ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../utils/theme_helper.dart';
 
 class AllDonePage extends StatelessWidget {
   final ThemeProvider themeProvider;
@@ -17,12 +18,12 @@ class AllDonePage extends StatelessWidget {
       listenable: themeProvider,
       builder: (context, child) {
         return CupertinoPageScaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: ThemeHelper.background,
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
             child: Container(
               width: 393,
-              decoration: BoxDecoration(color: Colors.white),
+              decoration: BoxDecoration(color: ThemeHelper.background),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
@@ -37,12 +38,12 @@ class AllDonePage extends StatelessWidget {
                           width: 35,
                           height: 32,
                           decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: ThemeHelper.textPrimary,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             CupertinoIcons.check_mark,
-                            color: Colors.white,
+                            color: ThemeHelper.background,
                             size: 20,
                           ),
                         ),
@@ -50,7 +51,7 @@ class AllDonePage extends StatelessWidget {
                         Text(
                           'All done',
                           style: TextStyle(
-                            color: const Color(0xFF1E1822),
+                            color: ThemeHelper.textPrimary,
                             fontSize: 28,
                             fontFamily: 'Instrument Sans',
                             fontWeight: FontWeight.w600,
@@ -108,13 +109,15 @@ class AllDonePage extends StatelessWidget {
             width: 335,
             height: 72,
             decoration: ShapeDecoration(
-              color: Colors.white,
+              color: ThemeHelper.cardBackground,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(13),
               ),
               shadows: [
                 BoxShadow(
-                  color: Color(0x3F000000),
+                  color: ThemeHelper.isLightMode
+                      ? const Color(0x3F000000)
+                      : CupertinoColors.black.withOpacity(0.3),
                   blurRadius: 5,
                   offset: Offset(0, 0),
                   spreadRadius: 1,
@@ -134,7 +137,7 @@ class AllDonePage extends StatelessWidget {
                       Text(
                         'My Weight',
                         style: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.50),
+                          color: ThemeHelper.textSecondary,
                           fontSize: 10,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,
@@ -144,7 +147,7 @@ class AllDonePage extends StatelessWidget {
                       Text(
                         '${currentWeight} ${isMetric ? 'kg' : 'lbs'}',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: ThemeHelper.textPrimary,
                           fontSize: 14,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,
@@ -164,13 +167,15 @@ class AllDonePage extends StatelessWidget {
             width: 335,
             height: 72,
             decoration: ShapeDecoration(
-              color: Colors.white,
+              color: ThemeHelper.cardBackground,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(13),
               ),
               shadows: [
                 BoxShadow(
-                  color: Color(0x3F000000),
+                  color: ThemeHelper.isLightMode
+                      ? const Color(0x3F000000)
+                      : CupertinoColors.black.withOpacity(0.3),
                   blurRadius: 5,
                   offset: Offset(0, 0),
                   spreadRadius: 1,
@@ -190,7 +195,7 @@ class AllDonePage extends StatelessWidget {
                       Text(
                         'Target Weight',
                         style: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.50),
+                          color: ThemeHelper.textSecondary,
                           fontSize: 10,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,
@@ -200,7 +205,7 @@ class AllDonePage extends StatelessWidget {
                       Text(
                         '${targetWeight} ${isMetric ? 'kg' : 'lbs'}',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: ThemeHelper.textPrimary,
                           fontSize: 14,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w500,
@@ -232,7 +237,7 @@ class AllDonePage extends StatelessWidget {
             'You should maintain:',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: const Color(0xFF1E1822),
+              color: ThemeHelper.textPrimary,
               fontSize: 18,
               fontFamily: 'Instrument Sans',
               fontWeight: FontWeight.w700,
@@ -242,7 +247,7 @@ class AllDonePage extends StatelessWidget {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: ShapeDecoration(
-              color: const Color(0xFFF8F7FC),
+              color: ThemeHelper.cardBackground,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -251,7 +256,7 @@ class AllDonePage extends StatelessWidget {
               weightLossGoal,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: const Color(0xFF1E1822),
+                color: ThemeHelper.textPrimary,
                 fontSize: 14,
                 fontFamily: 'Instrument Sans',
                 fontWeight: FontWeight.w600,
@@ -273,7 +278,7 @@ class AllDonePage extends StatelessWidget {
       width: 377,
       padding: EdgeInsets.all(20),
       decoration: ShapeDecoration(
-        color: const Color(0xFFF8F7FC),
+        color: ThemeHelper.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
@@ -284,7 +289,7 @@ class AllDonePage extends StatelessWidget {
           Text(
             'Your daily plan is ready!',
             style: TextStyle(
-              color: const Color(0xFF1E1822),
+              color: ThemeHelper.textPrimary,
               fontSize: 16,
               fontFamily: 'Instrument Sans',
               fontWeight: FontWeight.w600,
@@ -294,7 +299,7 @@ class AllDonePage extends StatelessWidget {
           Text(
             'You can adjust these anytime inside the app',
             style: TextStyle(
-              color: const Color(0xFF1E1822),
+              color: ThemeHelper.textPrimary,
               fontSize: 12,
               fontFamily: 'Instrument Sans',
               fontWeight: FontWeight.w400,
@@ -315,11 +320,13 @@ class AllDonePage extends StatelessWidget {
                   height: 264, // Match macro stack height (3×80 + 2×12)
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.background,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: CupertinoColors.black.withOpacity(0.05),
+                        color: ThemeHelper.isLightMode
+                            ? CupertinoColors.black.withOpacity(0.05)
+                            : CupertinoColors.black.withOpacity(0.3),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -334,7 +341,7 @@ class AllDonePage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -353,14 +360,14 @@ class AllDonePage extends StatelessWidget {
                                 child: CircularProgressIndicator(
                                   value: 0.0, // 0/dailyCalories
                                   strokeWidth: 6,
-                                  backgroundColor: CupertinoColors.systemGrey5,
+                                  backgroundColor: ThemeHelper.divider,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    CupertinoColors.black,
+                                    ThemeHelper.textPrimary,
                                   ),
                                 ),
                               ),
                               // Center apple icon
-                              Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                              Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
                             ],
                           ),
                         ),
@@ -376,7 +383,7 @@ class AllDonePage extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ),
                               TextSpan(
@@ -384,7 +391,7 @@ class AllDonePage extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.systemGrey,
+                                  color: ThemeHelper.textSecondary,
                                 ),
                               ),
                             ],
@@ -400,7 +407,7 @@ class AllDonePage extends StatelessWidget {
                             Icon(
                               CupertinoIcons.info_circle,
                               size: 12,
-                              color: CupertinoColors.systemGrey,
+                              color: ThemeHelper.textSecondary,
                             ),
                             const SizedBox(width: 3),
                             Flexible(
@@ -408,7 +415,7 @@ class AllDonePage extends StatelessWidget {
                                 '$dailyCalories Calories more to go!',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: CupertinoColors.systemGrey,
+                                  color: ThemeHelper.textSecondary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -452,7 +459,7 @@ class AllDonePage extends StatelessWidget {
         Text(
           'Did you know',
           style: TextStyle(
-            color: const Color(0xFF1E1822),
+            color: ThemeHelper.textPrimary,
             fontSize: 18,
             fontFamily: 'Instrument Sans',
             fontWeight: FontWeight.w600,
@@ -465,7 +472,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: 'Taking a ',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -474,7 +481,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: '5–15 minute',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w700,
@@ -483,7 +490,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: ' walk after meals activates the soleus muscle in your calves and helps reduce blood sugar spikes:\n\n',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -492,7 +499,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: 'Direct glucose uptake:',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w700,
@@ -501,7 +508,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: ' The soleus muscle pulls sugar from the blood into the muscle without needing as much insulin.\n\n',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -510,7 +517,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: 'Improving insulin sensitivity:',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w700,
@@ -519,7 +526,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: ' Your body\'s insulin works more effectively after activity.\n\n',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -528,7 +535,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: 'Flattening spikes:',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w700,
@@ -537,7 +544,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: ' A walk after eating can lower the size and length of a blood sugar spike.\n\n',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -546,7 +553,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: 'Supporting long-term health:',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w700,
@@ -555,7 +562,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: ' Regular post-meal walking helps reduce risks linked to repeated blood sugar spikes, such as type 2 diabetes, insulin resistance, and cardiovascular disease.',
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -575,7 +582,7 @@ class AllDonePage extends StatelessWidget {
         Text(
           'Sources',
           style: TextStyle(
-            color: const Color(0xFF1E1822),
+            color: ThemeHelper.textPrimary,
             fontSize: 18,
             fontFamily: 'Instrument Sans',
             fontWeight: FontWeight.w600,
@@ -588,7 +595,7 @@ class AllDonePage extends StatelessWidget {
               TextSpan(
                 text: 'Our recommendations are inspired by leading nutrition research and guided by publicly available dietary guidelines, including work published by:\n\n',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: ThemeHelper.textPrimary,
                   fontSize: 12,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w400,
@@ -709,11 +716,13 @@ class AllDonePage extends StatelessWidget {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: CupertinoColors.white,
+        color: ThemeHelper.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.05),
+            color: ThemeHelper.isLightMode
+                ? CupertinoColors.black.withOpacity(0.05)
+                : CupertinoColors.black.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -751,11 +760,13 @@ class AllDonePage extends StatelessWidget {
               height: 80,
               margin: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: CupertinoColors.white,
+                color: ThemeHelper.cardBackground,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: CupertinoColors.black.withOpacity(0.03),
+                    color: ThemeHelper.isLightMode
+                        ? CupertinoColors.black.withOpacity(0.03)
+                        : CupertinoColors.black.withOpacity(0.2),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -769,7 +780,7 @@ class AllDonePage extends StatelessWidget {
                     height: 28,
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
-                      color: CupertinoColors.systemGrey6,
+                      color: ThemeHelper.divider,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(12),
                         topRight: Radius.circular(12),
@@ -781,7 +792,7 @@ class AllDonePage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.systemGrey,
+                          color: ThemeHelper.textSecondary,
                           letterSpacing: 0.1,
                         ),
                       ),
@@ -793,7 +804,7 @@ class AllDonePage extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.cardBackground,
                         borderRadius: BorderRadius.only(
                           bottomLeft: Radius.circular(12),
                           bottomRight: Radius.circular(12),
@@ -809,7 +820,7 @@ class AllDonePage extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ),
                               TextSpan(
@@ -817,7 +828,7 @@ class AllDonePage extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.systemGrey,
+                                  color: ThemeHelper.textSecondary,
                                 ),
                               ),
                             ],
@@ -865,9 +876,9 @@ class CircleProgressPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
-    // Background circle (light grey outline)
+    // Background circle (using divider color)
     final backgroundPaint = Paint()
-      ..color = CupertinoColors.systemGrey5
+      ..color = ThemeHelper.divider
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 

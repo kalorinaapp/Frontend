@@ -99,12 +99,15 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
   // Helper method to get initial screen data
   Future<Map<String, dynamic>> getInitialScreenData() async {
     try {
-      final user = Supabase.instance.client.auth.currentUser;
+      final token = await UserPrefs.getToken();
+      final userId = await UserPrefs.getId();
+      final email = await UserPrefs.getEmail();
+      final name = await UserPrefs.getName();
       return {
-        'userId': user?.id ?? '',
-        'email': user?.email ?? '',
-        'name': user?.userMetadata?['full_name'] ?? '',
-        'isAuthenticated': user != null,
+        'userId': userId ?? '',
+        'email': email ?? '',
+        'name': name ?? '',
+        'isAuthenticated': token != null && token.isNotEmpty,
       };
     } catch (e) {
       return {
@@ -160,6 +163,9 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
               final Map<String, dynamic> data = snapshot.data ?? const {};
               final String userId = (data['userId'] as String?) ?? '';
               final bool isAuthenticated = (data['isAuthenticated'] as bool?) ?? false;
+
+              print('isAuthenticated: $isAuthenticated');
+              print('userId: $userId');
 
               // Navigation logic based on authentication state
               if (isAuthenticated && userId.isNotEmpty) {

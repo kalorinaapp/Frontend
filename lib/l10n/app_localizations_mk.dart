@@ -910,4 +910,139 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get ok => 'Во ред';
+
+  @override
+  String get whatWouldYouLikeToAchieve => 'Што би сакале да постигнете?';
+
+  @override
+  String get stayMotivatedAndDisciplined =>
+      'Останете мотивирани и дисциплинирани';
+
+  @override
+  String get feelBetterAboutYourBody =>
+      'Чувствувајте се подобро за вашето тело';
+
+  @override
+  String get improveHealthLongTerm => 'Долгорочно подобрување на здравјето';
+
+  @override
+  String get increaseMoodAndEnergy => 'Зголемете расположението и енергијата';
+
+  @override
+  String get youHaveGreatPotential =>
+      'Имате голем потенцијал да ја постигнете вашата цел';
+
+  @override
+  String get yourJourneyToBetterHealth =>
+      'Вашето патување кон подобро здравје започнува сега';
+
+  @override
+  String get youTookFirstStepToHealthier =>
+      'Направивте прв чекор кон поздрава верзија на себе';
+
+  @override
+  String get trackYourFoodAndExercise => 'Следете ја вашата храна и вежбање';
+
+  @override
+  String get focusOnNutrientDenseFoods =>
+      'Фокусирајте се на храна богата со хранливи материи';
+
+  @override
+  String get maintainYourHealthyHabits => 'Одржувајте ги вашите здрави навики';
+
+  @override
+  String get balanceCarbsProteinAndFats =>
+      'Балансирајте ги јаглехидратите, протеините и мастите';
+
+  @override
+  String get stickToYourPersonalizedPlan =>
+      'Придржувајте се кон вашиот персонализиран план';
+
+  @override
+  String get focusOnWholeUnprocessedFoods =>
+      'Фокусирајте се на целосна, необработена храна';
+
+  @override
+  String get followYourPersonalizedMealPlan =>
+      'Следете го вашиот персонализиран план за оброци';
+
+  @override
+  String get focusOnPortionControlAndNutrition =>
+      'Фокусирајте се на контрола на порции и исхрана';
+
+  @override
+  String get followYourPersonalizedPlan =>
+      'Следете го вашиот персонализиран план';
+
+  @override
+  String get stayConsistentSeeRealResults =>
+      'Останете доследни, видете вистински резултати';
+
+  @override
+  String get enableNotificationsForBetterResults =>
+      'Овозможете известувања за подобри резултати';
+
+  @override
+  String get recommended => '(Препорачано)';
+
+  @override
+  String get kalorinaHelpsYouKeepTrack =>
+      'Каролина ви помага да следите — Примајте дневни потсетувања';
+
+  @override
+  String get dontAllow => 'Не дозволувај';
+
+  @override
+  String get allow => 'Дозволи';
+
+  @override
+  String get countBurnedCaloriesTowardsGoal =>
+      'Броење изгорени калории кон дневната цел?';
+
+  @override
+  String get todaysGoal => 'Денешна цел:';
+
+  @override
+  String get stepsLabel => 'Чекори:';
+
+  @override
+  String get transferExtraCaloriesToNextDay =>
+      'Пренесете дополнителни калории на следниот ден?';
+
+  @override
+  String get yesterday => 'Вчера';
+
+  @override
+  String get today => 'Денес';
+
+  @override
+  String get caloriesLeft => 'Преостанати Калории';
+
+  @override
+  String get everydayLogFireReflect =>
+      'Секој ден можете да го евидентирате вашиот 🔥 за да размислите дали навистина го постигнавте она што го сакавте. Вашите огнови градат серии кои ја покажуваат вашата доследност.';
+
+  @override
+  String get longLastingHealthEffects =>
+      'Ќе видите долготрајни ефекти врз вашето здравје';
+
+  @override
+  String get ninetyPercent => '90%';
+
+  @override
+  String get usersStayConsistentMaintainWeight =>
+      ' од корисниците кои остануваат доследни ја одржуваат својата тежина дури ';
+
+  @override
+  String get twelveMonthsLater => '12 месеци подоцна';
+
+  @override
+  String get leaveUsReview => 'Остави ни рецензија';
+
+  @override
+  String get joinOver10000People =>
+      'Придружи се повеќе од 10.000\nлуѓе баш како тебе';
+
+  @override
+  String get applied => 'Применето';
 }

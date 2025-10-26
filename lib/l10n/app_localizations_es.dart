@@ -911,4 +911,135 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get ok => 'Aceptar';
+
+  @override
+  String get whatWouldYouLikeToAchieve => '¿Qué te gustaría lograr?';
+
+  @override
+  String get stayMotivatedAndDisciplined =>
+      'Mantenerse motivado y disciplinado';
+
+  @override
+  String get feelBetterAboutYourBody => 'Sentirse mejor acerca de tu cuerpo';
+
+  @override
+  String get improveHealthLongTerm => 'Mejorar la salud a largo plazo';
+
+  @override
+  String get increaseMoodAndEnergy =>
+      'Aumentar el estado de ánimo y la energía';
+
+  @override
+  String get youHaveGreatPotential =>
+      'Tienes un gran potencial para lograr tu objetivo';
+
+  @override
+  String get yourJourneyToBetterHealth =>
+      'Tu viaje hacia una mejor salud comienza ahora';
+
+  @override
+  String get youTookFirstStepToHealthier =>
+      'Has dado el primer paso hacia una versión más saludable de ti';
+
+  @override
+  String get trackYourFoodAndExercise => 'Rastrea tu comida y ejercicio';
+
+  @override
+  String get focusOnNutrientDenseFoods =>
+      'Enfócate en alimentos ricos en nutrientes';
+
+  @override
+  String get maintainYourHealthyHabits => 'Mantén tus hábitos saludables';
+
+  @override
+  String get balanceCarbsProteinAndFats =>
+      'Equilibra carbohidratos, proteínas y grasas';
+
+  @override
+  String get stickToYourPersonalizedPlan => 'Adhiérete a tu plan personalizado';
+
+  @override
+  String get focusOnWholeUnprocessedFoods =>
+      'Enfócate en alimentos integrales y sin procesar';
+
+  @override
+  String get followYourPersonalizedMealPlan =>
+      'Sigue tu plan de comidas personalizado';
+
+  @override
+  String get focusOnPortionControlAndNutrition =>
+      'Enfócate en el control de porciones y la nutrición';
+
+  @override
+  String get followYourPersonalizedPlan => 'Sigue tu plan personalizado';
+
+  @override
+  String get stayConsistentSeeRealResults =>
+      'Mantén la constancia, ve resultados reales';
+
+  @override
+  String get enableNotificationsForBetterResults =>
+      'Activa las notificaciones para mejores resultados';
+
+  @override
+  String get recommended => '(Recomendado)';
+
+  @override
+  String get kalorinaHelpsYouKeepTrack =>
+      'Kalorina te ayuda a hacer seguimiento — Recibe recordatorios diarios';
+
+  @override
+  String get dontAllow => 'No permitir';
+
+  @override
+  String get allow => 'Permitir';
+
+  @override
+  String get countBurnedCaloriesTowardsGoal =>
+      '¿Contar calorías quemadas hacia el objetivo diario?';
+
+  @override
+  String get todaysGoal => 'Objetivo de hoy:';
+
+  @override
+  String get stepsLabel => 'Pasos:';
+
+  @override
+  String get transferExtraCaloriesToNextDay =>
+      '¿Transferir calorías extra al día siguiente?';
+
+  @override
+  String get yesterday => 'Ayer';
+
+  @override
+  String get today => 'Hoy';
+
+  @override
+  String get caloriesLeft => 'Calorías Restantes';
+
+  @override
+  String get everydayLogFireReflect =>
+      'Cada día, puedes registrar tu 🔥 para reflexionar si realmente lograste lo que querías. Tus fuegos construyen rachas que muestran tu consistencia.';
+
+  @override
+  String get longLastingHealthEffects => 'Verás efectos duraderos en tu salud';
+
+  @override
+  String get ninetyPercent => '90%';
+
+  @override
+  String get usersStayConsistentMaintainWeight =>
+      ' de los usuarios que se mantienen consistentes mantienen su peso incluso ';
+
+  @override
+  String get twelveMonthsLater => '12 meses después';
+
+  @override
+  String get leaveUsReview => 'Déjanos una reseña';
+
+  @override
+  String get joinOver10000People => 'Únete a más de 10,000\npersonas como tú';
+
+  @override
+  String get applied => 'Aplicado';
 }

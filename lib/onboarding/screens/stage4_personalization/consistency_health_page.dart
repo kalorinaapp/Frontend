@@ -1,5 +1,9 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../../providers/theme_provider.dart';
+import '../../../utils/theme_helper.dart';
 
 class ConsistencyHealthPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -19,10 +23,12 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
   Widget build(BuildContext context) {
     super.build(context);
 
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       width: 393,
       height: 852,
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: ThemeHelper.background),
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -33,10 +39,10 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
             SizedBox(
               width: 320,
               child: Text(
-                'Consistency builds health',
+                l10n.consistencyBuildsHealth,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.black,
+                  color: ThemeHelper.textPrimary,
                   fontSize: 30,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w600,
@@ -50,10 +56,10 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
             SizedBox(
               width: 336,
               child: Text(
-                'Every day, you can log your 🔥 to reflect on whether you truly achieved what you wanted. Your fires build streaks that show your consistency.',
+                l10n.everydayLogFireReflect,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xCC1E1822),
+                  color: ThemeHelper.textSecondary,
                   fontSize: 16,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w500,
@@ -68,13 +74,15 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
               width: 300,
               height: 45,
               decoration: ShapeDecoration(
-                color: Colors.white,
+                color: ThemeHelper.cardBackground,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
                 shadows: [
                   BoxShadow(
-                    color: const Color(0x33000000),
+                    color: ThemeHelper.isLightMode
+                        ? const Color(0x33000000)
+                        : Colors.black.withOpacity(0.3),
                     blurRadius: 3,
                     offset: const Offset(0, 0),
                     spreadRadius: 0,
@@ -106,15 +114,17 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
             // Statistics Card
             Container(
               width: 251,
-              height: 120, // Increased height to prevent overflow
+              height: 160, // Increased height to prevent overflow
               decoration: ShapeDecoration(
-                color: const Color(0xFFF8F7FC),
+                color: ThemeHelper.cardBackground,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
                 shadows: [
                   BoxShadow(
-                    color: const Color(0x33000000),
+                    color: ThemeHelper.isLightMode
+                        ? const Color(0x33000000)
+                        : Colors.black.withOpacity(0.3),
                     blurRadius: 3,
                     offset: const Offset(0, 0),
                     spreadRadius: 0,
@@ -130,10 +140,10 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
                     SizedBox(
                       width: 234,
                       child: Text(
-                        'You\'ll see long-lasting effects on your health',
+                        l10n.longLastingHealthEffects,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: const Color(0xE51E1822),
+                          color: ThemeHelper.textPrimary,
                           fontSize: 18,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w600,
@@ -150,27 +160,27 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
                         TextSpan(
                           children: [
                             TextSpan(
-                              text: '90%',
+                              text: l10n.ninetyPercent,
                               style: TextStyle(
-                                color: const Color(0xE51E1822),
+                                color: ThemeHelper.textPrimary,
                                 fontSize: 11,
                                 fontFamily: 'Instrument Sans',
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                             TextSpan(
-                              text: ' of users who stay consistent maintain their weight even ',
+                              text: l10n.usersStayConsistentMaintainWeight,
                               style: TextStyle(
-                                color: const Color(0xE51E1822),
+                                color: ThemeHelper.textPrimary,
                                 fontSize: 11,
                                 fontFamily: 'Instrument Sans',
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
                             TextSpan(
-                              text: '12 months later',
+                              text: l10n.twelveMonthsLater,
                               style: TextStyle(
-                                color: const Color(0xE51E1822),
+                                color: ThemeHelper.textPrimary,
                                 fontSize: 11,
                                 fontFamily: 'Instrument Sans',
                                 fontWeight: FontWeight.w700,
@@ -179,7 +189,7 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
                             TextSpan(
                               text: '.',
                               style: TextStyle(
-                                color: const Color(0xE51E1822),
+                                color: ThemeHelper.textPrimary,
                                 fontSize: 11,
                                 fontFamily: 'Instrument Sans',
                                 fontWeight: FontWeight.w400,

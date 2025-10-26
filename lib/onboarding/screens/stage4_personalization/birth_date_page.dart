@@ -108,7 +108,7 @@ class _BirthDatePageState extends State<BirthDatePage>
             child: Text(
               'Kada ste rođeni?',
               style: ThemeHelper.title1.copyWith(
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -120,7 +120,7 @@ class _BirthDatePageState extends State<BirthDatePage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey6,
+              color: ThemeHelper.cardBackground,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -128,7 +128,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                 'Ovo će se uzeti u obzir pri izračunu vaših dnevnih nutritivnih ciljeva.',
                 style: ThemeHelper.caption1.copyWith(
                   fontSize: 13,
-                  color: CupertinoColors.systemGrey,
+                  color: ThemeHelper.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -150,7 +150,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                         "Mjesec",
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                           fontSize: 18,
                         ),
                       ),
@@ -181,7 +181,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                                 month,
                                 style: ThemeHelper.body1.copyWith(
                                   fontWeight: FontWeight.w400,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                   fontSize: 18,
                                 ),
                               ),
@@ -201,7 +201,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                         "Dan",
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                           fontSize: 18,
                         ),
                       ),
@@ -222,7 +222,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                                 day.toString().padLeft(2, '0'),
                                 style: ThemeHelper.body1.copyWith(
                                   fontWeight: FontWeight.w400,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                   fontSize: 18,
                                 ),
                               ),
@@ -242,7 +242,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                         "Godina",
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: CupertinoColors.black,
+                          color: ThemeHelper.textPrimary,
                           fontSize: 18,
                         ),
                       ),
@@ -273,7 +273,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                                 year.toString(),
                                 style: ThemeHelper.body1.copyWith(
                                   fontWeight: FontWeight.w400,
-                                  color: CupertinoColors.black,
+                                  color: ThemeHelper.textPrimary,
                                   fontSize: 18,
                                 ),
                               ),

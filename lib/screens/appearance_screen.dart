@@ -30,7 +30,7 @@ class _AppearanceScreenState extends State<AppearanceScreen> {
       builder: (context, child) {
         return CupertinoPageScaffold(
           navigationBar: CupertinoNavigationBar(
-            backgroundColor: CupertinoColors.systemBackground,
+            backgroundColor: ThemeHelper.background,
             border: null,
             leading: GestureDetector(
               onTap: () {
@@ -47,7 +47,7 @@ class _AppearanceScreenState extends State<AppearanceScreen> {
               ),
             ),
           ),
-          backgroundColor: CupertinoColors.systemBackground,
+          backgroundColor: ThemeHelper.background,
           child: Column(
             children: [
               // Header with back button and title
@@ -62,14 +62,19 @@ class _AppearanceScreenState extends State<AppearanceScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // Settings gear icon
-                        Image.asset('assets/icons/settings.png', width: 30, height: 30),
+                        Image.asset(
+                          'assets/icons/settings.png', 
+                          width: 30, 
+                          height: 30,
+                          color: ThemeHelper.textPrimary,
+                        ),
                         const SizedBox(width: 12),
                         Text(
                           l10n.appearance,
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: CupertinoColors.black,
+                            color: ThemeHelper.textPrimary,
                           ),
                         ),
                       ],
@@ -138,18 +143,20 @@ class _AppearanceScreenState extends State<AppearanceScreen> {
         ),
         decoration: BoxDecoration(
           color: isSelected 
-              ? CupertinoColors.black 
-              : CupertinoColors.white,
+              ? ThemeHelper.textPrimary 
+              : ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected 
-                ? CupertinoColors.black 
-                : CupertinoColors.systemGrey4,
+                ? ThemeHelper.textPrimary 
+                : ThemeHelper.divider,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withValues(alpha: 0.05),
+              color: ThemeHelper.isLightMode
+                  ? CupertinoColors.black.withOpacity(0.05)
+                  : CupertinoColors.black.withOpacity(0.2),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -161,8 +168,8 @@ class _AppearanceScreenState extends State<AppearanceScreen> {
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: isSelected 
-                ? CupertinoColors.white 
-                : CupertinoColors.black,
+                ? ThemeHelper.background 
+                : ThemeHelper.textPrimary,
           ),
           textAlign: TextAlign.center,
         ),

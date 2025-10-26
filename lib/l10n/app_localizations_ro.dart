@@ -911,4 +911,137 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get whatWouldYouLikeToAchieve => 'Ce ai dori să realizezi?';
+
+  @override
+  String get stayMotivatedAndDisciplined => 'Rămâi motivat și disciplinat';
+
+  @override
+  String get feelBetterAboutYourBody =>
+      'Simte-te mai bine cu privire la corpul tău';
+
+  @override
+  String get improveHealthLongTerm => 'Îmbunătățește sănătatea pe termen lung';
+
+  @override
+  String get increaseMoodAndEnergy => 'Crește dispoziția și energia';
+
+  @override
+  String get youHaveGreatPotential =>
+      'Ai un mare potențial de a-ți atinge obiectivul';
+
+  @override
+  String get yourJourneyToBetterHealth =>
+      'Călătoria ta către o sănătate mai bună începe acum';
+
+  @override
+  String get youTookFirstStepToHealthier =>
+      'Ai făcut primul pas către o versiune mai sănătoasă a ta';
+
+  @override
+  String get trackYourFoodAndExercise => 'Urmărește-ți mâncarea și exercițiile';
+
+  @override
+  String get focusOnNutrientDenseFoods =>
+      'Concentrează-te pe alimente bogate în nutrienți';
+
+  @override
+  String get maintainYourHealthyHabits => 'Menține-ți obiceiurile sănătoase';
+
+  @override
+  String get balanceCarbsProteinAndFats =>
+      'Echilibrează carbohidrații, proteinele și grăsimile';
+
+  @override
+  String get stickToYourPersonalizedPlan =>
+      'Ține-te de planul tău personalizat';
+
+  @override
+  String get focusOnWholeUnprocessedFoods =>
+      'Concentrează-te pe alimente integrale, neprocesate';
+
+  @override
+  String get followYourPersonalizedMealPlan =>
+      'Urmează planul tău personalizat de mese';
+
+  @override
+  String get focusOnPortionControlAndNutrition =>
+      'Concentrează-te pe controlul porțiilor și nutriție';
+
+  @override
+  String get followYourPersonalizedPlan => 'Urmează planul tău personalizat';
+
+  @override
+  String get stayConsistentSeeRealResults =>
+      'Fii consecvent, vezi rezultate reale';
+
+  @override
+  String get enableNotificationsForBetterResults =>
+      'Activează notificările pentru rezultate mai bune';
+
+  @override
+  String get recommended => '(Recomandat)';
+
+  @override
+  String get kalorinaHelpsYouKeepTrack =>
+      'Kalorina te ajută să urmărești — Primește memento zilnice';
+
+  @override
+  String get dontAllow => 'Nu permite';
+
+  @override
+  String get allow => 'Permite';
+
+  @override
+  String get countBurnedCaloriesTowardsGoal =>
+      'Numărați caloriile arse către obiectivul zilnic?';
+
+  @override
+  String get todaysGoal => 'Obiectivul de astăzi:';
+
+  @override
+  String get stepsLabel => 'Pași:';
+
+  @override
+  String get transferExtraCaloriesToNextDay =>
+      'Transferați caloriile suplimentare la ziua următoare?';
+
+  @override
+  String get yesterday => 'Ieri';
+
+  @override
+  String get today => 'Astăzi';
+
+  @override
+  String get caloriesLeft => 'Calorii Rămase';
+
+  @override
+  String get everydayLogFireReflect =>
+      'În fiecare zi, poți înregistra 🔥 pentru a reflecta dacă ai atins cu adevărat ceea ce ai dorit. Focurile tale construiesc serii care îți arată consistența.';
+
+  @override
+  String get longLastingHealthEffects =>
+      'Vei vedea efecte de lungă durată asupra sănătății tale';
+
+  @override
+  String get ninetyPercent => '90%';
+
+  @override
+  String get usersStayConsistentMaintainWeight =>
+      ' dintre utilizatorii care rămân consecvenți își mențin greutatea chiar ';
+
+  @override
+  String get twelveMonthsLater => '12 luni mai târziu';
+
+  @override
+  String get leaveUsReview => 'Lăsați-ne o recenzie';
+
+  @override
+  String get joinOver10000People =>
+      'Alăturați-vă la peste 10.000\noameni exact ca dumneavoastră';
+
+  @override
+  String get applied => 'Aplicat';
 }

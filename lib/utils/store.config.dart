@@ -25,7 +25,7 @@ class StoreConfig {
 
 
 abstract class EntitleMents {
-  static const String entitlementId = "all.features.access.entitlement";
+  static const String entitlementId = "pro";
 
   static const String footerText = "Example Footer Text for Unfold Us";
 

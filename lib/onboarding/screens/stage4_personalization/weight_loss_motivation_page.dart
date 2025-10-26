@@ -31,15 +31,17 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
   double _getWeightLossGoal() {
     final int? currentWeightInt = _controller.getIntData('weight');
     final double? desiredWeight = _controller.getDoubleData('desired_weight');
+    final bool isLbs = _controller.getBoolData('weight_unit_lbs') ?? true;
     
     // Convert int to double if needed
     final double? currentWeight = currentWeightInt?.toDouble();
     
     if (currentWeight != null && desiredWeight != null) {
+      // Both weights should be in the same unit (user's preference)
       final double weightLoss = currentWeight - desiredWeight;
       return weightLoss > 0 ? weightLoss : 0.0;
     }
-    return 5.0; // Default fallback
+    return isLbs ? 5.0 : 2.3; // Default fallback based on unit
   }
 
   // Get current weight for categorization
@@ -101,14 +103,14 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 60),
+          const SizedBox(height: 40),
           
           // Weight loss goal circle
           Container(
             width: 160,
             height: 160,
             decoration: BoxDecoration(
-              color: CupertinoColors.white,
+              color: ThemeHelper.cardBackground,
               shape: BoxShape.circle,
               border: Border.all(
                 color: const Color.fromARGB(255, 207, 173, 128), // Light tan/brown border
@@ -121,9 +123,9 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: '-${weightLossGoal.toStringAsFixed(0)}',
+                      text: '-${weightLossGoal.toStringAsFixed(1)}',
                       style: ThemeHelper.title1.copyWith(
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                       ),
@@ -131,7 +133,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
                     TextSpan(
                       text: weightUnit,
                       style: ThemeHelper.title1.copyWith(
-                        color: CupertinoColors.black,
+                        color: ThemeHelper.textPrimary,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -150,9 +152,9 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: '-${weightLossGoal.toStringAsFixed(0)}$weightUnit',
+                  text: '-${weightLossGoal.toStringAsFixed(1)}$weightUnit',
                   style: ThemeHelper.title2.copyWith(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -160,7 +162,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
                 TextSpan(
                   text: ' is a realistic goal.\n${_getMotivationalMessage()}',
                   style: ThemeHelper.title2.copyWith(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     fontSize: 24,
                     fontWeight: FontWeight.normal,
                   ),
@@ -175,7 +177,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
           Text(
             _getEncouragementMessage(),
             style: ThemeHelper.title1.copyWith(
-              color: CupertinoColors.black,
+              color: ThemeHelper.textPrimary,
               fontSize: 32,
               fontWeight: FontWeight.bold,
             ),
@@ -189,13 +191,18 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey6,
+              color: ThemeHelper.cardBackground,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
                 // Graph icon placeholder
-                Image.asset('assets/icons/graph.png', width: 36, height: 36),
+                Image.asset(
+                  'assets/icons/graph.png',
+                  width: 36,
+                  height: 36,
+                  color: ThemeHelper.textPrimary,
+                ),
                 
                 const SizedBox(width: 16),
                 
@@ -204,7 +211,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
                   child: Text(
                     '9 out of 10 users say they\nsee results in first week of\nusing Kalorina',
                     style: ThemeHelper.body1.copyWith(
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
                       height: 1.4,
@@ -215,7 +222,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
             ),
           ),
           
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
         ],
       ),
     );

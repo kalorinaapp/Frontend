@@ -175,6 +175,8 @@ class _CreateAccountPageState extends State<CreateAccountPage>
           // Reload language after returning from selection screen
           if (result != null || mounted) {
             await _loadCurrentLanguage();
+            // Ensure the continue button stays enabled after language change
+            _controller.validateCurrentPage();
           }
         } catch (e) {
           debugPrint('Error navigating to language selection: $e');
@@ -183,19 +185,17 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: ThemeHelper.isLightMode 
-              ? CupertinoColors.white 
-              : CupertinoColors.systemGrey6,
+          color: ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: ThemeHelper.isLightMode
-                ? CupertinoColors.black.withOpacity(0.2)
-                : CupertinoColors.white.withOpacity(0.2),
+            color: ThemeHelper.divider,
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.black.withOpacity(0.1),
+              color: ThemeHelper.isLightMode 
+                  ? CupertinoColors.black.withOpacity(0.1)
+                  : CupertinoColors.black.withOpacity(0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -558,16 +558,13 @@ class _CreateAccountPageState extends State<CreateAccountPage>
                         color: ThemeHelper.cardBackground,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color:
-                              ThemeHelper.isLightMode
-                                  ? CupertinoColors.black
-                                  : CupertinoColors.white,
+                          color: ThemeHelper.divider,
                           width: 1,
                         ),
                       ),
                       child: CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.cardBackground,
                         borderRadius: BorderRadius.circular(24),
                         onPressed:   Platform.isIOS ? googleSignIn : googleSignInAndroid,
                         child: Row(

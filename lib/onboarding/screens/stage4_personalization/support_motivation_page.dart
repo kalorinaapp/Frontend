@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../utils/theme_helper.dart';
 
 class SupportMotivationPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -23,7 +24,7 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
     return Container(
       width: 393,
       height: 852,
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: ThemeHelper.background),
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -38,7 +39,7 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
                 'We\'re here for you!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 30,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w600,
@@ -49,7 +50,7 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
             const SizedBox(height: 60),
             
             // Central illustration (finger heart gesture)
-            Image.asset('assets/images/hands.png', width: 200, height: 200),
+            Image.asset('assets/images/hands.png', width: 200, height: 200, color: ThemeHelper.textPrimary,),
             
             const SizedBox(height: 60),
             
@@ -57,8 +58,8 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
             Container(
               width: 299,
               height: 112,
-              decoration: const ShapeDecoration(
-                color: Color(0xFFF8F7FC),
+              decoration: ShapeDecoration(
+                color: ThemeHelper.cardBackground,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(13)),
                 ),
@@ -71,7 +72,7 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
                     'The journey to your goal might be challenging at times, but we\'re here to support you every step of the way. You won\'t have to face it alone.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: const Color(0xCC1E1822),
+                      color: ThemeHelper.textSecondary,
                       fontSize: 16,
                       fontFamily: 'Instrument Sans',
                       fontWeight: FontWeight.w500,

@@ -911,4 +911,135 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get ok => 'Rendben';
+
+  @override
+  String get whatWouldYouLikeToAchieve => 'Mit szeretnél elérni?';
+
+  @override
+  String get stayMotivatedAndDisciplined => 'Maradj motivált és fegyelmezett';
+
+  @override
+  String get feelBetterAboutYourBody => 'Érezd jobban magad a testedben';
+
+  @override
+  String get improveHealthLongTerm => 'Hosszú távú egészségjavítás';
+
+  @override
+  String get increaseMoodAndEnergy => 'Növeld a hangulatot és az energiát';
+
+  @override
+  String get youHaveGreatPotential => 'Nagy potenciálod van a célod eléréséhez';
+
+  @override
+  String get yourJourneyToBetterHealth =>
+      'Az utazásod a jobb egészség felé most kezdődik';
+
+  @override
+  String get youTookFirstStepToHealthier =>
+      'Megtetted az első lépést az egészségesebb énfelé';
+
+  @override
+  String get trackYourFoodAndExercise => 'Kövesd az ételedet és edzésed';
+
+  @override
+  String get focusOnNutrientDenseFoods =>
+      'Koncentrálj a tápanyagban gazdag ételekre';
+
+  @override
+  String get maintainYourHealthyHabits => 'Tartsd fenn egészséges szokásaidat';
+
+  @override
+  String get balanceCarbsProteinAndFats =>
+      'Egyensúlyozd a szénhidrátokat, fehérjéket és zsírokat';
+
+  @override
+  String get stickToYourPersonalizedPlan =>
+      'Tartsd be személyre szabott tervedet';
+
+  @override
+  String get focusOnWholeUnprocessedFoods =>
+      'Koncentrálj a teljes értékű, feldolgozatlan ételekre';
+
+  @override
+  String get followYourPersonalizedMealPlan =>
+      'Kövesd személyre szabott étkezési tervedet';
+
+  @override
+  String get focusOnPortionControlAndNutrition =>
+      'Koncentrálj az adagkontrollra és táplálkozásra';
+
+  @override
+  String get followYourPersonalizedPlan => 'Kövesd személyre szabott tervedet';
+
+  @override
+  String get stayConsistentSeeRealResults =>
+      'Légy következetes, láss valódi eredményeket';
+
+  @override
+  String get enableNotificationsForBetterResults =>
+      'Engedélyezd az értesítéseket jobb eredményekért';
+
+  @override
+  String get recommended => '(Ajánlott)';
+
+  @override
+  String get kalorinaHelpsYouKeepTrack =>
+      'A Kalorina segít nyomon követni — Kapj napi emlékeztetőket';
+
+  @override
+  String get dontAllow => 'Ne engedélyezd';
+
+  @override
+  String get allow => 'Engedélyezd';
+
+  @override
+  String get countBurnedCaloriesTowardsGoal =>
+      'Elégett kalóriák számítása a napi cél felé?';
+
+  @override
+  String get todaysGoal => 'Mai cél:';
+
+  @override
+  String get stepsLabel => 'Lépések:';
+
+  @override
+  String get transferExtraCaloriesToNextDay =>
+      'Extra kalóriák átvitele a következő napra?';
+
+  @override
+  String get yesterday => 'Tegnap';
+
+  @override
+  String get today => 'Ma';
+
+  @override
+  String get caloriesLeft => 'Maradt Kalóriák';
+
+  @override
+  String get everydayLogFireReflect =>
+      'Minden nap rögzítheted a 🔥-t, hogy elgondolkodj azon, valóban elérted-e, amit szerettél volna. A tüzeid sorozatokat építenek, amelyek mutatják a következetességedet.';
+
+  @override
+  String get longLastingHealthEffects =>
+      'Hosszú távú hatásokat fogsz látni az egészségedre';
+
+  @override
+  String get ninetyPercent => '90%';
+
+  @override
+  String get usersStayConsistentMaintainWeight =>
+      ' azok közül a felhasználók közül, akik következetesek maradnak, fenntartják súlyukat még ';
+
+  @override
+  String get twelveMonthsLater => '12 hónappal később';
+
+  @override
+  String get leaveUsReview => 'Hagyjon nekünk értékelést';
+
+  @override
+  String get joinOver10000People =>
+      'Csatlakozzon több mint 10 000\nemberhez, akik olyanok, mint Ön';
+
+  @override
+  String get applied => 'Alkalmazva';
 }

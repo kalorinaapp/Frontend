@@ -408,12 +408,19 @@ class _AutomaticGenerationPageviewState extends State<AutomaticGenerationPagevie
             () => Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(1000),
+                // Add subtle background for disabled state
+                color: !_controller.isNextButtonEnabled.value 
+                    ? ThemeHelper.cardBackground 
+                    : null,
               ),
               child: CupertinoButton(
                 padding: const EdgeInsets.symmetric(
                   vertical: 16,
                 ),
-                color: ThemeHelper.textPrimary,
+                // Use theme-aware color for active state, transparent for disabled
+                color: _controller.isNextButtonEnabled.value 
+                    ? ThemeHelper.textPrimary 
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(1000),
                 onPressed: (_controller.isNextButtonEnabled.value && !_isSubmitting)
                     ? () {
@@ -425,8 +432,8 @@ class _AutomaticGenerationPageviewState extends State<AutomaticGenerationPagevie
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (_isSubmitting)
-                      const CupertinoActivityIndicator(
-                        color: CupertinoColors.white,
+                      CupertinoActivityIndicator(
+                        color: ThemeHelper.background,
                       )
                     else
                       Obx(
@@ -435,8 +442,9 @@ class _AutomaticGenerationPageviewState extends State<AutomaticGenerationPagevie
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            // Active: background color, Inactive: secondary text color
                             color: _controller.isNextButtonEnabled.value
-                                ? CupertinoColors.white
+                                ? ThemeHelper.background
                                 : ThemeHelper.textSecondary,
                           ),
                         ),
@@ -461,7 +469,7 @@ class _AutomaticGenerationPageviewState extends State<AutomaticGenerationPagevie
               child: CupertinoButton(
                 sizeStyle: CupertinoButtonSize.small,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                color: CupertinoColors.black,
+                color: ThemeHelper.cardBackground,
                 borderRadius: BorderRadius.circular(12),
                 onPressed: () {
                   HapticFeedback.mediumImpact();
@@ -474,12 +482,12 @@ class _AutomaticGenerationPageviewState extends State<AutomaticGenerationPagevie
                   
                   _nextPage();
                 },
-                child: const Text(
+                child: Text(
                   'No',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.textPrimary,
                   ),
                 ),
               ),
@@ -503,12 +511,12 @@ class _AutomaticGenerationPageviewState extends State<AutomaticGenerationPagevie
                   
                   _nextPage();
                 },
-                child: const Text(
+                child: Text(
                   'Yes',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.white,
+                    color: ThemeHelper.background,
                   ),
                 ),
               ),

@@ -50,7 +50,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(color: CupertinoColors.white),
+      decoration: BoxDecoration(color: ThemeHelper.background),
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -66,7 +66,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                   fontSize: 34,
                   height: 1.15,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                 ),
                 textAlign: TextAlign.left,
               ),
@@ -77,7 +77,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
               RichText(
                 text: TextSpan(
                   style: ThemeHelper.body1.copyWith(
-                    color: const Color(0xFF1E1822),
+                    color: ThemeHelper.textPrimary,
                     height: 1.4,
                     fontSize: 16,
                   ),
@@ -98,7 +98,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                 'Your progress',
                 style: ThemeHelper.title2.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                 ),
               ),
 
@@ -111,7 +111,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF7F5F9),
+                      color: ThemeHelper.cardBackground,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -131,7 +131,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                                 '+2x',
                                 style: ThemeHelper.subhead.copyWith(
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF1E1822),
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ),
                             ],
@@ -189,15 +189,16 @@ class _ProgressRow extends StatelessWidget {
       children: [
         // Leading icon/image
         Padding(
-          padding: const EdgeInsets.only(left: 4.0, right: 10.0),
+          padding: const EdgeInsets.only(left: 0.0, right: 10.0),
           child: leadingImagePath != null
               ? Image.asset(
                   leadingImagePath!,
-                  width: 22,
-                  height: 22,
-                  errorBuilder: (_, __, ___) => Icon(leadingFallbackIcon ?? CupertinoIcons.circle, size: 22, color: const Color(0xFF1E1822)),
+                  width: leadingImagePath!.contains('apple.png') ? 28 : 22,
+                  height: leadingImagePath!.contains('apple.png') ? 28 : 22,
+                  color: ThemeHelper.isLightMode ? null : ThemeHelper.textPrimary,
+                  errorBuilder: (_, __, ___) => Icon(leadingFallbackIcon ?? CupertinoIcons.circle, size: 22, color: ThemeHelper.textPrimary),
                 )
-              : Icon(leadingFallbackIcon ?? CupertinoIcons.circle, size: 24, color: const Color(0xFF1E1822)),
+              : Icon(leadingFallbackIcon ?? CupertinoIcons.circle, size: 24, color: ThemeHelper.textPrimary),
         ),
 
         // Title and bar
@@ -209,7 +210,7 @@ class _ProgressRow extends StatelessWidget {
                 title,
                 style: ThemeHelper.subhead.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                 ),
               ),
               const SizedBox(height: 10),
@@ -224,7 +225,7 @@ class _ProgressRow extends StatelessWidget {
                         width: full,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD7D4DB),
+                          color: ThemeHelper.divider,
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),

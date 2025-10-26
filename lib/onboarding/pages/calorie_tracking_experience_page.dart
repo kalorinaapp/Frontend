@@ -6,12 +6,10 @@ import '../../utils/theme_helper.dart';
 import '../../l10n/app_localizations.dart';
 
 class CalorieTrackingExperiencePage extends StatefulWidget {
-  final int pageIndex;
   final ThemeProvider themeProvider;
   
   const CalorieTrackingExperiencePage({
     super.key,
-    required this.pageIndex,
     required this.themeProvider,
   });
 
@@ -44,15 +42,6 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
   @override
   void initState() {
     super.initState();
-    
-    // Register page validation
-    _controller.registerPageValidation(
-      widget.pageIndex,
-      PageValidationConfig(
-        dataKey: 'calorie_tracking_experience',
-        validationType: ValidationType.singleChoice,
-      ),
-    );
 
     // Load previously saved selection if any
     _selectedOption = _controller.getStringData('calorie_tracking_experience');
@@ -67,12 +56,7 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
     _controller.setStringData('calorie_tracking_experience', value);
     debugPrint('📊 Calorie tracking experience selected: $value');
     
-    // Auto-navigate to next page after a short delay
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        _controller.goToNextPage();
-      }
-    });
+
   }
 
   @override
@@ -145,35 +129,27 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
         ),
         decoration: BoxDecoration(
           color: isSelected 
-              ? ThemeHelper.isLightMode 
-                  ? CupertinoColors.black 
-                  : CupertinoColors.white
-              : ThemeHelper.isLightMode
-                  ? CupertinoColors.white
-                  : CupertinoColors.systemGrey6,
+              ? ThemeHelper.textPrimary
+              : ThemeHelper.cardBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected 
-                ? ThemeHelper.isLightMode
-                    ? CupertinoColors.black
-                    : CupertinoColors.white
-                : ThemeHelper.isLightMode
-                    ? CupertinoColors.systemGrey4
-                    : CupertinoColors.systemGrey5,
+                ? ThemeHelper.textPrimary
+                : ThemeHelper.divider,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             if (isSelected)
               BoxShadow(
-                color: (ThemeHelper.isLightMode 
-                    ? CupertinoColors.black 
-                    : CupertinoColors.white).withOpacity(0.2),
+                color: ThemeHelper.textPrimary.withOpacity(0.2),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               )
             else
               BoxShadow(
-                color: CupertinoColors.black.withOpacity(0.05),
+                color: ThemeHelper.isLightMode 
+                    ? CupertinoColors.black.withOpacity(0.05)
+                    : CupertinoColors.black.withOpacity(0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -184,9 +160,7 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
           style: ThemeHelper.textStyleWithColorAndSize(
             ThemeHelper.body1,
             isSelected 
-                ? ThemeHelper.isLightMode
-                    ? CupertinoColors.white
-                    : CupertinoColors.black
+                ? ThemeHelper.background
                 : ThemeHelper.textPrimary,
             16,
           ).copyWith(

@@ -8,6 +8,7 @@ import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart' show OnboardingController;
 import '../../../providers/language_provider.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class RatingPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -232,57 +233,11 @@ class _RatingPageState extends State<RatingPage>
     super.dispose();
   }
 
-  // Get localized text based on current language
-  String _getLocalizedTitle() {
-    final currentLanguage = _languageController.currentLocale.languageCode;
-    switch (currentLanguage) {
-      case 'en':
-        return "Leave us a review";
-      case 'hr':
-        return "Ostavi nam recenziju";
-      case 'sr':
-        return "Остави нам рецензију";
-      case 'mk':
-        return "Остави ни рецензија";
-      case 'bg':
-        return "Оставете ни рецензия";
-      case 'sl':
-        return "Pustite nam oceno";
-      case 'hu':
-        return "Hagyjon nekünk értékelést";
-      case 'ro':
-        return "Lăsați-ne o recenzie";
-      default:
-        return "Leave us a review";
-    }
-  }
-
-  String _getLocalizedSubtitle() {
-    final currentLanguage = _languageController.currentLocale.languageCode;
-    switch (currentLanguage) {
-      case 'en':
-        return "Join over 10,000\npeople just like you";
-      case 'hr':
-        return "Pridruži se više od 10.000\nljudi baš poput tebe";
-      case 'sr':
-        return "Придружи се више од 10.000\nљуди баш попут тебе";
-      case 'mk':
-        return "Придружи се повеќе од 10.000\nлуѓе баш како тебе";
-      case 'bg':
-        return "Присъединете се към над 10 000\nхора точно като вас";
-      case 'sl':
-        return "Pridružite se več kot 10.000\nljudem prav kot vi";
-      case 'hu':
-        return "Csatlakozzon több mint 10 000\nemberhez, akik olyanok, mint Ön";
-      case 'ro':
-        return "Alăturați-vă la peste 10.000\noameni exact ca dumneavoastră";
-      default:
-        return "Join over 10,000\npeople just like you";
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return ListenableBuilder(
       listenable: widget.themeProvider,
       builder: (context, child) {
@@ -297,7 +252,7 @@ class _RatingPageState extends State<RatingPage>
                 children: [
                   const SizedBox(height: 8),
                   Text(
-                    _getLocalizedTitle(),
+                    l10n.leaveUsReview,
                     textAlign: TextAlign.center,
                     style: ThemeHelper.textStyleWithColorAndSize(
                       ThemeHelper.title1,
@@ -321,7 +276,7 @@ class _RatingPageState extends State<RatingPage>
                   const SizedBox(height: 24),
                   // Headline under image
                   Text(
-                    _getLocalizedSubtitle(),
+                    l10n.joinOver10000People,
                     textAlign: TextAlign.center,
                     style: ThemeHelper.textStyleWithColorAndSize(
                       ThemeHelper.title1,

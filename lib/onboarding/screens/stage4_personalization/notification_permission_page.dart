@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../utils/theme_helper.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../controller/onboarding.controller.dart';
 
 class NotificationPermissionPage extends StatefulWidget {
@@ -128,10 +128,12 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Container(
       width: 393,
       height: 852,
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: ThemeHelper.background),
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -143,10 +145,10 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
             SizedBox(
               width: 301,
               child: Text(
-                'Enable notifications for better results',
+                l10n.enableNotificationsForBetterResults,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 30,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w600,
@@ -160,10 +162,10 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
             SizedBox(
               width: 311,
               child: Text(
-                '(Recommended)',
+                l10n.recommended,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 20,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w600,
@@ -177,8 +179,8 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
             Container(
               width: 290,
               height: 197,
-              decoration: const ShapeDecoration(
-                color: Color(0xFFF8F7FC),
+              decoration: ShapeDecoration(
+                color: ThemeHelper.cardBackground,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(15)),
                 ),
@@ -195,10 +197,10 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
                   SizedBox(
                     width: 257,
                     child: Text(
-                      'Kalorina helps you keep track — Get daily reminders',
+                      l10n.kalorinaHelpsYouKeepTrack,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: const Color(0xFF1E1822),
+                        color: ThemeHelper.textPrimary,
                         fontSize: 18,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w600,
@@ -223,18 +225,18 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
                       child: Container(
                         width: 127,
                         height: 48,
-                        decoration: const ShapeDecoration(
-                          color: Color(0xFFF8F7FC),
+                        decoration: ShapeDecoration(
+                          color: ThemeHelper.cardBackground,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(Radius.circular(15)),
                           ),
                         ),
                         child: Center(
                           child: Text(
-                            'Don\'t Allow',
+                            l10n.dontAllow,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: const Color(0x7F1E1822),
+                              color: ThemeHelper.textSecondary,
                               fontSize: 15,
                               fontFamily: 'Instrument Sans',
                               fontWeight: FontWeight.w500,
@@ -264,7 +266,7 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
                         ),
                         child: Center(
                           child: Text(
-                            'Allow',
+                            l10n.allow,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white,

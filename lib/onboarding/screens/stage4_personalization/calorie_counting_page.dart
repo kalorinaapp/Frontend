@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../utils/theme_helper.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../controller/onboarding.controller.dart';
 
 class CalorieCountingPage extends StatefulWidget {
@@ -85,11 +87,12 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: 393,
       height: 852,
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: ThemeHelper.background),
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -101,10 +104,10 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
             SizedBox(
               width: 278,
               child: Text(
-                'Count burned calories towards your daily goal?',
+                l10n.countBurnedCaloriesTowardsGoal,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 30,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w600,
@@ -118,10 +121,10 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
             SizedBox(
               width: 311,
               child: Text(
-                '(Recommended)',
+                l10n.recommended,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 20,
                   fontFamily: 'Instrument Sans',
                   fontWeight: FontWeight.w600,
@@ -135,8 +138,8 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
             Container(
               width: 278,
               height: 197,
-              decoration: const ShapeDecoration(
-                color: Color(0xFFF8F7FC),
+              decoration: ShapeDecoration(
+                color: ThemeHelper.cardBackground,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(15)),
                 ),
@@ -166,9 +169,9 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
                               SizedBox(
                                 width: 301,
                                 child: Text(
-                                  'Today\'s goal:',
+                                  l10n.todaysGoal,
                                   style: TextStyle(
-                                    color: const Color(0xFF1E1822),
+                                    color: ThemeHelper.textPrimary,
                                     fontSize: 18,
                                     fontFamily: 'Instrument Sans',
                                     fontWeight: FontWeight.w500,
@@ -179,9 +182,9 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
                               SizedBox(
                                 width: 301,
                                 child: Text(
-                                  '${_calculateDailyCalorieGoal()} Calories',
+                                  '${_calculateDailyCalorieGoal()} ${l10n.calories}',
                                   style: TextStyle(
-                                    color: const Color(0xFF1E1822),
+                                    color: ThemeHelper.textPrimary,
                                     fontSize: 24,
                                     fontFamily: 'Instrument Sans',
                                     fontWeight: FontWeight.w600,
@@ -216,9 +219,9 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
                               SizedBox(
                                 width: 301,
                                 child: Text(
-                                  'Steps:',
+                                  l10n.stepsLabel,
                                   style: TextStyle(
-                                    color: const Color(0xFF1E1822),
+                                    color: ThemeHelper.textPrimary,
                                     fontSize: 18,
                                     fontFamily: 'Instrument Sans',
                                     fontWeight: FontWeight.w500,
@@ -229,9 +232,9 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
                               SizedBox(
                                 width: 301,
                                 child: Text(
-                                  '+${_calculateStepsCalories()} Calories',
+                                  '+${_calculateStepsCalories()} ${l10n.calories}',
                                   style: TextStyle(
-                                    color: const Color(0xFF1E1822),
+                                    color: ThemeHelper.textPrimary,
                                     fontSize: 24,
                                     fontFamily: 'Instrument Sans',
                                     fontWeight: FontWeight.w600,
