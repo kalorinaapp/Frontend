@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class DesiredWeightPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -113,23 +114,38 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
     _updateWeight(newWeight);
   }
 
-  String _getGoalText() {
+  String _getGoalText(AppLocalizations localizations) {
     final String? goal = _controller.getStringData('goal');
     switch (goal) {
       case 'lose_weight':
-        return 'Smršati';
+        return localizations.loseWeight;
       case 'maintain_weight':
-        return 'Održavati Težinu';
+        return localizations.maintainWeight;
       case 'gain_weight':
-        return 'Dobiti na Težini';
+        return localizations.gainWeight;
       default:
-        return 'Dobiti na Težini';
+        return localizations.gainWeight;
+    }
+  }
+  
+  String _getTitleText(AppLocalizations localizations) {
+    final String? goal = _controller.getStringData('goal');
+    switch (goal) {
+      case 'lose_weight':
+        return localizations.howMuchWeightToLose;
+      case 'maintain_weight':
+        return localizations.whatIsDesiredWeight;
+      case 'gain_weight':
+        return localizations.howMuchWeightToGain;
+      default:
+        return localizations.whatIsDesiredWeight;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final localizations = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +156,7 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
         Padding(
           padding: const EdgeInsets.only(left: 24),
           child: Text(
-            'What is your desired weight?',
+            _getTitleText(localizations),
             style: ThemeHelper.title3.copyWith(
               color: ThemeHelper.textPrimary,
               fontSize: 28,
@@ -212,7 +228,7 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
         // Goal text
         Center(
           child: Text(
-            _getGoalText(),
+            _getGoalText(localizations),
             style: ThemeHelper.body1.copyWith(
               color: ThemeHelper.textSecondary,
               fontSize: 16,

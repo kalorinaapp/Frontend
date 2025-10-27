@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class WeightLossMotivationPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -27,76 +28,128 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
     _controller = Get.find<OnboardingController>();
   }
 
-  // Calculate weight loss goal based on current and desired weight
-  double _getWeightLossGoal() {
+  // Calculate weight change goal based on current and desired weight
+  double _getWeightChangeGoal() {
     final int? currentWeightInt = _controller.getIntData('weight');
     final double? desiredWeight = _controller.getDoubleData('desired_weight');
-    final bool isLbs = _controller.getBoolData('weight_unit_lbs') ?? true;
+    final bool isCurrentMetric = _controller.getBoolData('is_metric') ?? true;
+    final bool isDesiredLbs = _controller.getBoolData('weight_unit_lbs') ?? true;
+    final String? goal = _controller.getStringData('goal');
     
-    // Convert int to double if needed
-    final double? currentWeight = currentWeightInt?.toDouble();
+    if (currentWeightInt == null || desiredWeight == null) {
+      return isDesiredLbs ? 5.0 : 2.3; // Default fallback based on unit
+    }
     
-    if (currentWeight != null && desiredWeight != null) {
-      // Both weights should be in the same unit (user's preference)
-      final double weightLoss = currentWeight - desiredWeight;
+    // Convert current weight to double
+    double currentWeight = currentWeightInt.toDouble();
+    double desiredWeightNormalized = desiredWeight;
+    
+    // Ensure both weights are in the same unit (let's use the desired weight's unit)
+    // If current is metric (kg) but desired is lbs, convert current to lbs
+    // If current is imperial (lbs) but desired is kg, convert current to kg
+    if (isCurrentMetric && isDesiredLbs) {
+      // Current is in kg, desired is in lbs - convert current to lbs
+      currentWeight = currentWeight * 2.20462;
+    } else if (!isCurrentMetric && !isDesiredLbs) {
+      // Current is in lbs, desired is in kg - convert current to kg
+      currentWeight = currentWeight * 0.453592;
+    }
+    // If both are in the same unit system, no conversion needed
+    
+    // For lose_weight: positive number (current - desired)
+    // For gain_weight: positive number (desired - current)
+    if (goal == 'lose_weight') {
+      final double weightLoss = currentWeight - desiredWeightNormalized;
       return weightLoss > 0 ? weightLoss : 0.0;
+    } else if (goal == 'gain_weight') {
+      final double weightGain = desiredWeightNormalized - currentWeight;
+      return weightGain > 0 ? weightGain : 0.0;
     }
-    return isLbs ? 5.0 : 2.3; // Default fallback based on unit
+    
+    return isDesiredLbs ? 5.0 : 2.3; // Default fallback based on unit
+  }
+  
+  String _getWeightChangeSign() {
+    final String? goal = _controller.getStringData('goal');
+    if (goal == 'lose_weight') {
+      return '-';
+    } else if (goal == 'gain_weight') {
+      return '+';
+    }
+    return '';
   }
 
-  // Get current weight for categorization
-  double _getCurrentWeight() {
-    final int? currentWeightInt = _controller.getIntData('weight');
-    final bool isLbs = _controller.getBoolData('weight_unit_lbs') ?? true;
+  // Get motivational message based on goal and amount
+  String _getMotivationalMessage(AppLocalizations localizations, double weightChangeAmount, bool isLbs) {
+    final String? goal = _controller.getStringData('goal');
     
-    if (currentWeightInt != null) {
-      double weight = currentWeightInt.toDouble();
-      // Convert to kg for consistent categorization
-      if (isLbs) {
-        weight = weight * 0.453592; // Convert lbs to kg
+    // Convert to kg for consistent categorization
+    double amountInKg = isLbs ? weightChangeAmount * 0.453592 : weightChangeAmount;
+    
+    if (goal == 'lose_weight') {
+      if (amountInKg < 5) {
+        return 'Every small step counts!\nYou\'re already on the right track!';
+      } else if (amountInKg < 10) {
+        return localizations.youHaveGreatPotentialLose;
+      } else if (amountInKg < 20) {
+        return 'Your journey to better health starts now!\nWe believe in your success!';
+      } else {
+        return 'You\'ve taken the first step towards a healthier you!\nWe\'re here to support you every step of the way!';
       }
-      return weight;
+    } else if (goal == 'gain_weight') {
+      if (amountInKg < 5) {
+        return 'Small gains lead to big results!\nYou\'re on the right path!';
+      } else if (amountInKg < 10) {
+        return localizations.youHaveGreatPotentialGain;
+      } else if (amountInKg < 15) {
+        return 'Building strength takes time and dedication!\nWe\'re with you all the way!';
+      } else {
+        return 'Your muscle-building journey begins now!\nCommitment is key to your transformation!';
+      }
     }
-    return 70.0; // Default fallback
+    return localizations.youHaveGreatPotentialLose;
   }
 
-  // Get motivational message based on weight category
-  String _getMotivationalMessage() {
-    final double currentWeight = _getCurrentWeight();
+  // Get encouragement message based on goal and amount
+  String _getEncouragementMessage(AppLocalizations localizations, double weightChangeAmount, bool isLbs) {
+    final String? goal = _controller.getStringData('goal');
     
-    if (currentWeight < 60) {
-      return 'Every small step counts!\nYou\'re already on the right track!';
-    } else if (currentWeight < 80) {
-      return 'You have great potential to achieve your goal!\nLet\'s make it happen together!';
-    } else if (currentWeight < 100) {
-      return 'Your journey to better health starts now!\nWe believe in your success!';
-    } else {
-      return 'You\'ve taken the first step towards a healthier you!\nWe\'re here to support you every step of the way!';
-    }
-  }
-
-  // Get encouragement message based on weight category
-  String _getEncouragementMessage() {
-    final double currentWeight = _getCurrentWeight();
+    // Convert to kg for consistent categorization
+    double amountInKg = isLbs ? weightChangeAmount * 0.453592 : weightChangeAmount;
     
-    if (currentWeight < 60) {
-      return 'You\'re doing amazing!';
-    } else if (currentWeight < 80) {
-      return 'You\'ve got this!';
-    } else if (currentWeight < 100) {
-      return 'Stay strong!';
-    } else {
-      return 'You\'re stronger than you think!';
+    if (goal == 'lose_weight') {
+      if (amountInKg < 5) {
+        return 'You\'re doing amazing!';
+      } else if (amountInKg < 10) {
+        return localizations.youveGotThis;
+      } else if (amountInKg < 20) {
+        return localizations.stayStrong;
+      } else {
+        return 'You\'re stronger than you think!';
+      }
+    } else if (goal == 'gain_weight') {
+      if (amountInKg < 5) {
+        return 'Every rep counts!';
+      } else if (amountInKg < 10) {
+        return localizations.stayStrong;
+      } else if (amountInKg < 15) {
+        return 'Consistency is your power!';
+      } else {
+        return 'Beast mode activated!';
+      }
     }
+    return localizations.youveGotThis;
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final localizations = AppLocalizations.of(context)!;
 
-    final double weightLossGoal = _getWeightLossGoal();
+    final double weightChangeGoal = _getWeightChangeGoal();
     final bool isLbs = _controller.getBoolData('weight_unit_lbs') ?? true;
     final String weightUnit = isLbs ? 'lbs' : 'kg';
+    final String weightSign = _getWeightChangeSign();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -105,7 +158,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
         children: [
           const SizedBox(height: 40),
           
-          // Weight loss goal circle
+          // Weight change goal circle
           Container(
             width: 160,
             height: 160,
@@ -123,7 +176,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: '-${weightLossGoal.toStringAsFixed(1)}',
+                      text: '$weightSign${weightChangeGoal.toStringAsFixed(1)}',
                       style: ThemeHelper.title1.copyWith(
                         color: ThemeHelper.textPrimary,
                         fontSize: 32,
@@ -152,7 +205,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: '-${weightLossGoal.toStringAsFixed(1)}$weightUnit',
+                  text: '$weightSign${weightChangeGoal.toStringAsFixed(1)}$weightUnit',
                   style: ThemeHelper.title2.copyWith(
                     color: ThemeHelper.textPrimary,
                     fontSize: 24,
@@ -160,7 +213,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
                   ),
                 ),
                 TextSpan(
-                  text: ' is a realistic goal.\n${_getMotivationalMessage()}',
+                  text: ' ${localizations.isRealisticGoal}\n${_getMotivationalMessage(localizations, weightChangeGoal, isLbs)}',
                   style: ThemeHelper.title2.copyWith(
                     color: ThemeHelper.textPrimary,
                     fontSize: 24,
@@ -175,7 +228,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
           
           // Encouragement message
           Text(
-            _getEncouragementMessage(),
+            _getEncouragementMessage(localizations, weightChangeGoal, isLbs),
             style: ThemeHelper.title1.copyWith(
               color: ThemeHelper.textPrimary,
               fontSize: 32,
@@ -209,7 +262,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
                 // Statistics text
                 Expanded(
                   child: Text(
-                    '9 out of 10 users say they\nsee results in first week of\nusing Kalorina',
+                    localizations.nineOutOfTenUsers,
                     style: ThemeHelper.body1.copyWith(
                       color: ThemeHelper.textPrimary,
                       fontSize: 16,

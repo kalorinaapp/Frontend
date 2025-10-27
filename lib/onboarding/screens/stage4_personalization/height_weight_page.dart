@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class HeightWeightPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -107,6 +108,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final localizations = AppLocalizations.of(context)!;
 
     // Define metric boundaries.
     const int minMetricHeight = 10;
@@ -152,7 +154,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
           // Title
           Center(
             child: Text(
-              'Visina i težina',
+              localizations.heightAndWeight,
               style: ThemeHelper.title1.copyWith(
                 color: ThemeHelper.textPrimary,
               ),
@@ -171,7 +173,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
             ),
             child: Center(
               child: Text(
-                'Ova informacija nam pomaže da personaliziramo vaše dnevne kalorijske i nutritivne ciljeve.',
+                localizations.heightWeightSubtitle,
                 style: ThemeHelper.caption1.copyWith(
                   fontSize: 13,
                   color: ThemeHelper.textSecondary,
@@ -190,7 +192,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Imperial",
+                  localizations.imperial,
                   style: ThemeHelper.headline.copyWith(
                     color: _isMetric ? ThemeHelper.textSecondary : ThemeHelper.textPrimary,
                   ),
@@ -225,10 +227,11 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                     });
                   },
                   activeColor: ThemeHelper.textPrimary,
+                  thumbColor: ThemeHelper.background,
                 ),
                 const SizedBox(width: 32),
                 Text(
-                  "Metrički",
+                  localizations.metric,
                   style: ThemeHelper.headline.copyWith(
                     color: _isMetric ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
                   ),
@@ -249,7 +252,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                   child: Column(
                     children: [
                       Text(
-                        "Visina",
+                        localizations.heightLabel,
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
                           color: ThemeHelper.textPrimary,
@@ -296,7 +299,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                   child: Column(
                     children: [
                       Text(
-                        "Težina",
+                        localizations.weightLabel,
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
                           color: ThemeHelper.textPrimary,

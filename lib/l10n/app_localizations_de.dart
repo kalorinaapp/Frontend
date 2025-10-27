@@ -1047,4 +1047,300 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get applied => 'Angewendet';
+
+  @override
+  String get howItWorksUniqueApproach =>
+      'Wie Kalorinas einzigartiger\nAnsatz funktioniert';
+
+  @override
+  String get scan => 'Scannen';
+
+  @override
+  String get analyze => 'Analysieren';
+
+  @override
+  String get track => 'Verfolgen';
+
+  @override
+  String get heightAndWeight => 'Größe und Gewicht';
+
+  @override
+  String get heightWeightSubtitle =>
+      'Diese Information hilft uns, Ihre täglichen Kalorien- und Ernährungsziele zu personalisieren.';
+
+  @override
+  String get imperial => 'Imperial';
+
+  @override
+  String get metric => 'Metrisch';
+
+  @override
+  String get heightLabel => 'Größe';
+
+  @override
+  String get weightLabel => 'Gewicht';
+
+  @override
+  String get whenWereYouBorn => 'Wann wurden Sie geboren?';
+
+  @override
+  String get birthDateSubtitle =>
+      'Dies wird bei der Berechnung Ihrer täglichen Ernährungsziele berücksichtigt.';
+
+  @override
+  String get monthLabel => 'Monat';
+
+  @override
+  String get dayLabel => 'Tag';
+
+  @override
+  String get yearLabel => 'Jahr';
+
+  @override
+  String get january => 'Januar';
+
+  @override
+  String get february => 'Februar';
+
+  @override
+  String get march => 'März';
+
+  @override
+  String get april => 'April';
+
+  @override
+  String get may => 'Mai';
+
+  @override
+  String get june => 'Juni';
+
+  @override
+  String get july => 'Juli';
+
+  @override
+  String get august => 'August';
+
+  @override
+  String get september => 'September';
+
+  @override
+  String get october => 'Oktober';
+
+  @override
+  String get november => 'November';
+
+  @override
+  String get december => 'Dezember';
+
+  @override
+  String get selectYourGender => 'Wähle dein Geschlecht';
+
+  @override
+  String get genderSelectionInfo =>
+      'Wählen Sie das Geschlecht aus, das der Physiologie Ihres Körpers für eine genaue Kalorienverfolgung entspricht';
+
+  @override
+  String get maleGender => 'Männlich';
+
+  @override
+  String get femaleGender => 'Weiblich';
+
+  @override
+  String get howManyWorkoutsPerWeek =>
+      'Wie viele Trainingseinheiten machst du pro Woche';
+
+  @override
+  String get selectBestOption =>
+      'Wählen Sie die Option, die am besten zu Ihnen passt';
+
+  @override
+  String get noWorkouts => 'Ich trainiere nicht';
+
+  @override
+  String get occasionalWorkouts => 'Gelegentliche Trainings';
+
+  @override
+  String get severalWorkoutsWeekly => 'Mehrere Trainings wöchentlich';
+
+  @override
+  String get dedicatedAthlete => 'Engagierter Sportler';
+
+  @override
+  String get whereDidYouHearAboutUs => 'Wo haben Sie von uns gehört?';
+
+  @override
+  String get googlePlay => 'Google Play';
+
+  @override
+  String get youtube => 'YouTube';
+
+  @override
+  String get tiktok => 'TikTok';
+
+  @override
+  String get instagram => 'Instagram';
+
+  @override
+  String get influencer => 'Influencer';
+
+  @override
+  String get friendsOrFamily => 'Freunde oder Familie';
+
+  @override
+  String get other => 'Andere';
+
+  @override
+  String get wellDoneBigStep =>
+      'Gut gemacht! Sie haben gerade\neinen großen Schritt gemacht.';
+
+  @override
+  String get calorieTrackingPart1 => 'Wussten Sie, dass Kalorienzählen eine ';
+
+  @override
+  String get scientificallyProvenMethod => 'wissenschaftlich bewiesene Methode';
+
+  @override
+  String get calorieTrackingPart2 =>
+      ' ist, um Ihre Ziele zu erreichen – und sogar bis zu ';
+
+  @override
+  String get twiceFaster => 'doppelt so schnell';
+
+  @override
+  String get calorieTrackingPart3 => '?';
+
+  @override
+  String get yourProgress => 'Ihr Fortschritt';
+
+  @override
+  String get withKalorina => 'Mit Kalorina';
+
+  @override
+  String get withoutKalorina => 'Ohne Kalorina';
+
+  @override
+  String get twiceMultiplier => '+2x';
+
+  @override
+  String get whatIsYourGoal => 'Was ist Ihr Ziel';
+
+  @override
+  String get selectGoalThatSuitsYou =>
+      'Wählen Sie das Ziel, das am besten zu Ihnen passt';
+
+  @override
+  String get loseWeight => 'Gewicht verlieren';
+
+  @override
+  String get maintainWeight => 'Gewicht halten';
+
+  @override
+  String get gainWeight => 'Gewicht zunehmen';
+
+  @override
+  String get howMuchWeightToLose => 'Wie viel Gewicht möchten Sie verlieren?';
+
+  @override
+  String get howMuchWeightToGain => 'Wie viel Gewicht möchten Sie zunehmen?';
+
+  @override
+  String get whatIsDesiredWeight => 'Was ist Ihr gewünschtes Gewicht?';
+
+  @override
+  String get isRealisticGoal => 'ist ein realistisches Ziel.';
+
+  @override
+  String get youHaveGreatPotentialLose =>
+      'Sie haben großes Potenzial, Ihr Ziel zu erreichen!\nLassen Sie es uns gemeinsam schaffen!';
+
+  @override
+  String get youHaveGreatPotentialGain =>
+      'Muskelaufbau erfordert Hingabe!\nWir sind hier, um Ihre Reise zu unterstützen!';
+
+  @override
+  String get youveGotThis => 'Du schaffst das!';
+
+  @override
+  String get stayStrong => 'Bleib stark!';
+
+  @override
+  String get nineOutOfTenUsers =>
+      '9 von 10 Benutzern sagen, dass sie\nin der ersten Woche der Nutzung\nvon Kalorina Ergebnisse sehen';
+
+  @override
+  String get pickWeightLossSpeed =>
+      'Wählen Sie Ihre Gewichtsabnahme-Geschwindigkeit';
+
+  @override
+  String get pickWeightGainSpeed =>
+      'Wählen Sie Ihre Gewichtszunahme-Geschwindigkeit';
+
+  @override
+  String get theSafestOption => 'Die sicherste Option';
+
+  @override
+  String get balancedApproach => 'Ausgewogener Ansatz';
+
+  @override
+  String get aggressivePlan => 'Aggressiver Plan';
+
+  @override
+  String get doYouFollowDiet => 'Folgen Sie einer bestimmten Diät?';
+
+  @override
+  String get helpTrackCaloriesDiet =>
+      'Wir helfen Ihnen, Kalorien entsprechend Ihrer Ernährung zu verfolgen';
+
+  @override
+  String get classic => 'Klassisch';
+
+  @override
+  String get carnivore => 'Carnivore';
+
+  @override
+  String get keto => 'Keto';
+
+  @override
+  String get vegan => 'Vegan';
+
+  @override
+  String get vegetarian => 'Vegetarisch';
+
+  @override
+  String get wereHereForYou => 'Wir sind für Sie da!';
+
+  @override
+  String get journeySupportMessage =>
+      'Der Weg zu Ihrem Ziel kann manchmal herausfordernd sein, aber wir sind hier, um Sie bei jedem Schritt zu unterstützen. Sie müssen sich dem nicht alleine stellen.';
+
+  @override
+  String get starsAcrossApps => 'Sterne In Allen Apps';
+
+  @override
+  String get testimonial1Name => 'Lukas M.';
+
+  @override
+  String get testimonial1Review =>
+      'Ich hätte nie gedacht, dass Kalorienzählen so einfach sein kann. Ich habe in weniger als 2 Monaten 7 kg abgenommen.';
+
+  @override
+  String get testimonial2Name => 'Sarah K.';
+
+  @override
+  String get testimonial2Review =>
+      'Die Genauigkeit ist unglaublich. Endlich weiß ich genau, was ich esse und fühle mich viel besser.';
+
+  @override
+  String get testimonial3Name => 'Michael R.';
+
+  @override
+  String get testimonial3Review =>
+      'Perfekt für meinen Alltag. Ich scanne meine Mahlzeiten schnell und spüre bereits nach einer Woche Fortschritte.';
+
+  @override
+  String get testimonial4Name => 'Emma W.';
+
+  @override
+  String get testimonial4Review =>
+      'Einfach, präzise und nützlich. Ich tracke Kalorien ohne Aufwand und fühle mich den ganzen Tag leichter.';
 }

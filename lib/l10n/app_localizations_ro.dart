@@ -1044,4 +1044,296 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get applied => 'Aplicat';
+
+  @override
+  String get howItWorksUniqueApproach =>
+      'Cum funcționează abordarea\nunică a Kalorina';
+
+  @override
+  String get scan => 'Scanează';
+
+  @override
+  String get analyze => 'Analizează';
+
+  @override
+  String get track => 'Urmărește';
+
+  @override
+  String get heightAndWeight => 'Înălțime și greutate';
+
+  @override
+  String get heightWeightSubtitle =>
+      'Această informație ne ajută să personalizăm obiectivele tale calorice și nutriționale zilnice.';
+
+  @override
+  String get imperial => 'Imperial';
+
+  @override
+  String get metric => 'Metric';
+
+  @override
+  String get heightLabel => 'Înălțime';
+
+  @override
+  String get weightLabel => 'Greutate';
+
+  @override
+  String get whenWereYouBorn => 'Când te-ai născut?';
+
+  @override
+  String get birthDateSubtitle =>
+      'Acest lucru va fi luat în considerare la calcularea obiectivelor tale nutriționale zilnice.';
+
+  @override
+  String get monthLabel => 'Lună';
+
+  @override
+  String get dayLabel => 'Zi';
+
+  @override
+  String get yearLabel => 'An';
+
+  @override
+  String get january => 'Ianuarie';
+
+  @override
+  String get february => 'Februarie';
+
+  @override
+  String get march => 'Martie';
+
+  @override
+  String get april => 'Aprilie';
+
+  @override
+  String get may => 'Mai';
+
+  @override
+  String get june => 'Iunie';
+
+  @override
+  String get july => 'Iulie';
+
+  @override
+  String get august => 'August';
+
+  @override
+  String get september => 'Septembrie';
+
+  @override
+  String get october => 'Octombrie';
+
+  @override
+  String get november => 'Noiembrie';
+
+  @override
+  String get december => 'Decembrie';
+
+  @override
+  String get selectYourGender => 'Selectează-ți Genul';
+
+  @override
+  String get genderSelectionInfo =>
+      'Selectează genul care se potrivește cu fiziologia corpului tău pentru urmărirea precisă a caloriilor';
+
+  @override
+  String get maleGender => 'Bărbat';
+
+  @override
+  String get femaleGender => 'Femeie';
+
+  @override
+  String get howManyWorkoutsPerWeek => 'Câte antrenamente faci pe săptămână';
+
+  @override
+  String get selectBestOption =>
+      'Selectează opțiunea care ți se potrivește cel mai bine';
+
+  @override
+  String get noWorkouts => 'Nu mă antrenez';
+
+  @override
+  String get occasionalWorkouts => 'Antrenamente ocazionale';
+
+  @override
+  String get severalWorkoutsWeekly => 'Mai multe antrenamente săptămânale';
+
+  @override
+  String get dedicatedAthlete => 'Atlet dedicat';
+
+  @override
+  String get whereDidYouHearAboutUs => 'De unde ai auzit despre noi?';
+
+  @override
+  String get googlePlay => 'Google Play';
+
+  @override
+  String get youtube => 'YouTube';
+
+  @override
+  String get tiktok => 'TikTok';
+
+  @override
+  String get instagram => 'Instagram';
+
+  @override
+  String get influencer => 'Influencer';
+
+  @override
+  String get friendsOrFamily => 'Prieteni sau Familie';
+
+  @override
+  String get other => 'Altele';
+
+  @override
+  String get wellDoneBigStep => 'Felicitări! Tocmai ai făcut\nun pas mare.';
+
+  @override
+  String get calorieTrackingPart1 => 'Știai că urmărirea caloriilor este o ';
+
+  @override
+  String get scientificallyProvenMethod => 'metodă dovedită științific';
+
+  @override
+  String get calorieTrackingPart2 =>
+      ' pentru a-ți atinge obiectivele – și chiar de până la ';
+
+  @override
+  String get twiceFaster => 'de două ori mai rapid';
+
+  @override
+  String get calorieTrackingPart3 => '?';
+
+  @override
+  String get yourProgress => 'Progresul tău';
+
+  @override
+  String get withKalorina => 'Cu Kalorina';
+
+  @override
+  String get withoutKalorina => 'Fără Kalorina';
+
+  @override
+  String get twiceMultiplier => '+2x';
+
+  @override
+  String get whatIsYourGoal => 'Care este obiectivul tău';
+
+  @override
+  String get selectGoalThatSuitsYou =>
+      'Selectează obiectivul care ți se potrivește cel mai bine';
+
+  @override
+  String get loseWeight => 'Pierdere în Greutate';
+
+  @override
+  String get maintainWeight => 'Menținere Greutate';
+
+  @override
+  String get gainWeight => 'Câștig în Greutate';
+
+  @override
+  String get howMuchWeightToLose => 'Cât de multă greutate vrei să pierzi?';
+
+  @override
+  String get howMuchWeightToGain => 'Cât de multă greutate vrei să câștigi?';
+
+  @override
+  String get whatIsDesiredWeight => 'Care este greutatea ta dorită?';
+
+  @override
+  String get isRealisticGoal => 'este un obiectiv realist.';
+
+  @override
+  String get youHaveGreatPotentialLose =>
+      'Ai un mare potențial de a-ți atinge obiectivul!\nHai să-l facem împreună!';
+
+  @override
+  String get youHaveGreatPotentialGain =>
+      'Construirea mușchilor necesită dedicare!\nSuntem aici pentru a-ți susține călătoria!';
+
+  @override
+  String get youveGotThis => 'Poți face asta!';
+
+  @override
+  String get stayStrong => 'Rămâi puternic!';
+
+  @override
+  String get nineOutOfTenUsers =>
+      '9 din 10 utilizatori spun că\nvăd rezultate în prima săptămână\nde utilizare a Kalorina';
+
+  @override
+  String get pickWeightLossSpeed => 'Alege viteza de pierdere în greutate';
+
+  @override
+  String get pickWeightGainSpeed => 'Alege viteza de câștig în greutate';
+
+  @override
+  String get theSafestOption => 'Opțiunea cea mai sigură';
+
+  @override
+  String get balancedApproach => 'Abordare echilibrată';
+
+  @override
+  String get aggressivePlan => 'Plan agresiv';
+
+  @override
+  String get doYouFollowDiet => 'Urmezi o dietă specifică?';
+
+  @override
+  String get helpTrackCaloriesDiet =>
+      'Te vom ajuta să urmărești caloriile conform dietei tale';
+
+  @override
+  String get classic => 'Clasică';
+
+  @override
+  String get carnivore => 'Carnivore';
+
+  @override
+  String get keto => 'Keto';
+
+  @override
+  String get vegan => 'Vegană';
+
+  @override
+  String get vegetarian => 'Vegetariană';
+
+  @override
+  String get wereHereForYou => 'Suntem aici pentru tine!';
+
+  @override
+  String get journeySupportMessage =>
+      'Călătoria către obiectivul tău poate fi uneori provocatoare, dar suntem aici să te susținem la fiecare pas. Nu va trebui să o înfrunți singur.';
+
+  @override
+  String get starsAcrossApps => 'Stele Pe Aplicații';
+
+  @override
+  String get testimonial1Name => 'Andrei P.';
+
+  @override
+  String get testimonial1Review =>
+      'Aplicația este incredibil de precisă. În sfârșit știu cât mănânc și mă simt mult mai bine pe parcursul zilei.';
+
+  @override
+  String get testimonial2Name => 'Mihai P.';
+
+  @override
+  String get testimonial2Review =>
+      'De când folosesc aplicația, sunt conștient de porții. Mănânc mai inteligent și am mai multă energie pe parcursul zilei.';
+
+  @override
+  String get testimonial3Name => 'Elena K.';
+
+  @override
+  String get testimonial3Review =>
+      'Precizia introducerii m-a impresionat. În sfârșit am control asupra caloriilor fără stres și numărare.';
+
+  @override
+  String get testimonial4Name => 'Emir S.';
+
+  @override
+  String get testimonial4Review =>
+      'Perfect pentru rutina zilnică. Scanez rapid mesele și simt progresul deja după o săptămână.';
 }

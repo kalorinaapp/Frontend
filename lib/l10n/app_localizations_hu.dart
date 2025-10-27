@@ -1042,4 +1042,295 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get applied => 'Alkalmazva';
+
+  @override
+  String get howItWorksUniqueApproach =>
+      'Hogyan működik a Kalorina\negyedi megközelítése';
+
+  @override
+  String get scan => 'Szkennelés';
+
+  @override
+  String get analyze => 'Elemzés';
+
+  @override
+  String get track => 'Követés';
+
+  @override
+  String get heightAndWeight => 'Magasság és súly';
+
+  @override
+  String get heightWeightSubtitle =>
+      'Ez az információ segít nekünk személyre szabni a napi kalória- és táplálkozási céljaidat.';
+
+  @override
+  String get imperial => 'Birodalmi';
+
+  @override
+  String get metric => 'Metrikus';
+
+  @override
+  String get heightLabel => 'Magasság';
+
+  @override
+  String get weightLabel => 'Súly';
+
+  @override
+  String get whenWereYouBorn => 'Mikor születtél?';
+
+  @override
+  String get birthDateSubtitle =>
+      'Ez figyelembe lesz véve a napi táplálkozási céljaid kiszámításakor.';
+
+  @override
+  String get monthLabel => 'Hónap';
+
+  @override
+  String get dayLabel => 'Nap';
+
+  @override
+  String get yearLabel => 'Év';
+
+  @override
+  String get january => 'Január';
+
+  @override
+  String get february => 'Február';
+
+  @override
+  String get march => 'Március';
+
+  @override
+  String get april => 'Április';
+
+  @override
+  String get may => 'Május';
+
+  @override
+  String get june => 'Június';
+
+  @override
+  String get july => 'Július';
+
+  @override
+  String get august => 'Augusztus';
+
+  @override
+  String get september => 'Szeptember';
+
+  @override
+  String get october => 'Október';
+
+  @override
+  String get november => 'November';
+
+  @override
+  String get december => 'December';
+
+  @override
+  String get selectYourGender => 'Válaszd ki a Nemed';
+
+  @override
+  String get genderSelectionInfo =>
+      'Válaszd ki azt a nemet, amely megfelel tested fiziológiájának a pontos kalóriaszámításhoz';
+
+  @override
+  String get maleGender => 'Férfi';
+
+  @override
+  String get femaleGender => 'Nő';
+
+  @override
+  String get howManyWorkoutsPerWeek => 'Hány edzést végzel hetente';
+
+  @override
+  String get selectBestOption =>
+      'Válaszd ki a számodra legmegfelelőbb lehetőséget';
+
+  @override
+  String get noWorkouts => 'Nem edzelek';
+
+  @override
+  String get occasionalWorkouts => 'Alkalmi edzések';
+
+  @override
+  String get severalWorkoutsWeekly => 'Több edzés hetente';
+
+  @override
+  String get dedicatedAthlete => 'Elkötelezett sportoló';
+
+  @override
+  String get whereDidYouHearAboutUs => 'Hol hallottál rólunk?';
+
+  @override
+  String get googlePlay => 'Google Play';
+
+  @override
+  String get youtube => 'YouTube';
+
+  @override
+  String get tiktok => 'TikTok';
+
+  @override
+  String get instagram => 'Instagram';
+
+  @override
+  String get influencer => 'Influencer';
+
+  @override
+  String get friendsOrFamily => 'Barátok vagy Család';
+
+  @override
+  String get other => 'Egyéb';
+
+  @override
+  String get wellDoneBigStep => 'Szép munka! Épp most tettél\negy nagy lépést.';
+
+  @override
+  String get calorieTrackingPart1 => 'Tudtad, hogy a kalóriaszámolás egy ';
+
+  @override
+  String get scientificallyProvenMethod => 'tudományosan bizonyított módszer';
+
+  @override
+  String get calorieTrackingPart2 => ' a célok elérésére – és akár ';
+
+  @override
+  String get twiceFaster => 'kétszer gyorsabban';
+
+  @override
+  String get calorieTrackingPart3 => '?';
+
+  @override
+  String get yourProgress => 'Az előrehaladásod';
+
+  @override
+  String get withKalorina => 'Kalorinával';
+
+  @override
+  String get withoutKalorina => 'Kalorina nélkül';
+
+  @override
+  String get twiceMultiplier => '+2x';
+
+  @override
+  String get whatIsYourGoal => 'Mi a célod';
+
+  @override
+  String get selectGoalThatSuitsYou =>
+      'Válaszd ki a neked legjobban megfelelő célt';
+
+  @override
+  String get loseWeight => 'Fogyás';
+
+  @override
+  String get maintainWeight => 'Súly Megtartása';
+
+  @override
+  String get gainWeight => 'Súlygyarapodás';
+
+  @override
+  String get howMuchWeightToLose => 'Mennyi súlyt szeretnél leadni?';
+
+  @override
+  String get howMuchWeightToGain => 'Mennyi súlyt szeretnél hízni?';
+
+  @override
+  String get whatIsDesiredWeight => 'Mi a kívánt súlyod?';
+
+  @override
+  String get isRealisticGoal => 'reális cél.';
+
+  @override
+  String get youHaveGreatPotentialLose =>
+      'Nagy potenciálod van a célod eléréséhez!\nCsináljuk meg együtt!';
+
+  @override
+  String get youHaveGreatPotentialGain =>
+      'Az izomépítés elkötelezettséget igényel!\nItt vagyunk, hogy támogassuk az utad!';
+
+  @override
+  String get youveGotThis => 'Meg tudod csinálni!';
+
+  @override
+  String get stayStrong => 'Légy erős!';
+
+  @override
+  String get nineOutOfTenUsers =>
+      '10-ből 9 felhasználó azt mondja, hogy\neredményeket lát az első héten\na Kalorina használata során';
+
+  @override
+  String get pickWeightLossSpeed => 'Válaszd ki a fogyás sebességét';
+
+  @override
+  String get pickWeightGainSpeed => 'Válaszd ki a hízás sebességét';
+
+  @override
+  String get theSafestOption => 'A legbiztonságosabb lehetőség';
+
+  @override
+  String get balancedApproach => 'Kiegyensúlyozott megközelítés';
+
+  @override
+  String get aggressivePlan => 'Agresszív terv';
+
+  @override
+  String get doYouFollowDiet => 'Követsz egy bizonyos diétát?';
+
+  @override
+  String get helpTrackCaloriesDiet =>
+      'Segítünk nyomon követni a kalóriákat a diétád szerint';
+
+  @override
+  String get classic => 'Klasszikus';
+
+  @override
+  String get carnivore => 'Húsevő';
+
+  @override
+  String get keto => 'Keto';
+
+  @override
+  String get vegan => 'Vegán';
+
+  @override
+  String get vegetarian => 'Vegetáriánus';
+
+  @override
+  String get wereHereForYou => 'Itt vagyunk neked!';
+
+  @override
+  String get journeySupportMessage =>
+      'Az utad a célodhoz néha kihívást jelenthet, de itt vagyunk, hogy minden lépésnél támogassunk. Nem kell egyedül szembenézned vele.';
+
+  @override
+  String get starsAcrossApps => 'Csillag Az Alkalmazásokban';
+
+  @override
+  String get testimonial1Name => 'Bence J.';
+
+  @override
+  String get testimonial1Review =>
+      'Az alkalmazás hihetetlenül pontos. Végre tudom, mennyit eszem és sokkal jobban érzem magam a nap folyamán.';
+
+  @override
+  String get testimonial2Name => 'Márk P.';
+
+  @override
+  String get testimonial2Review =>
+      'Mióta használom az alkalmazást, tudatos vagyok az adagokkal. Okosabban eszem és több energiám van napközben.';
+
+  @override
+  String get testimonial3Name => 'Jelena K.';
+
+  @override
+  String get testimonial3Review =>
+      'A bevitelek pontossága lenyűgözött. Végre kontroll alatt tartom a kalóriákat stressz és számolás nélkül.';
+
+  @override
+  String get testimonial4Name => 'Emir S.';
+
+  @override
+  String get testimonial4Review =>
+      'Tökéletes a napi rutinomhoz. Gyorsan szkenneltem az ételeket és már egy hét után érzem a fejlődést.';
 }

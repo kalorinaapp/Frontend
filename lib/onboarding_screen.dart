@@ -57,7 +57,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   void _handlePageLogic(int page) {
     // Add any special logic for specific pages here
-    _controller.showNavigation.value = true;
+    
+    // Hide navigation for goal generation page
+    if (page == 24) { // GoalGenerationPage index
+      _controller.showNavigation.value = false;
+    } else {
+      _controller.showNavigation.value = true;
+    }
     
     // Enable dual button mode only for calorie counting page
     if (page == 20) { // CalorieCountingPage index
@@ -279,21 +285,21 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   void _nextPage() {
     if (!_controller.isLastPage) {
-      // // Check if we should skip weight loss related pages
-      // if (_shouldSkipWeightLossPages()) {
-      //   _controller.goToNextPage();
-      //   // Skip weight loss motivation page if not losing weight
-      //   if (_controller.currentPage.value == 11 && _controller.getStringData('goal') != 'lose_weight') {
-      //     _controller.goToNextPage();
-      //   }
-      //   // Skip weight loss speed page if not losing weight
-      //   if (_controller.currentPage.value == 12 && _controller.getStringData('goal') != 'lose_weight') {
-      //     _controller.goToNextPage();
-      //   }
-      // } else {
-      //   _controller.goToNextPage();
-      // }
-      _controller.goToNextPage();
+      final String? goal = _controller.getStringData('goal');
+      final int currentPage = _controller.currentPage.value;
+      
+      // If on goal selection page (10) and user selected "maintain_weight", skip to page 14
+      if (currentPage == 10 && goal == 'maintain_weight') {
+        // Directly jump to page 14, bypassing pages 11, 12, and 13
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(14);
+        }
+        _controller.currentPage.value = 14;
+        _controller.validatePage(14);
+        _handlePageLogic(14);
+      } else {
+        _controller.goToNextPage();
+      }
     } else {
       // Navigate to main app
       _startApp();
@@ -303,7 +309,21 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   void _previousPage() {
     if (_controller.currentPage.value > 0) {
-      _controller.goToPreviousPage();
+      final int currentPage = _controller.currentPage.value;
+      final String? goal = _controller.getStringData('goal');
+      
+      // If on dietary preference page (14) and came from goal selection (maintain_weight), go back to page 10
+      if (currentPage == 14 && goal == 'maintain_weight') {
+        // Jump back to page 10, bypassing pages 13, 12, and 11
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(10);
+        }
+        _controller.currentPage.value = 10;
+        _controller.validatePage(10);
+        _handlePageLogic(10);
+      } else {
+        _controller.goToPreviousPage();
+      }
     } else {
       Navigator.of(context).pop();
     }

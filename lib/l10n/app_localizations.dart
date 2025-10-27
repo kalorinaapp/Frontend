@@ -2063,6 +2063,558 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Applied'**
   String get applied;
+
+  /// No description provided for @howItWorksUniqueApproach.
+  ///
+  /// In en, this message translates to:
+  /// **'How Kalorina\'s unique\napproach works'**
+  String get howItWorksUniqueApproach;
+
+  /// No description provided for @scan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get scan;
+
+  /// No description provided for @analyze.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze'**
+  String get analyze;
+
+  /// No description provided for @track.
+  ///
+  /// In en, this message translates to:
+  /// **'Track'**
+  String get track;
+
+  /// No description provided for @heightAndWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Height and Weight'**
+  String get heightAndWeight;
+
+  /// No description provided for @heightWeightSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This information helps us personalize your daily caloric and nutritional goals.'**
+  String get heightWeightSubtitle;
+
+  /// No description provided for @imperial.
+  ///
+  /// In en, this message translates to:
+  /// **'Imperial'**
+  String get imperial;
+
+  /// No description provided for @metric.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get metric;
+
+  /// No description provided for @heightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get heightLabel;
+
+  /// No description provided for @weightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightLabel;
+
+  /// No description provided for @whenWereYouBorn.
+  ///
+  /// In en, this message translates to:
+  /// **'When were you born?'**
+  String get whenWereYouBorn;
+
+  /// No description provided for @birthDateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This will be taken into account when calculating your daily nutritional goals.'**
+  String get birthDateSubtitle;
+
+  /// No description provided for @monthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get monthLabel;
+
+  /// No description provided for @dayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get dayLabel;
+
+  /// No description provided for @yearLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get yearLabel;
+
+  /// No description provided for @january.
+  ///
+  /// In en, this message translates to:
+  /// **'January'**
+  String get january;
+
+  /// No description provided for @february.
+  ///
+  /// In en, this message translates to:
+  /// **'February'**
+  String get february;
+
+  /// No description provided for @march.
+  ///
+  /// In en, this message translates to:
+  /// **'March'**
+  String get march;
+
+  /// No description provided for @april.
+  ///
+  /// In en, this message translates to:
+  /// **'April'**
+  String get april;
+
+  /// No description provided for @may.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get may;
+
+  /// No description provided for @june.
+  ///
+  /// In en, this message translates to:
+  /// **'June'**
+  String get june;
+
+  /// No description provided for @july.
+  ///
+  /// In en, this message translates to:
+  /// **'July'**
+  String get july;
+
+  /// No description provided for @august.
+  ///
+  /// In en, this message translates to:
+  /// **'August'**
+  String get august;
+
+  /// No description provided for @september.
+  ///
+  /// In en, this message translates to:
+  /// **'September'**
+  String get september;
+
+  /// No description provided for @october.
+  ///
+  /// In en, this message translates to:
+  /// **'October'**
+  String get october;
+
+  /// No description provided for @november.
+  ///
+  /// In en, this message translates to:
+  /// **'November'**
+  String get november;
+
+  /// No description provided for @december.
+  ///
+  /// In en, this message translates to:
+  /// **'December'**
+  String get december;
+
+  /// No description provided for @selectYourGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your Gender'**
+  String get selectYourGender;
+
+  /// No description provided for @genderSelectionInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the gender that matches your body\'s physiology for accurate calorie tracking'**
+  String get genderSelectionInfo;
+
+  /// No description provided for @maleGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get maleGender;
+
+  /// No description provided for @femaleGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get femaleGender;
+
+  /// No description provided for @howManyWorkoutsPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'How many workouts do you do per week'**
+  String get howManyWorkoutsPerWeek;
+
+  /// No description provided for @selectBestOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the option that suits you best'**
+  String get selectBestOption;
+
+  /// No description provided for @noWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'I don\'t work out'**
+  String get noWorkouts;
+
+  /// No description provided for @occasionalWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Occasional workouts'**
+  String get occasionalWorkouts;
+
+  /// No description provided for @severalWorkoutsWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Several workouts weekly'**
+  String get severalWorkoutsWeekly;
+
+  /// No description provided for @dedicatedAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Dedicated athlete'**
+  String get dedicatedAthlete;
+
+  /// No description provided for @whereDidYouHearAboutUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Where did you hear about us?'**
+  String get whereDidYouHearAboutUs;
+
+  /// No description provided for @googlePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play'**
+  String get googlePlay;
+
+  /// No description provided for @youtube.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube'**
+  String get youtube;
+
+  /// No description provided for @tiktok.
+  ///
+  /// In en, this message translates to:
+  /// **'TikTok'**
+  String get tiktok;
+
+  /// No description provided for @instagram.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get instagram;
+
+  /// No description provided for @influencer.
+  ///
+  /// In en, this message translates to:
+  /// **'Influencer'**
+  String get influencer;
+
+  /// No description provided for @friendsOrFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends or Family'**
+  String get friendsOrFamily;
+
+  /// No description provided for @other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get other;
+
+  /// No description provided for @wellDoneBigStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Well done! You just took\na big step.'**
+  String get wellDoneBigStep;
+
+  /// No description provided for @calorieTrackingPart1.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you know that calorie tracking is a '**
+  String get calorieTrackingPart1;
+
+  /// No description provided for @scientificallyProvenMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'scientifically proven method'**
+  String get scientificallyProvenMethod;
+
+  /// No description provided for @calorieTrackingPart2.
+  ///
+  /// In en, this message translates to:
+  /// **' to achieve your goals – and up to '**
+  String get calorieTrackingPart2;
+
+  /// No description provided for @twiceFaster.
+  ///
+  /// In en, this message translates to:
+  /// **'twice as fast'**
+  String get twiceFaster;
+
+  /// No description provided for @calorieTrackingPart3.
+  ///
+  /// In en, this message translates to:
+  /// **'?'**
+  String get calorieTrackingPart3;
+
+  /// No description provided for @yourProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress'**
+  String get yourProgress;
+
+  /// No description provided for @withKalorina.
+  ///
+  /// In en, this message translates to:
+  /// **'With Kalorina'**
+  String get withKalorina;
+
+  /// No description provided for @withoutKalorina.
+  ///
+  /// In en, this message translates to:
+  /// **'Without Kalorina'**
+  String get withoutKalorina;
+
+  /// No description provided for @twiceMultiplier.
+  ///
+  /// In en, this message translates to:
+  /// **'+2x'**
+  String get twiceMultiplier;
+
+  /// No description provided for @whatIsYourGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'What is your goal'**
+  String get whatIsYourGoal;
+
+  /// No description provided for @selectGoalThatSuitsYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the goal that suits you best'**
+  String get selectGoalThatSuitsYou;
+
+  /// No description provided for @loseWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Lose Weight'**
+  String get loseWeight;
+
+  /// No description provided for @maintainWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintain Weight'**
+  String get maintainWeight;
+
+  /// No description provided for @gainWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Gain Weight'**
+  String get gainWeight;
+
+  /// No description provided for @howMuchWeightToLose.
+  ///
+  /// In en, this message translates to:
+  /// **'How much weight do you want to lose?'**
+  String get howMuchWeightToLose;
+
+  /// No description provided for @howMuchWeightToGain.
+  ///
+  /// In en, this message translates to:
+  /// **'How much weight do you want to gain?'**
+  String get howMuchWeightToGain;
+
+  /// No description provided for @whatIsDesiredWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'What is your desired weight?'**
+  String get whatIsDesiredWeight;
+
+  /// No description provided for @isRealisticGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'is a realistic goal.'**
+  String get isRealisticGoal;
+
+  /// No description provided for @youHaveGreatPotentialLose.
+  ///
+  /// In en, this message translates to:
+  /// **'You have great potential to achieve your goal!\nLet\'s make it happen together!'**
+  String get youHaveGreatPotentialLose;
+
+  /// No description provided for @youHaveGreatPotentialGain.
+  ///
+  /// In en, this message translates to:
+  /// **'Building muscle takes dedication!\nWe\'re here to support your journey!'**
+  String get youHaveGreatPotentialGain;
+
+  /// No description provided for @youveGotThis.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve got this!'**
+  String get youveGotThis;
+
+  /// No description provided for @stayStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay strong!'**
+  String get stayStrong;
+
+  /// No description provided for @nineOutOfTenUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'9 out of 10 users say they\nsee results in first week of\nusing Kalorina'**
+  String get nineOutOfTenUsers;
+
+  /// No description provided for @pickWeightLossSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your weight loss speed'**
+  String get pickWeightLossSpeed;
+
+  /// No description provided for @pickWeightGainSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your weight gain speed'**
+  String get pickWeightGainSpeed;
+
+  /// No description provided for @theSafestOption.
+  ///
+  /// In en, this message translates to:
+  /// **'The Safest Option'**
+  String get theSafestOption;
+
+  /// No description provided for @balancedApproach.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced Approach'**
+  String get balancedApproach;
+
+  /// No description provided for @aggressivePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Aggressive Plan'**
+  String get aggressivePlan;
+
+  /// No description provided for @doYouFollowDiet.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you follow a specific diet?'**
+  String get doYouFollowDiet;
+
+  /// No description provided for @helpTrackCaloriesDiet.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll help you track calories according to your diet'**
+  String get helpTrackCaloriesDiet;
+
+  /// No description provided for @classic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get classic;
+
+  /// No description provided for @carnivore.
+  ///
+  /// In en, this message translates to:
+  /// **'Carnivore'**
+  String get carnivore;
+
+  /// No description provided for @keto.
+  ///
+  /// In en, this message translates to:
+  /// **'Keto'**
+  String get keto;
+
+  /// No description provided for @vegan.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegan'**
+  String get vegan;
+
+  /// No description provided for @vegetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetarian'**
+  String get vegetarian;
+
+  /// No description provided for @wereHereForYou.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re here for you!'**
+  String get wereHereForYou;
+
+  /// No description provided for @journeySupportMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The journey to your goal might be challenging at times, but we\'re here to support you every step of the way. You won\'t have to face it alone.'**
+  String get journeySupportMessage;
+
+  /// No description provided for @starsAcrossApps.
+  ///
+  /// In en, this message translates to:
+  /// **'Stars Across Applications'**
+  String get starsAcrossApps;
+
+  /// No description provided for @testimonial1Name.
+  ///
+  /// In en, this message translates to:
+  /// **'James L.'**
+  String get testimonial1Name;
+
+  /// No description provided for @testimonial1Review.
+  ///
+  /// In en, this message translates to:
+  /// **'I never thought tracking calories could be this easy. I lost 15 pounds in less than 2 months.'**
+  String get testimonial1Review;
+
+  /// No description provided for @testimonial2Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Sarah M.'**
+  String get testimonial2Name;
+
+  /// No description provided for @testimonial2Review.
+  ///
+  /// In en, this message translates to:
+  /// **'The accuracy is incredible. Finally, I know exactly what I\'m eating and feel so much better.'**
+  String get testimonial2Review;
+
+  /// No description provided for @testimonial3Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Michael R.'**
+  String get testimonial3Name;
+
+  /// No description provided for @testimonial3Review.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect for my daily routine. I scan my meals quickly and feel progress within a week.'**
+  String get testimonial3Review;
+
+  /// No description provided for @testimonial4Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Emma K.'**
+  String get testimonial4Name;
+
+  /// No description provided for @testimonial4Review.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple, accurate, and useful. I track calories without hassle and feel lighter throughout the day.'**
+  String get testimonial4Review;
 }
 
 class _AppLocalizationsDelegate

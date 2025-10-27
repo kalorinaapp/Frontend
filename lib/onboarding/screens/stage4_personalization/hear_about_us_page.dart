@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class HearAboutUsPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -24,6 +25,8 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: SingleChildScrollView(
@@ -35,7 +38,7 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
             // Title
             Center(
               child: Text(
-                'Gdje ste čuli za nas?',
+                localizations.whereDidYouHearAboutUs,
                 style: ThemeHelper.title3.copyWith(
                   color: ThemeHelper.textPrimary,
                 ),
@@ -75,7 +78,7 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                         Image.asset('assets/images/PlayStore.png', width: 48, height: 48),
                         const SizedBox(width: 12),
                         Text(
-                          'Google Play',
+                          localizations.googlePlay,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'google_play'
                                 ? ThemeHelper.background
@@ -115,7 +118,7 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                         Image.asset('assets/images/Youtube.png', width: 48, height: 48),
                         const SizedBox(width: 12),
                         Text(
-                          'YouTube',
+                          localizations.youtube,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'youtube'
                                 ? ThemeHelper.background
@@ -155,7 +158,7 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                         Image.asset('assets/images/Tiktok.png', width: 48, height: 48),
                         const SizedBox(width: 12),
                         Text(
-                          'TikTok',
+                          localizations.tiktok,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'tiktok'
                                 ? ThemeHelper.background
@@ -197,7 +200,7 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                         Image.asset('assets/images/Instagram.png', width: 48, height: 48),
                         const SizedBox(width: 12),
                         Text(
-                          'Instagram',
+                          localizations.instagram,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'instagram'
                                 ? ThemeHelper.background
@@ -237,7 +240,7 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                         Image.asset('assets/images/Influencer.png', width: 48, height: 48),
                         const SizedBox(width: 12),
                         Text(
-                            'Influencer',
+                            localizations.influencer,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'influencer'
                                 ? ThemeHelper.background
@@ -276,7 +279,7 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                         Image.asset('assets/images/Friends.png', width: 48, height: 48),
                         const SizedBox(width: 12),
                         Text(
-                          'Friends or Family',
+                          localizations.friendsOrFamily,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'friends_family'
                                 ? ThemeHelper.background
@@ -317,7 +320,7 @@ class _HearAboutUsPageState extends State<HearAboutUsPage> {
                         Image.asset('assets/images/Other.png', width: 48, height: 48),
                         const SizedBox(width: 12),
                         Text(
-                          'Other',
+                          localizations.other,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('hear_about_us') == 'other'
                                 ? ThemeHelper.background

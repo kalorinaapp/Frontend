@@ -157,6 +157,7 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
                           'assets/icons/apple.png',
                           width: 40,
                           height: 40,
+                          color: ThemeHelper.textPrimary,
                         ),
                         
                         const SizedBox(width: 12),
@@ -207,6 +208,7 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
                           'assets/icons/steps.png',
                           width: 36,
                           height: 36,
+                          color: ThemeHelper.textPrimary,
                         ),
                         
                         const SizedBox(width: 12),

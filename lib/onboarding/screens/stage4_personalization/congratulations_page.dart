@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class CongratulationsPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -49,6 +50,8 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
     return Container(
       decoration: BoxDecoration(color: ThemeHelper.background),
       child: SingleChildScrollView(
@@ -61,7 +64,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
 
               // Big left-aligned title (2 lines)
               Text(
-                'Well done! You just took\na big step.',
+                localizations.wellDoneBigStep,
                 style: ThemeHelper.title1.copyWith(
                   fontSize: 34,
                   height: 1.15,
@@ -73,7 +76,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
 
               const SizedBox(height: 28),
 
-              // Rich paragraph (Croatian copy with bold spans)
+              // Rich paragraph with bold spans
               RichText(
                 text: TextSpan(
                   style: ThemeHelper.body1.copyWith(
@@ -81,12 +84,12 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                     height: 1.4,
                     fontSize: 16,
                   ),
-                  children: const [
-                    TextSpan(text: 'Jeste li znali da je praćenje kalorija '),
-                    TextSpan(text: 'znanstveno dokazana metoda', style: TextStyle(fontWeight: FontWeight.w700)),
-                    TextSpan(text: ' ostvarivanja vaših ciljeva – i to i do '),
-                    TextSpan(text: 'dvostruko brže', style: TextStyle(fontWeight: FontWeight.w700)),
-                    TextSpan(text: '?'),
+                  children: [
+                    TextSpan(text: localizations.calorieTrackingPart1),
+                    TextSpan(text: localizations.scientificallyProvenMethod, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    TextSpan(text: localizations.calorieTrackingPart2),
+                    TextSpan(text: localizations.twiceFaster, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    TextSpan(text: localizations.calorieTrackingPart3),
                   ],
                 ),
               ),
@@ -95,7 +98,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
 
               // Section title
               Text(
-                'Your progress',
+                localizations.yourProgress,
                 style: ThemeHelper.title2.copyWith(
                   fontWeight: FontWeight.w800,
                   color: ThemeHelper.textPrimary,
@@ -118,7 +121,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                       children: [
                         _ProgressRow(
                           leadingImagePath: 'assets/icons/apple.png', // replace with your PNG
-                          title: 'With Kalorina',
+                          title: localizations.withKalorina,
                           progress: _withKalorinaAnim.value,
                           gradientColors: const [Color(0xFFEE2E5A), Color(0xFFF29F05)],
                           trailingWidth: 56,
@@ -128,7 +131,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                               Image.asset('assets/icons/check.png', width: 24, height: 24, errorBuilder: (_, __, ___) => const Icon(CupertinoIcons.check_mark_circled_solid, size: 20)),
                               const SizedBox(height: 6),
                               Text(
-                                '+2x',
+                                localizations.twiceMultiplier,
                                 style: ThemeHelper.subhead.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: ThemeHelper.textPrimary,
@@ -143,7 +146,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                         _ProgressRow(
                           leadingImagePath: null, // provide hourglass PNG later
                           leadingFallbackIcon: CupertinoIcons.hourglass,
-                          title: 'Without Kalorina',
+                          title: localizations.withoutKalorina,
                           progress: _withoutKalorinaAnim.value,
                           gradientColors: const [Color(0xFFEE2E5A), Color(0xFFF29F05)],
                           trailingWidth: 56,

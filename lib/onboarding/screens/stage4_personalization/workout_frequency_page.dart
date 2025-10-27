@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class WorkoutFrequencyPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -24,6 +25,8 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -34,7 +37,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
           // Title
           Center(
             child: Text(
-              'Koliko treninga radiš tjedno',
+              localizations.howManyWorkoutsPerWeek,
               style: ThemeHelper.title1.copyWith(
                 color: ThemeHelper.textPrimary,
               ),
@@ -53,7 +56,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
             ),
             child: Center(
               child: Text(
-                'Odaberite opciju koja vam najviše odgovara',
+                localizations.selectBestOption,
                 style: ThemeHelper.caption1.copyWith(
                   fontSize: 13,
                   color: ThemeHelper.textSecondary,
@@ -119,7 +122,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Ne treniram',
+                            localizations.noWorkouts,
                             style: ThemeHelper.subhead.copyWith(
                               color: _controller.getStringData('workout_frequency') == '0'
                                   ? ThemeHelper.background
@@ -185,7 +188,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Treninzi s vremena na vrijeme',
+                              localizations.occasionalWorkouts,
                               style: ThemeHelper.subhead.copyWith(
                                 color: _controller.getStringData('workout_frequency') == '1-2'
                                     ? ThemeHelper.background
@@ -252,7 +255,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Nekoliko treninga tjedno',
+                              localizations.severalWorkoutsWeekly,
                               style: ThemeHelper.subhead.copyWith(
                                 color: _controller.getStringData('workout_frequency') == '3-5'
                                     ? ThemeHelper.background
@@ -317,7 +320,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Predani sportaš',
+                            localizations.dedicatedAthlete,
                             style: ThemeHelper.subhead.copyWith(
                               color: _controller.getStringData('workout_frequency') == '6-7'
                                   ? ThemeHelper.background

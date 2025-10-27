@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class GoalSelectionPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -24,6 +25,8 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
     return Container(
       color: ThemeHelper.background,
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -35,7 +38,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
           // Title
           Center(
             child: Text(
-              'Koji je tvoj cilj',
+              localizations.whatIsYourGoal,
               style: ThemeHelper.title3.copyWith(
                 color: ThemeHelper.textPrimary,
               ),
@@ -63,7 +66,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   
-                  'Odaberite cilj koji vam najviše odgovara',
+                  localizations.selectGoalThatSuitsYou,
                   style: ThemeHelper.caption1.copyWith(
                     fontSize: 13,
                     color: ThemeHelper.textSecondary,
@@ -112,7 +115,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Smršati',
+                        localizations.loseWeight,
                         style: ThemeHelper.headline.copyWith(
                           color: _controller.getStringData('goal') == 'lose_weight'
                               ? ThemeHelper.background
@@ -159,7 +162,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Održavati Težinu',
+                        localizations.maintainWeight,
                         style: ThemeHelper.headline.copyWith(
                           color: _controller.getStringData('goal') == 'maintain_weight'
                               ? ThemeHelper.background
@@ -205,7 +208,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Dobiti na Težini',
+                        localizations.gainWeight,
                         style: ThemeHelper.headline.copyWith(
                           color: _controller.getStringData('goal') == 'gain_weight'
                               ? ThemeHelper.background

@@ -171,6 +171,7 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                             'assets/icons/apple.png',
                             width: 24,
                             height: 24,
+                            color: ThemeHelper.textPrimary,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -278,6 +279,7 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                             'assets/icons/apple.png',
                             width: 24,
                             height: 24,
+                            color: ThemeHelper.textPrimary,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -298,7 +300,7 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                       Text(
                         '$todayEaten/$todayGoal',
                         style: TextStyle(
-                          color: const Color(0xFF1E1822),
+                          color: ThemeHelper.textPrimary,
                           fontSize: 32,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.bold,
@@ -335,7 +337,7 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
                           if (transferableCalories > 0)
                             Positioned(
                               left: 0,
-                              top: 0,
+                              top: -16,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(

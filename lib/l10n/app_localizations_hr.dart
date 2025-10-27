@@ -1037,4 +1037,294 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get applied => 'Primijenjeno';
+
+  @override
+  String get howItWorksUniqueApproach =>
+      'Kako Kalorinino jedinstveno\npristup funkcionira';
+
+  @override
+  String get scan => 'Skeniraj';
+
+  @override
+  String get analyze => 'Analiziraj';
+
+  @override
+  String get track => 'Prati';
+
+  @override
+  String get heightAndWeight => 'Visina i težina';
+
+  @override
+  String get heightWeightSubtitle =>
+      'Ova informacija nam pomaže da personaliziramo vaše dnevne kalorijske i nutritivne ciljeve.';
+
+  @override
+  String get imperial => 'Imperial';
+
+  @override
+  String get metric => 'Metrički';
+
+  @override
+  String get heightLabel => 'Visina';
+
+  @override
+  String get weightLabel => 'Težina';
+
+  @override
+  String get whenWereYouBorn => 'Kada ste rođeni?';
+
+  @override
+  String get birthDateSubtitle =>
+      'Ovo će se uzeti u obzir pri izračunu vaših dnevnih nutritivnih ciljeva.';
+
+  @override
+  String get monthLabel => 'Mjesec';
+
+  @override
+  String get dayLabel => 'Dan';
+
+  @override
+  String get yearLabel => 'Godina';
+
+  @override
+  String get january => 'Siječanj';
+
+  @override
+  String get february => 'Veljača';
+
+  @override
+  String get march => 'Ožujak';
+
+  @override
+  String get april => 'Travanj';
+
+  @override
+  String get may => 'Svibanj';
+
+  @override
+  String get june => 'Lipanj';
+
+  @override
+  String get july => 'Srpanj';
+
+  @override
+  String get august => 'Kolovoz';
+
+  @override
+  String get september => 'Rujan';
+
+  @override
+  String get october => 'Listopad';
+
+  @override
+  String get november => 'Studeni';
+
+  @override
+  String get december => 'Prosinac';
+
+  @override
+  String get selectYourGender => 'Odaberi svoj Spol';
+
+  @override
+  String get genderSelectionInfo =>
+      'Odaberite spol kojem odgovara fiziologija vašeg tijela za precizno praćenje kalorija';
+
+  @override
+  String get maleGender => 'Muškarac';
+
+  @override
+  String get femaleGender => 'Žena';
+
+  @override
+  String get howManyWorkoutsPerWeek => 'Koliko treninga radiš tjedno';
+
+  @override
+  String get selectBestOption => 'Odaberite opciju koja vam najviše odgovara';
+
+  @override
+  String get noWorkouts => 'Ne treniram';
+
+  @override
+  String get occasionalWorkouts => 'Treninzi s vremena na vrijeme';
+
+  @override
+  String get severalWorkoutsWeekly => 'Nekoliko treninga tjedno';
+
+  @override
+  String get dedicatedAthlete => 'Predani sportaš';
+
+  @override
+  String get whereDidYouHearAboutUs => 'Gdje ste čuli za nas?';
+
+  @override
+  String get googlePlay => 'Google Play';
+
+  @override
+  String get youtube => 'YouTube';
+
+  @override
+  String get tiktok => 'TikTok';
+
+  @override
+  String get instagram => 'Instagram';
+
+  @override
+  String get influencer => 'Influencer';
+
+  @override
+  String get friendsOrFamily => 'Prijatelji ili Obitelj';
+
+  @override
+  String get other => 'Ostalo';
+
+  @override
+  String get wellDoneBigStep => 'Bravo! Upravo ste napravili\nvelik korak.';
+
+  @override
+  String get calorieTrackingPart1 => 'Jeste li znali da je praćenje kalorija ';
+
+  @override
+  String get scientificallyProvenMethod => 'znanstveno dokazana metoda';
+
+  @override
+  String get calorieTrackingPart2 => ' ostvarivanja vaših ciljeva – i to i do ';
+
+  @override
+  String get twiceFaster => 'dvostruko brže';
+
+  @override
+  String get calorieTrackingPart3 => '?';
+
+  @override
+  String get yourProgress => 'Vaš napredak';
+
+  @override
+  String get withKalorina => 'Sa Kalorinom';
+
+  @override
+  String get withoutKalorina => 'Bez Kalorine';
+
+  @override
+  String get twiceMultiplier => '+2x';
+
+  @override
+  String get whatIsYourGoal => 'Koji je tvoj cilj';
+
+  @override
+  String get selectGoalThatSuitsYou =>
+      'Odaberite cilj koji vam najviše odgovara';
+
+  @override
+  String get loseWeight => 'Smršati';
+
+  @override
+  String get maintainWeight => 'Održavati Težinu';
+
+  @override
+  String get gainWeight => 'Dobiti na Težini';
+
+  @override
+  String get howMuchWeightToLose => 'Koliko težine želite izgubiti?';
+
+  @override
+  String get howMuchWeightToGain => 'Koliko težine želite dobiti?';
+
+  @override
+  String get whatIsDesiredWeight => 'Koja je vaša željena težina?';
+
+  @override
+  String get isRealisticGoal => 'je realan cilj.';
+
+  @override
+  String get youHaveGreatPotentialLose =>
+      'Imaš veliki potencijal postići svoj cilj!\nHajde da to ostvarimo zajedno!';
+
+  @override
+  String get youHaveGreatPotentialGain =>
+      'Izgradnja mišića zahtijeva predanost!\nOvdje smo da podržimo tvoj put!';
+
+  @override
+  String get youveGotThis => 'Možeš to!';
+
+  @override
+  String get stayStrong => 'Budi jak!';
+
+  @override
+  String get nineOutOfTenUsers =>
+      '9 od 10 korisnika kaže da\nvide rezultate u prvoj tjednu\nkorištenja Kalorine';
+
+  @override
+  String get pickWeightLossSpeed => 'Odaberi brzinu gubitka težine';
+
+  @override
+  String get pickWeightGainSpeed => 'Odaberi brzinu dobivanja težine';
+
+  @override
+  String get theSafestOption => 'Najsigurnija opcija';
+
+  @override
+  String get balancedApproach => 'Balansiran pristup';
+
+  @override
+  String get aggressivePlan => 'Agresivan plan';
+
+  @override
+  String get doYouFollowDiet => 'Pridržavate li se određene dijete?';
+
+  @override
+  String get helpTrackCaloriesDiet =>
+      'Pomoći ćemo vam pratiti kalorije prema vašem načinu prehrane';
+
+  @override
+  String get classic => 'Klasična';
+
+  @override
+  String get carnivore => 'Carnivore';
+
+  @override
+  String get keto => 'Keto';
+
+  @override
+  String get vegan => 'Vegan';
+
+  @override
+  String get vegetarian => 'Vegetarian';
+
+  @override
+  String get wereHereForYou => 'Tu smo za tebe!';
+
+  @override
+  String get journeySupportMessage =>
+      'Put do tvog cilja može biti izazovan s vremena na vrijeme, ali mi smo tu da te podržimo na svakom koraku. Nećeš to morati suočiti sam.';
+
+  @override
+  String get starsAcrossApps => 'Zvjezdica Preko Aplikacija';
+
+  @override
+  String get testimonial1Name => 'Ana M.';
+
+  @override
+  String get testimonial1Review =>
+      'Aplikacija je nevjerovatno precizna. Konačno znam koliko jedem i osjećam se puno bolje kroz dan.';
+
+  @override
+  String get testimonial2Name => 'Marko P.';
+
+  @override
+  String get testimonial2Review =>
+      'Od kad koristim aplikaciju, svjestan sam porcija. Jedem pametnije i imam više energije tokom dana.';
+
+  @override
+  String get testimonial3Name => 'Jelena K.';
+
+  @override
+  String get testimonial3Review =>
+      'Preciznost unosa me oduševila. Napokon imam kontrolu nad kalorijama bez stresa i brojanja.';
+
+  @override
+  String get testimonial4Name => 'Emir S.';
+
+  @override
+  String get testimonial4Review =>
+      'Savršeno za svakodnevnu rutinu. Brzo skeniram obroke i osjećam napredak već nakon sedmice.';
 }

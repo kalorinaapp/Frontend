@@ -1,9 +1,11 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../../utils/theme_helper.dart';
+import '../../controller/onboarding.controller.dart';
 
 class GoalGenerationPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -26,14 +28,16 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
   late Animation<double> _progressAnimation;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+  late OnboardingController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = Get.find<OnboardingController>();
 
     _progressController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 3000),
     );
 
     _fadeController = AnimationController(
@@ -41,7 +45,7 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
       duration: const Duration(milliseconds: 800),
     );
 
-    _progressAnimation = Tween<double>(begin: 0.0, end: 0.5).animate(
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _progressController,
         curve: Curves.easeInOut,
@@ -55,6 +59,11 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
       ),
     );
 
+    // Hide navigation buttons
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.showNavigation.value = false;
+    });
+
     // Start animations
     Future.delayed(const Duration(milliseconds: 300), () {
       _fadeController.forward();
@@ -62,9 +71,10 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
     });
 
     // Navigate to next screen after completion
-    Future.delayed(const Duration(milliseconds: 4000), () {
+    Future.delayed(const Duration(milliseconds: 3500), () {
       if (mounted) {
-      //  _navigateToNextScreen();
+        _controller.showNavigation.value = true;
+        _controller.goToNextPage();
       }
     });
   }
@@ -73,6 +83,8 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
   void dispose() {
     _progressController.dispose();
     _fadeController.dispose();
+    // Ensure navigation is restored if user leaves early
+    _controller.showNavigation.value = true;
     super.dispose();
   }
 
@@ -167,24 +179,28 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
                         color: ThemeHelper.divider,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: AnimatedBuilder(
-                        animation: _progressAnimation,
-                        builder: (context, child) {
-                          return Align(
-                            alignment: Alignment.centerLeft,
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * _progressAnimation.value,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.orange.shade700,
-                                    Colors.red.shade400,
-                                  ],
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return AnimatedBuilder(
+                            animation: _progressAnimation,
+                            builder: (context, child) {
+                              return Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  width: constraints.maxWidth * _progressAnimation.value,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.orange.shade700,
+                                        Colors.red.shade400,
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                 ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
+                              );
+                            },
                           );
                         },
                       ),

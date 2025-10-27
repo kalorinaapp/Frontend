@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class BirthDatePage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -25,12 +26,6 @@ class _BirthDatePageState extends State<BirthDatePage>
   int _selectedMonth = 9; // September (1-indexed)
   int _selectedDay = 7;
   int _selectedYear = 2004;
-
-  // Month names
-  final List<String> _monthNames = [
-    'Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj',
-    'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'
-  ];
 
   // Scroll controllers for proper initialization
   FixedExtentScrollController? _monthScrollController;
@@ -95,6 +90,23 @@ class _BirthDatePageState extends State<BirthDatePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final localizations = AppLocalizations.of(context)!;
+    
+    // Month names from localization
+    final monthNames = [
+      localizations.january,
+      localizations.february,
+      localizations.march,
+      localizations.april,
+      localizations.may,
+      localizations.june,
+      localizations.july,
+      localizations.august,
+      localizations.september,
+      localizations.october,
+      localizations.november,
+      localizations.december,
+    ];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -106,7 +118,7 @@ class _BirthDatePageState extends State<BirthDatePage>
           // Title
           Center(
             child: Text(
-              'Kada ste rođeni?',
+              localizations.whenWereYouBorn,
               style: ThemeHelper.title1.copyWith(
                 color: ThemeHelper.textPrimary,
               ),
@@ -125,7 +137,7 @@ class _BirthDatePageState extends State<BirthDatePage>
             ),
             child: Center(
               child: Text(
-                'Ovo će se uzeti u obzir pri izračunu vaših dnevnih nutritivnih ciljeva.',
+                localizations.birthDateSubtitle,
                 style: ThemeHelper.caption1.copyWith(
                   fontSize: 13,
                   color: ThemeHelper.textSecondary,
@@ -147,7 +159,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                   child: Column(
                     children: [
                       Text(
-                        "Mjesec",
+                        localizations.monthLabel,
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
                           color: ThemeHelper.textPrimary,
@@ -175,7 +187,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                               _updateBirthDate();
                             });
                           },
-                          children: _monthNames.map((String month) {
+                          children: monthNames.map((String month) {
                             return Center(
                               child: Text(
                                 month,
@@ -198,7 +210,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                   child: Column(
                     children: [
                       Text(
-                        "Dan",
+                        localizations.dayLabel,
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
                           color: ThemeHelper.textPrimary,
@@ -239,7 +251,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                   child: Column(
                     children: [
                       Text(
-                        "Godina",
+                        localizations.yearLabel,
                         style: ThemeHelper.body1.copyWith(
                           fontWeight: FontWeight.w600,
                           color: ThemeHelper.textPrimary,

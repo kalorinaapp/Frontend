@@ -1,6 +1,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../providers/theme_provider.dart' show ThemeProvider;
 import '../../screens/paywall_screen.dart' show PaywallScreen;
 import '../../utils/theme_helper.dart';
@@ -17,6 +18,8 @@ class HowItWorksPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
     return CupertinoPageScaffold(
       backgroundColor: ThemeHelper.background,
       child: SingleChildScrollView(
@@ -30,7 +33,7 @@ class HowItWorksPage extends StatelessWidget {
             children: [
               // Title
               Text(
-                'How Kalorina\'s unique\napproach works',
+                localizations.howItWorksUniqueApproach,
                 style: ThemeHelper.textStyleWithColorAndSize(
                   ThemeHelper.headline,
                   ThemeHelper.textPrimary,
@@ -47,7 +50,7 @@ class HowItWorksPage extends StatelessWidget {
               // Step 1: Scan
               _buildStep(
                 index: 0,
-                label: 'Scan',
+                label: localizations.scan,
                 imagePath: 'assets/images/scan.png',
                 arrowPath: null,
                 rotation: -15, // Rotated counterclockwise
@@ -60,7 +63,7 @@ class HowItWorksPage extends StatelessWidget {
               // Step 2: Analyze
               _buildStep(
                 index: 1,
-                label: 'Analyze',
+                label: localizations.analyze,
                 imagePath: 'assets/images/analyze.png',
                 arrowPath: 'assets/icons/arrow_one.png',
                 rotation: 8, // Slight rotation to the right
@@ -73,7 +76,7 @@ class HowItWorksPage extends StatelessWidget {
               // Step 3: Track
               _buildStep(
                 index: 2,
-                label: 'Track',
+                label: localizations.track,
                 imagePath: 'assets/images/track.png',
                 arrowPath: 'assets/icons/arrow_two.png',
                 rotation: 0, // No rotation
@@ -173,6 +176,8 @@ class HowItWorksPage extends StatelessWidget {
   }
 
   Widget _buildPostSignUpDesign(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
     return Column(
       children: [
         // Notification reminder text with bell icon
@@ -184,7 +189,7 @@ class HowItWorksPage extends StatelessWidget {
             SizedBox(
               width: 157,
               child: Text(
-                'We\'ll remind you before your free trial ends.',
+                localizations.notificationReminder,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.black.withOpacity(0.7),
@@ -219,7 +224,7 @@ class HowItWorksPage extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                'Probaj za BESPLATNO',
+                localizations.tryForFree,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 15,
@@ -237,7 +242,7 @@ class HowItWorksPage extends StatelessWidget {
         SizedBox(
           width: 293,
           child: Text(
-            'Probaj za €0.00 - Nema naplate ako otkažeš na vrijeme. Otkaži u bilo kojem trenutku.',
+            localizations.freeTrialInfo,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.black.withOpacity(0.7),

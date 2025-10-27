@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class GenderSelectionPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -24,6 +25,8 @@ class _GenderSelectionPageState extends State<GenderSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
     return ListenableBuilder(
       listenable: widget.themeProvider,
       builder: (context, child) {
@@ -37,7 +40,7 @@ class _GenderSelectionPageState extends State<GenderSelectionPage> {
               // Title
               Center(
                 child: Text(
-                  'Odaberi svoj Spol',
+                  localizations.selectYourGender,
                   style: ThemeHelper.textStyleWithColor(
                     ThemeHelper.title1,
                     ThemeHelper.textPrimary,
@@ -64,7 +67,7 @@ class _GenderSelectionPageState extends State<GenderSelectionPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Odaberite spol kojem odgovara fiziologija vašeg tijela za precizno praćenje kalorija',
+                        localizations.genderSelectionInfo,
                         style: ThemeHelper.textStyleWithColor(
                           ThemeHelper.caption1.copyWith(fontSize: 13),
                           ThemeHelper.textPrimary,
@@ -114,7 +117,7 @@ class _GenderSelectionPageState extends State<GenderSelectionPage> {
                           Expanded(
                             child: Center(
                               child: Text(
-                                'Muškarac',
+                                localizations.maleGender,
                                 style: ThemeHelper.textStyleWithColor(
                                   ThemeHelper.headline,
                                   _controller.getStringData('selected_gender') == 'male'
@@ -168,7 +171,7 @@ class _GenderSelectionPageState extends State<GenderSelectionPage> {
                           Expanded(
                             child: Center(
                               child: Text(
-                                'Žena',
+                                localizations.femaleGender,
                                 style: ThemeHelper.textStyleWithColor(
                                   ThemeHelper.headline,
                                   _controller.getStringData('selected_gender') == 'female'

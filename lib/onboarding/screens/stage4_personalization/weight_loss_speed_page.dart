@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class WeightLossSpeedPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -42,7 +43,6 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
       _controller.setDoubleData('weight_loss_speed', _currentSpeed);
       debugPrint('========== Weight Loss Speed Page Initialized ==========');
       debugPrint('Default Speed: $_currentSpeed kg/week');
-      debugPrint('Speed Level: ${_getSpeedLevel()}');
       debugPrint('==========================================');
     });
    
@@ -54,7 +54,6 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
       _controller.setDoubleData('weight_loss_speed', _currentSpeed);
       debugPrint('========== Weight Loss Speed Updated ==========');
       debugPrint('New Speed: $_currentSpeed kg/week (${_formatSpeed(_currentSpeed)})');
-      debugPrint('Speed Level: ${_getSpeedLevel()}');
       debugPrint('==========================================');
     });
   }
@@ -64,19 +63,29 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
     return '${speed.toStringAsFixed(1)} kg/week';
   }
 
-  String _getSpeedLevel() {
+  String _getSpeedLevel(AppLocalizations localizations) {
     if (_currentSpeed <= _slowSpeed + 0.1) {
-      return 'The Safest Option';
+      return localizations.theSafestOption;
     } else if (_currentSpeed <= _mediumSpeed + 0.1) {
-      return 'Balanced Approach';
+      return localizations.balancedApproach;
     } else {
-      return 'Aggressive Plan';
+      return localizations.aggressivePlan;
+    }
+  }
+  
+  String _getTitleText(AppLocalizations localizations) {
+    final String? goal = _controller.getStringData('goal');
+    if (goal == 'gain_weight') {
+      return localizations.pickWeightGainSpeed;
+    } else {
+      return localizations.pickWeightLossSpeed;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final localizations = AppLocalizations.of(context)!;
 
     return SingleChildScrollView(
       child: Container(
@@ -88,7 +97,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
           
           // Title
           Text(
-            'Pick your weight loss speed',
+            _getTitleText(localizations),
             style: ThemeHelper.title1.copyWith(
               color: ThemeHelper.textPrimary,
               fontSize: 28,
@@ -255,13 +264,13 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                                 ),
                               ),
                             child: Slider(
-                              value: _maxSpeed - _currentSpeed + _minSpeed, // Invert the value
+                              value: _currentSpeed,
                               min: _minSpeed,
                               max: _maxSpeed,
                               activeColor: ThemeHelper.textPrimary,
                               inactiveColor: ThemeHelper.divider,
                               onChanged: (double value) {
-                                _updateSpeed(_maxSpeed - value + _minSpeed); // Invert the value back
+                                _updateSpeed(value);
                               },
                             ),
                             ),
@@ -285,7 +294,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
               onPressed: () {
                 debugPrint('========== Weight Loss Speed Page - Moving to Next ==========');
                 debugPrint('Final Speed Selected: $_currentSpeed kg/week');
-                debugPrint('Speed Level: ${_getSpeedLevel()}');
+                debugPrint('Speed Level: ${_getSpeedLevel(localizations)}');
                 debugPrint('All Data: ${_controller.getAllData()}');
                 debugPrint('==========================================');
                 _controller.goToNextPage();
@@ -302,7 +311,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                 ),
                 child: Center(
                   child: Text(
-                    _getSpeedLevel(),
+                    _getSpeedLevel(localizations),
                     style: ThemeHelper.headline.copyWith(
                       color: ThemeHelper.textPrimary,
                       fontWeight: FontWeight.w600,

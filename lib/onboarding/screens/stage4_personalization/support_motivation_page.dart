@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class SupportMotivationPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -20,6 +21,7 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final localizations = AppLocalizations.of(context)!;
 
     return Container(
       width: 393,
@@ -36,7 +38,7 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
             SizedBox(
               width: 268,
               child: Text(
-                'We\'re here for you!',
+                localizations.wereHereForYou,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ThemeHelper.textPrimary,
@@ -69,7 +71,7 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
                 child: SizedBox(
                   width: 275,
                   child: Text(
-                    'The journey to your goal might be challenging at times, but we\'re here to support you every step of the way. You won\'t have to face it alone.',
+                    localizations.journeySupportMessage,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: ThemeHelper.textSecondary,

@@ -7,7 +7,6 @@ import 'dart:async';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart' show OnboardingController;
-import '../../../providers/language_provider.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class RatingPage extends StatefulWidget {
@@ -23,170 +22,40 @@ class _RatingPageState extends State<RatingPage>
     with SingleTickerProviderStateMixin {
 
       late OnboardingController _controller;
-      late LanguageProvider _languageController;
 
       final InAppReview inAppReview = InAppReview.instance;
   final ScrollController _scrollController = ScrollController();
   Timer? _scrollTimer;
-  
-  // Multi-language testimonials
-  final Map<String, List<TestimonialCard>> _languageReviews = {
-    'en': [
-      const TestimonialCard(
-        name: "James L.",
-        review: "I never thought tracking calories could be this easy. I lost 15 pounds in less than 2 months.",
-      ),
-      const TestimonialCard(
-        name: "Sarah M.",
-        review: "The accuracy is incredible. Finally, I know exactly what I'm eating and feel so much better.",
-      ),
-      const TestimonialCard(
-        name: "Michael R.",
-        review: "Perfect for my daily routine. I scan my meals quickly and feel progress within a week.",
-      ),
-      const TestimonialCard(
-        name: "Emma K.",
-        review: "Simple, accurate, and useful. I track calories without hassle and feel lighter throughout the day.",
-      ),
-    ],
-    'hr': [
-      const TestimonialCard(
-        name: "Ana M.",
-        review: "Aplikacija je nevjerovatno precizna. Konačno znam koliko jedem i osjećam se puno bolje kroz dan.",
-      ),
-      const TestimonialCard(
-        name: "Marko P.",
-        review: "Od kad koristim aplikaciju, svjestan sam porcija. Jedem pametnije i imam više energije tokom dana.",
-      ),
-      const TestimonialCard(
-        name: "Jelena K.",
-        review: "Preciznost unosa me oduševila. Napokon imam kontrolu nad kalorijama bez stresa i brojanja.",
-      ),
-      const TestimonialCard(
-        name: "Emir S.",
-        review: "Savršeno za svakodnevnu rutinu. Brzo skeniram obroke i osjećam napredak već nakon sedmice.",
-      ),
-    ],
-    'sr': [
-      const TestimonialCard(
-        name: "Лука Ј.",
-        review: "Апликација је невероватно прецизна. Коначно знам колико једем и осећам се пуно боље кроз дан.",
-      ),
-      const TestimonialCard(
-        name: "Марко П.",
-        review: "Од кад користим апликацију, свестан сам порција. Једем паметније и имам више енергије током дана.",
-      ),
-      const TestimonialCard(
-        name: "Јелена К.",
-        review: "Прецизност уноса ме одушевила. Напокон имам контролу над калоријама без стреса и бројања.",
-      ),
-      const TestimonialCard(
-        name: "Емир С.",
-        review: "Савршено за свакодневну рутину. Брзо скенирам оброке и осећам напредак већ након седмице.",
-      ),
-    ],
-    'mk': [
-      const TestimonialCard(
-        name: "Лука Ј.",
-        review: "Апликацијата е неверојатно прецизна. Конечно знам колку јадам и се чувствувам многу подобро низ денот.",
-      ),
-      const TestimonialCard(
-        name: "Марко П.",
-        review: "Од кога ја користам апликацијата, свесен сум за порциите. Јадам паметно и имам повеќе енергија во текот на денот.",
-      ),
-      const TestimonialCard(
-        name: "Јелена К.",
-        review: "Прецизноста на внесувањето ме восхити. Конечно имам контрола над калориите без стрес и броење.",
-      ),
-      const TestimonialCard(
-        name: "Емир С.",
-        review: "Совршено за секојдневна рутина. Брзо ги скенирам оброците и чувствувам напредок веќе по една недела.",
-      ),
-    ],
-    'bg': [
-      const TestimonialCard(
-        name: "Георги П.",
-        review: "Приложението е невероятно точно. Най-накрая знам колко ям и се чувствам много по-добре през деня.",
-      ),
-      const TestimonialCard(
-        name: "Марко П.",
-        review: "Откакто използвам приложението, съм наясно с порциите. Ям по-умно и имам повече енергия през деня.",
-      ),
-      const TestimonialCard(
-        name: "Елена К.",
-        review: "Точността на въвеждането ме възхити. Най-накрая имам контрол върху калориите без стрес и броене.",
-      ),
-      const TestimonialCard(
-        name: "Емир С.",
-        review: "Перфектно за ежедневната рутина. Бързо сканирам ястията и чувствам напредък още след седмица.",
-      ),
-    ],
-    'sl': [
-      const TestimonialCard(
-        name: "Luka J.",
-        review: "Aplikacija je neverjetno natančna. Končno vem, koliko jem in se počutim veliko bolje skozi dan.",
-      ),
-      const TestimonialCard(
-        name: "Marko P.",
-        review: "Odkar uporabljam aplikacijo, sem seznanjen s porcijami. Jem pametneje in imam več energije čez dan.",
-      ),
-      const TestimonialCard(
-        name: "Jelena K.",
-        review: "Natančnost vnosa me je navdušila. Končno imam nadzor nad kalorijami brez stresa in štetja.",
-      ),
-      const TestimonialCard(
-        name: "Emir S.",
-        review: "Popolno za dnevno rutino. Hitro skeniram obroke in čutim napredek že po tednu.",
-      ),
-    ],
-    'hu': [
-      const TestimonialCard(
-        name: "Bence J.",
-        review: "Az alkalmazás hihetetlenül pontos. Végre tudom, mennyit eszem és sokkal jobban érzem magam a nap folyamán.",
-      ),
-      const TestimonialCard(
-        name: "Márk P.",
-        review: "Mióta használom az alkalmazást, tudatos vagyok az adagokkal. Okosabban eszem és több energiám van napközben.",
-      ),
-      const TestimonialCard(
-        name: "Jelena K.",
-        review: "A bevitelek pontossága lenyűgözött. Végre kontroll alatt tartom a kalóriákat stressz és számolás nélkül.",
-      ),
-      const TestimonialCard(
-        name: "Emir S.",
-        review: "Tökéletes a napi rutinomhoz. Gyorsan szkenneltem az ételeket és már egy hét után érzem a fejlődést.",
-      ),
-    ],
-    'ro': [
-      const TestimonialCard(
-        name: "Andrei P.",
-        review: "Aplicația este incredibil de precisă. În sfârșit știu cât mănânc și mă simt mult mai bine pe parcursul zilei.",
-      ),
-      const TestimonialCard(
-        name: "Mihai P.",
-        review: "De când folosesc aplicația, sunt conștient de porții. Mănânc mai inteligent și am mai multă energie pe parcursul zilei.",
-      ),
-      const TestimonialCard(
-        name: "Elena K.",
-        review: "Precizia introducerii m-a impresionat. În sfârșit am control asupra caloriilor fără stres și numărare.",
-      ),
-      const TestimonialCard(
-        name: "Emir S.",
-        review: "Perfect pentru rutina zilnică. Scanez rapid mesele și simt progresul deja după o săptămână.",
-      ),
-    ],
-  };
 
-  List<TestimonialCard> get _duplicatedReviews {
-    final currentLanguage = _languageController.currentLocale.languageCode;
-    final reviews = _languageReviews[currentLanguage] ?? _languageReviews['en']!;
+  List<TestimonialCard> _getLocalizedReviews(AppLocalizations l10n) {
+    return [
+      TestimonialCard(
+        name: l10n.testimonial1Name,
+        review: l10n.testimonial1Review,
+      ),
+      TestimonialCard(
+        name: l10n.testimonial2Name,
+        review: l10n.testimonial2Review,
+      ),
+      TestimonialCard(
+        name: l10n.testimonial3Name,
+        review: l10n.testimonial3Review,
+      ),
+      TestimonialCard(
+        name: l10n.testimonial4Name,
+        review: l10n.testimonial4Review,
+      ),
+    ];
+  }
+
+  List<TestimonialCard> _duplicatedReviews(AppLocalizations l10n) {
+    final reviews = _getLocalizedReviews(l10n);
     return [...reviews, ...reviews];
   }
 
   @override
   void initState() {
     _controller = Get.put(OnboardingController());
-    _languageController = Get.find<LanguageProvider>();
 
      WidgetsBinding.instance.addPostFrameCallback((_) async {
       _controller.isDualButtonMode.value = false;
@@ -264,13 +133,89 @@ class _RatingPageState extends State<RatingPage>
                   ),
                   const SizedBox(height: 24),
                 
-                  // Centered image placeholder (will be provided by you)
+                  // Centered image with rating design behind it
                   SizedBox(
-                    // width: 300,
-                    // height: 300,
-                    child: Image.asset(
-                      "assets/images/reviewer_1.png",
-                      fit: BoxFit.cover,
+                    height: 240,
+                    child: Stack(
+                      alignment: Alignment.topCenter,
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Rating design background - positioned at top
+                        Positioned(
+                          top: 0,
+                          child: Container(
+                            width: 265,
+                            height: 82,
+                            decoration: ShapeDecoration(
+                              color: !widget.themeProvider.isLightMode 
+                                  ? const Color(0xFF2C2C2E)
+                                  : const Color(0xFFF8F7FC),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Rating number
+                                Text(
+                                  '4.8',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: ThemeHelper.textPrimary,
+                                    fontSize: 22,
+                                    fontFamily: 'Instrument Sans',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                // Stars
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(
+                                    5,
+                                    (index) => const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 2),
+                                      child: Icon(
+                                        CupertinoIcons.star_fill,
+                                        color: Color(0xFFF4A261),
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                // Description text
+                                SizedBox(
+                                  width: 220,
+                                  child: Text(
+                                    '4.8 ${l10n.starsAcrossApps}',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: ThemeHelper.textSecondary,
+                                      fontSize: 13,
+                                      fontFamily: 'Instrument Sans',
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Reviewer image - positioned below, appears in front
+                        Positioned(
+                          top: 80,
+                          child: SizedBox(
+                            width: 200,
+                            height: 200,
+                            child: Image.asset(
+                              "assets/images/reviewer_1.png",
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -294,9 +239,9 @@ class _RatingPageState extends State<RatingPage>
                         ListView.builder(
                           controller: _scrollController,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _duplicatedReviews.length,
+                          itemCount: _duplicatedReviews(l10n).length,
                           itemBuilder: (context, index) {
-                            return _duplicatedReviews[index];
+                            return _duplicatedReviews(l10n)[index];
                           },
                         ),
                         Positioned(

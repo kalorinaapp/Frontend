@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
+import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
 class DietaryPreferencePage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -14,7 +15,7 @@ class DietaryPreferencePage extends StatefulWidget {
 }
 
 class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
-  late OnboardingController _controller;
+  late OnboardingController _controller; 
 
   @override
   void initState() {
@@ -24,6 +25,8 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: SingleChildScrollView(
@@ -35,7 +38,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
             // Title
             Center(
               child: Text(
-                'Pridržavate li se određene dijete?',
+                localizations.doYouFollowDiet,
                 style: ThemeHelper.title3.copyWith(
                   color: ThemeHelper.textPrimary,
                 ),
@@ -61,7 +64,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                   // Informational text
                   Expanded(
                     child: Text(
-                      'Pomoći ćemo vam pratiti kalorije prema vašem načinu prehrane',
+                      localizations.helpTrackCaloriesDiet,
                       style: ThemeHelper.caption1.copyWith(
                         fontSize: 13,
                         color: ThemeHelper.textSecondary,
@@ -109,7 +112,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                        ),
                         const SizedBox(width: 12),
                         Text(
-                          'klasična',
+                          localizations.classic,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'classic'
                                 ? ThemeHelper.background
@@ -156,7 +159,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                        ),
                         const SizedBox(width: 12),
                         Text(
-                          'carnivore',
+                          localizations.carnivore,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'carnivore'
                                 ? ThemeHelper.background
@@ -202,7 +205,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
                      ),
                       const SizedBox(width: 12),
                         Text(
-                          'keto',
+                          localizations.keto,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'keto'
                                 ? ThemeHelper.background
@@ -248,7 +251,7 @@ const SizedBox(width: 16),
                      ),
                       const SizedBox(width: 12),
                         Text(
-                          'vegan',
+                          localizations.vegan,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'vegan'
                                 ? ThemeHelper.background
@@ -293,7 +296,7 @@ const SizedBox(width: 16),
                      ),
                       const SizedBox(width: 12),
                         Text(
-                          'vegetarian',
+                          localizations.vegetarian,
                           style: ThemeHelper.headline.copyWith(
                             color: _controller.getStringData('dietary_preference') == 'vegetarian'
                                 ? ThemeHelper.background
