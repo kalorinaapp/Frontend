@@ -52,6 +52,7 @@
   "welcomeBack": "Bentornato",
   "continueWithApple": "Continua con Apple",
   "continueWithGoogle": "Continua con Google",
+  "creatingAccount": "Creazione account...",
   "wantToSignInLater": "Vuoi accedere più tardi? ",
   "skip": "Salta",
   "byContinuingAgree": "Continuando accetti i nostri\nTermini di servizio e Informativa sulla privacy",
@@ -342,5 +343,7 @@
   "testimonial3Name": "Michele R.",
   "testimonial3Review": "Perfetto per la mia routine quotidiana. Scannerizzo i miei pasti rapidamente e sento progressi in una settimana.",
   "testimonial4Name": "Emma K.",
-  "testimonial4Review": "Semplice, preciso e utile. Traccio le calorie senza problemi e mi sento più leggera durante il giorno."
+  "testimonial4Review": "Semplice, preciso e utile. Traccio le calorie senza problemi e mi sento più leggera durante il giorno.",
+  "yes": "Sì",
+  "no": "No"
 }

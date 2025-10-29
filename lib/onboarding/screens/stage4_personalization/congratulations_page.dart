@@ -4,6 +4,7 @@ import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
+import '../../../utils/page_animations.dart';
 
 class CongratulationsPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -18,12 +19,19 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
   late AnimationController _progressController;
   late Animation<double> _withKalorinaAnim;
   late Animation<double> _withoutKalorinaAnim;
+  
+  late AnimationController _entranceController;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _descriptionAnimation;
+  late Animation<double> _progressLabelAnimation;
+  late Animation<double> _progressCardAnimation;
 
   @override
   void initState() {
     super.initState();
     Get.find<OnboardingController>();
 
+    // Progress bar animation
     _progressController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
@@ -35,9 +43,50 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
     _withoutKalorinaAnim = Tween<double>(begin: 0.0, end: 0.18).animate(
       CurvedAnimation(parent: _progressController, curve: Curves.easeInOut),
     );
+    
+    // Entrance animations
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_entranceController);
+    
+    _descriptionAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    
+    _progressLabelAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
+      ),
+    );
+    
+    _progressCardAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.4, 0.8, curve: Curves.easeOut),
+      ),
+    );
 
-    // Kick off animation slightly delayed to feel responsive
-    Future.delayed(const Duration(milliseconds: 200), () {
+    // Start entrance animations first
+    _entranceController.forward();
+    
+    // Kick off progress animation slightly delayed
+    Future.delayed(const Duration(milliseconds: 600), () {
       if (mounted) _progressController.forward();
     });
   }
@@ -45,6 +94,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
   @override
   void dispose() {
     _progressController.dispose();
+    _entranceController.dispose();
     super.dispose();
   }
 
@@ -62,53 +112,64 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
             children: [
               const SizedBox(height: 60),
 
-              // Big left-aligned title (2 lines)
-              Text(
-                localizations.wellDoneBigStep,
-                style: ThemeHelper.title1.copyWith(
-                  fontSize: 34,
-                  height: 1.15,
-                  fontWeight: FontWeight.w800,
-                  color: ThemeHelper.textPrimary,
+              // Big left-aligned title with animation
+              PageAnimations.animatedTitle(
+                animation: _titleAnimation,
+                child: Text(
+                  localizations.wellDoneBigStep,
+                  style: ThemeHelper.title1.copyWith(
+                    fontSize: 34,
+                    height: 1.15,
+                    fontWeight: FontWeight.w800,
+                    color: ThemeHelper.textPrimary,
+                  ),
+                  textAlign: TextAlign.left,
                 ),
-                textAlign: TextAlign.left,
               ),
 
               const SizedBox(height: 28),
 
-              // Rich paragraph with bold spans
-              RichText(
-                text: TextSpan(
-                  style: ThemeHelper.body1.copyWith(
-                    color: ThemeHelper.textPrimary,
-                    height: 1.4,
-                    fontSize: 16,
+              // Rich paragraph with bold spans with animation
+              PageAnimations.animatedContent(
+                animation: _descriptionAnimation,
+                child: RichText(
+                  text: TextSpan(
+                    style: ThemeHelper.body1.copyWith(
+                      color: ThemeHelper.textPrimary,
+                      height: 1.4,
+                      fontSize: 16,
+                    ),
+                    children: [
+                      TextSpan(text: localizations.calorieTrackingPart1),
+                      TextSpan(text: localizations.scientificallyProvenMethod, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      TextSpan(text: localizations.calorieTrackingPart2),
+                      TextSpan(text: localizations.twiceFaster, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      TextSpan(text: localizations.calorieTrackingPart3),
+                    ],
                   ),
-                  children: [
-                    TextSpan(text: localizations.calorieTrackingPart1),
-                    TextSpan(text: localizations.scientificallyProvenMethod, style: const TextStyle(fontWeight: FontWeight.w700)),
-                    TextSpan(text: localizations.calorieTrackingPart2),
-                    TextSpan(text: localizations.twiceFaster, style: const TextStyle(fontWeight: FontWeight.w700)),
-                    TextSpan(text: localizations.calorieTrackingPart3),
-                  ],
                 ),
               ),
 
               const SizedBox(height: 32),
 
-              // Section title
-              Text(
-                localizations.yourProgress,
-                style: ThemeHelper.title2.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: ThemeHelper.textPrimary,
+              // Section title with animation
+              PageAnimations.animatedContent(
+                animation: _progressLabelAnimation,
+                child: Text(
+                  localizations.yourProgress,
+                  style: ThemeHelper.title2.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: ThemeHelper.textPrimary,
+                  ),
                 ),
               ),
 
               const SizedBox(height: 16),
 
               // Progress card with animated bars
-              AnimatedBuilder(
+              PageAnimations.animatedContent(
+                animation: _progressCardAnimation,
+                child: AnimatedBuilder(
                 animation: _progressController,
                 builder: (context, _) {
                   return Container(
@@ -156,6 +217,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                   );
                 },
               ),
+                ),
 
               const SizedBox(height: 32),
             ],

@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'package:calorie_ai_app/authentication/create.account.dart';
+import 'package:calorie_ai_app/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
@@ -376,7 +377,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   children: [
                     Obx(
                       () => Text(
-                        'Nastavi',
+                        AppLocalizations.of(context)!.continue_,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -420,7 +421,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   _nextPage();
                 },
                 child: Text(
-                  'No',
+                  AppLocalizations.of(context)!.no,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -449,7 +450,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   _nextPage();
                 },
                 child: Text(
-                  'Yes',
+                  AppLocalizations.of(context)!.yes,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -548,38 +549,38 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                               ),
                             ),
                               
-                            // const SizedBox(width: 16),
+                            const SizedBox(width: 16),
                               
-                            // Theme switch button
-                            // GestureDetector(
-                            //   onTap: () {
-                            //     HapticFeedback.mediumImpact();
-                            //     if (ThemeHelper.isLightMode) {
-                            //       widget.themeProvider.setDarkTheme();
-                            //     } else {
-                            //       widget.themeProvider.setLightTheme();
-                            //     }
-                            //   },
-                            //   child: Container(
-                            //     height: 40,
-                            //     width: 40,
-                            //     decoration: BoxDecoration(
-                            //       color: ThemeHelper.cardBackground,
-                            //       shape: BoxShape.circle,
-                            //       border: Border.all(
-                            //         color: ThemeHelper.divider,
-                            //         width: 1,
-                            //       ),
-                            //     ),
-                            //     child: Icon(
-                            //       ThemeHelper.isLightMode
-                            //           ? Icons.dark_mode
-                            //           : Icons.sunny,
-                            //       size: 20,
-                            //       color: ThemeHelper.textPrimary,
-                            //     ),
-                            //   ),
-                            // ),
+                         //   Theme switch button
+                            GestureDetector(
+                              onTap: () {
+                                HapticFeedback.mediumImpact();
+                                if (ThemeHelper.isLightMode) {
+                                  widget.themeProvider.setDarkTheme();
+                                } else {
+                                  widget.themeProvider.setLightTheme();
+                                }
+                              },
+                              child: Container(
+                                height: 40,
+                                width: 40,
+                                decoration: BoxDecoration(
+                                  color: ThemeHelper.cardBackground,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: ThemeHelper.divider,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  ThemeHelper.isLightMode
+                                      ? CupertinoIcons.moon
+                                      : CupertinoIcons.sun_max,
+                                  size: 20,
+                                  color: ThemeHelper.textPrimary,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       )

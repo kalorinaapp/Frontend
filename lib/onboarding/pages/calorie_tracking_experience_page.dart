@@ -4,6 +4,7 @@ import '../../providers/theme_provider.dart' show ThemeProvider;
 import '../controller/onboarding.controller.dart';
 import '../../utils/theme_helper.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/page_animations.dart';
 
 class CalorieTrackingExperiencePage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -17,9 +18,14 @@ class CalorieTrackingExperiencePage extends StatefulWidget {
   State<CalorieTrackingExperiencePage> createState() => _CalorieTrackingExperiencePageState();
 }
 
-class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperiencePage> {
+class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperiencePage> 
+    with SingleTickerProviderStateMixin {
   final OnboardingController _controller = Get.find<OnboardingController>();
   String? _selectedOption;
+  
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late List<Animation<double>> _cardAnimations;
 
   List<Map<String, String>> _getOptions(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -45,6 +51,28 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
 
     // Load previously saved selection if any
     _selectedOption = _controller.getStringData('calorie_tracking_experience');
+    
+    // Setup animations using global animations helper
+    _animationController = AnimationController(
+      vsync: this,
+      duration: PageAnimations.standardDuration,
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    
+    final cardAnimation = PageAnimations.createContentAnimation(_animationController);
+    
+    // Use the same animation for all cards
+    _cardAnimations = List.generate(3, (index) => cardAnimation);
+    
+    // Start animations
+    _animationController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _selectOption(String value) {
@@ -74,33 +102,39 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
             children: [
               const Spacer(flex: 1),
               
-              // Title
-              Text(
-                l10n.haveYouCountedCalories,
-                style: ThemeHelper.textStyleWithColorAndSize(
-                  ThemeHelper.headline,
-                  ThemeHelper.textPrimary,
-                  28,
-                ).copyWith(
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
+              // Title with fade and gentle scale animation
+              PageAnimations.animatedTitle(
+                animation: _titleAnimation,
+                child: Text(
+                  l10n.haveYouCountedCalories,
+                  style: ThemeHelper.textStyleWithColorAndSize(
+                    ThemeHelper.headline,
+                    ThemeHelper.textPrimary,
+                    28,
+                  ).copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
               
               const SizedBox(height: 60),
               
-              // Options
+              // Options with fade appear animations
               ...List.generate(options.length, (index) {
                 final option = options[index];
                 final isSelected = _selectedOption == option['value'];
                 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 20),
-                  child: _buildOptionCard(
-                    text: option['text']!,
-                    value: option['value']!,
-                    isSelected: isSelected,
+                  child: PageAnimations.animatedContent(
+                    animation: _cardAnimations[index],
+                    child: _buildOptionCard(
+                      text: option['text']!,
+                      value: option['value']!,
+                      isSelected: isSelected,
+                    ),
                   ),
                 );
               }),
@@ -121,7 +155,8 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
     return GestureDetector(
       onTap: () => _selectOption(value),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
         width: double.infinity,
         padding: const EdgeInsets.symmetric(
           horizontal: 24,
@@ -141,22 +176,23 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
           boxShadow: [
             if (isSelected)
               BoxShadow(
-                color: ThemeHelper.textPrimary.withOpacity(0.2),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: ThemeHelper.textPrimary.withOpacity(0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               )
             else
               BoxShadow(
                 color: ThemeHelper.isLightMode 
-                    ? CupertinoColors.black.withOpacity(0.05)
-                    : CupertinoColors.black.withOpacity(0.2),
-                blurRadius: 8,
+                    ? CupertinoColors.black.withOpacity(0.04)
+                    : CupertinoColors.black.withOpacity(0.15),
+                blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
           ],
         ),
-        child: Text(
-          text,
+        child: AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
           style: ThemeHelper.textStyleWithColorAndSize(
             ThemeHelper.body1,
             isSelected 
@@ -166,7 +202,10 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
           ).copyWith(
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
-          textAlign: TextAlign.center,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );

@@ -570,6 +570,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isSelected = widget.languageProvider.currentLocale.languageCode == languageCode;
     
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => widget.languageProvider.changeLanguage(languageCode),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),

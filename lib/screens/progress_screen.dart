@@ -152,7 +152,7 @@ class ProgressScreen extends StatelessWidget {
                 _StepsCard(healthProvider: healthProvider),
                 const SizedBox(height: 12),
                 _AddBurnedToGoalCard(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 120),
               ],
             ),
           ),

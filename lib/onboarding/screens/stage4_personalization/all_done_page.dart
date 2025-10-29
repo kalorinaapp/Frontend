@@ -2,20 +2,96 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../utils/page_animations.dart';
 import '../../controller/onboarding.controller.dart';
 import '../../../utils/theme_helper.dart';
 
-class AllDonePage extends StatelessWidget {
+class AllDonePage extends StatefulWidget {
   final ThemeProvider themeProvider;
   
   const AllDonePage({Key? key, required this.themeProvider}) : super(key: key);
+
+  @override
+  State<AllDonePage> createState() => _AllDonePageState();
+}
+
+class _AllDonePageState extends State<AllDonePage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _headerAnimation;
+  late Animation<double> _weightCardsAnimation;
+  late Animation<double> _goalAnimation;
+  late Animation<double> _planAnimation;
+  late Animation<double> _didYouKnowAnimation;
+  late Animation<double> _sourcesAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1600),
+      vsync: this,
+    );
+    
+    _headerAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.3, curve: Curves.easeOut),
+      ),
+    );
+    
+    _weightCardsAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.15, 0.45, curve: Curves.easeOut),
+      ),
+    );
+    
+    _goalAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.3, 0.55, curve: Curves.easeOut),
+      ),
+    );
+    
+    _planAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.4, 0.7, curve: Curves.easeOut),
+      ),
+    );
+    
+    _didYouKnowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.55, 0.85, curve: Curves.easeOut),
+      ),
+    );
+    
+    _sourcesAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
+      ),
+    );
+    
+    _animationController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<OnboardingController>();
     
     return ListenableBuilder(
-      listenable: themeProvider,
+      listenable: widget.themeProvider,
       builder: (context, child) {
         return CupertinoPageScaffold(
           backgroundColor: ThemeHelper.background,
@@ -30,60 +106,78 @@ class AllDonePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header with checkmark
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 35,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: ThemeHelper.textPrimary,
-                            shape: BoxShape.circle,
+                    PageAnimations.animatedContent(
+                      animation: _headerAnimation,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 35,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: ThemeHelper.textPrimary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              CupertinoIcons.check_mark,
+                              color: ThemeHelper.background,
+                              size: 20,
+                            ),
                           ),
-                          child: Icon(
-                            CupertinoIcons.check_mark,
-                            color: ThemeHelper.background,
-                            size: 20,
+                          SizedBox(width: 12),
+                          Text(
+                            'All done',
+                            style: TextStyle(
+                              color: ThemeHelper.textPrimary,
+                              fontSize: 28,
+                              fontFamily: 'Instrument Sans',
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        SizedBox(width: 12),
-                        Text(
-                          'All done',
-                          style: TextStyle(
-                            color: ThemeHelper.textPrimary,
-                            fontSize: 28,
-                            fontFamily: 'Instrument Sans',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     
                     SizedBox(height: 24),
                     
                     // Weight cards section
-                    _buildWeightCards(controller),
+                    PageAnimations.animatedContent(
+                      animation: _weightCardsAnimation,
+                      child: _buildWeightCards(controller),
+                    ),
                     
                     SizedBox(height: 20),
                     
                     // Weight loss goal
-                    _buildWeightLossGoal(controller),
+                    PageAnimations.animatedContent(
+                      animation: _goalAnimation,
+                      child: _buildWeightLossGoal(controller),
+                    ),
                     
                     SizedBox(height: 32),
                     
                     // Daily plan section
-                    _buildDailyPlanSection(controller),
+                    PageAnimations.animatedContent(
+                      animation: _planAnimation,
+                      child: _buildDailyPlanSection(controller),
+                    ),
                     
                     SizedBox(height: 32),
                     
                     // Did you know section
-                    _buildDidYouKnowSection(),
+                    PageAnimations.animatedContent(
+                      animation: _didYouKnowAnimation,
+                      child: _buildDidYouKnowSection(),
+                    ),
                     
                     SizedBox(height: 32),
                     
                     // Sources section
-                    _buildSourcesSection(),
+                    PageAnimations.animatedContent(
+                      animation: _sourcesAnimation,
+                      child: _buildSourcesSection(),
+                    ),
                     
                     SizedBox(height: 40),
                   ],
@@ -376,6 +470,7 @@ class AllDonePage extends StatelessWidget {
                       // Calories numbers
                       Center(
                         child: RichText(
+                          
                           text: TextSpan(
                             children: [
                               TextSpan(

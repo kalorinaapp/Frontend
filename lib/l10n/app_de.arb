@@ -52,6 +52,7 @@
   "welcomeBack": "Willkommen zurück",
   "continueWithApple": "Mit Apple fortfahren",
   "continueWithGoogle": "Mit Google fortfahren",
+  "creatingAccount": "Konto wird erstellt...",
   "wantToSignInLater": "Möchtest du dich später anmelden? ",
   "skip": "Überspringen",
   "byContinuingAgree": "Durch das Fortfahren stimmst du unseren\nNutzungsbedingungen und Datenschutzbestimmungen zu",
@@ -342,5 +343,7 @@
   "testimonial3Name": "Michael R.",
   "testimonial3Review": "Perfekt für meinen Alltag. Ich scanne meine Mahlzeiten schnell und spüre bereits nach einer Woche Fortschritte.",
   "testimonial4Name": "Emma W.",
-  "testimonial4Review": "Einfach, präzise und nützlich. Ich tracke Kalorien ohne Aufwand und fühle mich den ganzen Tag leichter."
+  "testimonial4Review": "Einfach, präzise und nützlich. Ich tracke Kalorien ohne Aufwand und fühle mich den ganzen Tag leichter.",
+  "yes": "Ja",
+  "no": "Nein"
 }

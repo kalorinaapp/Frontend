@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../utils/page_animations.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../controller/onboarding.controller.dart';
 
@@ -15,16 +16,50 @@ class CalorieCountingPage extends StatefulWidget {
 }
 
 class _CalorieCountingPageState extends State<CalorieCountingPage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
 
   late OnboardingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _cardAnimation;
+  late Animation<double> _exampleAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
+    
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    
+    _cardAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
+      ),
+    );
+    
+    _exampleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.5, 0.9, curve: Curves.easeOut),
+      ),
+    );
+    
+    _animationController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   // Calculate daily calorie goal based on user data
@@ -76,8 +111,9 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
     final double weightKg = isLbs ? weight * 0.453592 : weight.toDouble();
     
     // Assuming 10,000 steps per day (average)
-    // Calories burned per step = 0.04 * weight(kg)
-    final double caloriesPerStep = 0.04 * weightKg;
+    // Calories burned per step = 0.0005 * weight(kg) - scientifically accurate formula
+    // Average person burns about 0.04-0.05 calories per step, adjusted for weight
+    final double caloriesPerStep = 0.0005 * weightKg;
     final int steps = 10000;
     final double totalCalories = caloriesPerStep * steps;
     
@@ -100,42 +136,50 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
           children: [
             const SizedBox(height: 60),
             
-            // Title
-            SizedBox(
-              width: 278,
-              child: Text(
-                l10n.countBurnedCaloriesTowardsGoal,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ThemeHelper.textPrimary,
-                  fontSize: 30,
-                  fontFamily: 'Instrument Sans',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            // Subtitle
-            SizedBox(
-              width: 311,
-              child: Text(
-                l10n.recommended,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ThemeHelper.textPrimary,
-                  fontSize: 20,
-                  fontFamily: 'Instrument Sans',
-                  fontWeight: FontWeight.w600,
-                ),
+            // Title and Subtitle
+            PageAnimations.animatedTitle(
+              animation: _titleAnimation,
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: 278,
+                    child: Text(
+                      l10n.countBurnedCaloriesTowardsGoal,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
+                        fontSize: 30,
+                        fontFamily: 'Instrument Sans',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  SizedBox(
+                    width: 311,
+                    child: Text(
+                      l10n.recommended,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
+                        fontSize: 20,
+                        fontFamily: 'Instrument Sans',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             
             const SizedBox(height: 60),
             
             // Main information card
-            Container(
+            PageAnimations.animatedContent(
+              animation: _cardAnimation,
+              child: Container(
               width: 278,
               height: 197,
               decoration: ShapeDecoration(
@@ -250,6 +294,7 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
                     ),
                   ],
                 ),
+              ),
               ),
             ),
             

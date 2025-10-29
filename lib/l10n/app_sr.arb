@@ -88,6 +88,7 @@
   "welcomeBack": "Dobrodošao Nazad",
   "continueWithApple": "Nastavi sa Apple",
   "continueWithGoogle": "Nastavi sa Google",
+  "creatingAccount": "Kreiranje naloga...",
   "wantToSignInLater": "Želiš da se prijaviš kasnije? ",
   "skip": "Preskoči",
   "byContinuingAgree": "Nastavkom se slažeš sa našim\nUslovima Korišćenja i Pravilima Privatnosti",
@@ -385,6 +386,8 @@
   "testimonial3Name": "Јелена К.",
   "testimonial3Review": "Прецизност уноса ме одушевила. Напокон имам контролу над калоријама без стреса и бројања.",
   "testimonial4Name": "Емир С.",
-  "testimonial4Review": "Савршено за свакодневну рутину. Брзо скенирам оброке и осећам напредак већ након седмице."
+  "testimonial4Review": "Савршено за свакодневну рутину. Брзо скенирам оброке и осећам напредак већ након седмице.",
+  "yes": "Да",
+  "no": "Не"
 }
 

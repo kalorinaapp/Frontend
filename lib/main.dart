@@ -103,6 +103,10 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
       final userId = await UserPrefs.getId();
       final email = await UserPrefs.getEmail();
       final name = await UserPrefs.getName();
+      print('token: $token');
+      print('userId: $userId');
+      print('email: $email');
+      print('name: $name');
       return {
         'userId': userId ?? '',
         'email': email ?? '',

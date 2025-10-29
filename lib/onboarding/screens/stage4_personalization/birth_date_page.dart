@@ -5,6 +5,7 @@ import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
+import '../../../utils/page_animations.dart';
 
 class BirthDatePage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -16,11 +17,15 @@ class BirthDatePage extends StatefulWidget {
 }
 
 class _BirthDatePageState extends State<BirthDatePage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
 
   late OnboardingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _subtitleAnimation;
+  late Animation<double> _pickersAnimation;
 
   // Default values
   int _selectedMonth = 9; // September (1-indexed)
@@ -36,6 +41,36 @@ class _BirthDatePageState extends State<BirthDatePage>
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
+    
+    // Setup animations
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    
+    _subtitleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.2, 0.5, curve: Curves.easeOut),
+      ),
+    );
+    
+    _pickersAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
+      ),
+    );
+    
+    _animationController.forward();
     
     // Initialize scroll controllers with correct positions
     _initializeScrollControllers();
@@ -58,6 +93,7 @@ class _BirthDatePageState extends State<BirthDatePage>
 
   @override
   void dispose() {
+    _animationController.dispose();
     _monthScrollController?.dispose();
     _dayScrollController?.dispose();
     _yearScrollController?.dispose();
@@ -115,43 +151,51 @@ class _BirthDatePageState extends State<BirthDatePage>
         children: [
           const SizedBox(height: 20),
           
-          // Title
-          Center(
-            child: Text(
-              localizations.whenWereYouBorn,
-              style: ThemeHelper.title1.copyWith(
-                color: ThemeHelper.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          
-          const SizedBox(height: 8),
-          
-          // Subtitle
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: ThemeHelper.cardBackground,
-              borderRadius: BorderRadius.circular(12),
-            ),
+          // Title with animation
+          PageAnimations.animatedTitle(
+            animation: _titleAnimation,
             child: Center(
               child: Text(
-                localizations.birthDateSubtitle,
-                style: ThemeHelper.caption1.copyWith(
-                  fontSize: 13,
-                  color: ThemeHelper.textSecondary,
+                localizations.whenWereYouBorn,
+                style: ThemeHelper.title1.copyWith(
+                  color: ThemeHelper.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
           ),
           
+          const SizedBox(height: 8),
+          
+          // Subtitle with animation
+          PageAnimations.animatedContent(
+            animation: _subtitleAnimation,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: ThemeHelper.cardBackground,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  localizations.birthDateSubtitle,
+                  style: ThemeHelper.caption1.copyWith(
+                    fontSize: 13,
+                    color: ThemeHelper.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+          
           const SizedBox(height: 40),
           
-          // Date pickers
+          // Date pickers with animation
           Expanded(
-            child: Row(
+            child: PageAnimations.animatedContent(
+              animation: _pickersAnimation,
+              child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Month Picker
@@ -297,6 +341,7 @@ class _BirthDatePageState extends State<BirthDatePage>
                   ),
                 ),
               ],
+            ),
             ),
           ),
           

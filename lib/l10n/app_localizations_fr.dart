@@ -293,6 +293,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get continueWithGoogle => 'Continuer avec Google';
 
   @override
+  String get creatingAccount => 'Création du compte...';
+
+  @override
   String get wantToSignInLater => 'Vous voulez vous connecter plus tard ? ';
 
   @override
@@ -1342,4 +1345,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get testimonial4Review =>
       'Simple, précis et utile. Je suis les calories sans tracas et me sens plus légère toute la journée.';
+
+  @override
+  String get yes => 'Oui';
+
+  @override
+  String get no => 'Non';
 }

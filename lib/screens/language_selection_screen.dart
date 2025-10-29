@@ -131,6 +131,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () async {
                         debugPrint('Language selected: ${language['code']}');
                         try {

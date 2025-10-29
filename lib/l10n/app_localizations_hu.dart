@@ -294,6 +294,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get continueWithGoogle => 'Folytatás Google-lel';
 
   @override
+  String get creatingAccount => 'Fiók létrehozása...';
+
+  @override
   String get wantToSignInLater => 'Később szeretnél bejelentkezni? ';
 
   @override
@@ -1333,4 +1336,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get testimonial4Review =>
       'Tökéletes a napi rutinomhoz. Gyorsan szkenneltem az ételeket és már egy hét után érzem a fejlődést.';
+
+  @override
+  String get yes => 'Igen';
+
+  @override
+  String get no => 'Nem';
 }

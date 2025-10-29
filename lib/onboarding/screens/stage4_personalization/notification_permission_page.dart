@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../utils/page_animations.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../controller/onboarding.controller.dart';
 
@@ -20,6 +21,10 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
   late OnboardingController _controller;
   late AnimationController _fingerAnimationController;
   late Animation<double> _fingerAnimation;
+  late AnimationController _pageAnimationController;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _cardAnimation;
+  late Animation<double> _buttonsAnimation;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -33,7 +38,7 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
     });
 
     
-    // Initialize finger animation
+    // Initialize finger animation (existing)
     _fingerAnimationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -47,8 +52,31 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
       curve: Curves.easeInOut,
     ));
     
-    // Start the animation loop
+    // Initialize page entrance animations (new)
+    _pageAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_pageAnimationController);
+    
+    _cardAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _pageAnimationController,
+        curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
+      ),
+    );
+    
+    _buttonsAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _pageAnimationController,
+        curve: const Interval(0.5, 0.9, curve: Curves.easeOut),
+      ),
+    );
+    
+    // Start the animations
     _startFingerAnimation();
+    _pageAnimationController.forward();
     
     // Request notification permission on initialization
     _requestNotificationPermission();
@@ -123,6 +151,7 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
   @override
   void dispose() {
     _fingerAnimationController.dispose();
+    _pageAnimationController.dispose();
     super.dispose();
   }
 
@@ -142,41 +171,50 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
             const SizedBox(height: 30),
             
             // Title
-            SizedBox(
-              width: 301,
-              child: Text(
-                l10n.enableNotificationsForBetterResults,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ThemeHelper.textPrimary,
-                  fontSize: 30,
-                  fontFamily: 'Instrument Sans',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            // Subtitle
-            SizedBox(
-              width: 311,
-              child: Text(
-                l10n.recommended,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ThemeHelper.textPrimary,
-                  fontSize: 20,
-                  fontFamily: 'Instrument Sans',
-                  fontWeight: FontWeight.w600,
-                ),
+            PageAnimations.animatedTitle(
+              animation: _titleAnimation,
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: 301,
+                    child: Text(
+                      l10n.enableNotificationsForBetterResults,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
+                        fontSize: 30,
+                        fontFamily: 'Instrument Sans',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  // Subtitle
+                  SizedBox(
+                    width: 311,
+                    child: Text(
+                      l10n.recommended,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
+                        fontSize: 20,
+                        fontFamily: 'Instrument Sans',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             
             const SizedBox(height: 60),
             
             // Main notification card
-            Container(
+            PageAnimations.animatedContent(
+              animation: _cardAnimation,
+              child: Container(
               width: 290,
               height: 197,
               decoration: ShapeDecoration(
@@ -209,12 +247,15 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
                   ),
                 ],
               ),
+              ),
             ),
             
             const SizedBox(height: 60),
             
             // Buttons row
-            Column(
+            PageAnimations.animatedContent(
+              animation: _buttonsAnimation,
+              child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -302,6 +343,7 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
                   },
                 ),
               ],
+              ),
             ),
             
             const SizedBox(height: 100),

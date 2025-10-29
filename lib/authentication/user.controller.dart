@@ -49,28 +49,38 @@ class UserController extends GetxController {
             isSuccess.value = true;
             userData.assignAll(json['user'] ?? {});
 
-            print('userData: ${userData}');
+            print('✅ Registration successful!');
+            print('📦 Full response: $json');
             
             // Save to shared prefs
             final user = json['user'] ?? {};
             final token = json['token'] ?? '';
             final refreshToken = token; // Use same token as refresh token if not provided separately
             
+            print('🔑 Extracted token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+            print('👤 Extracted user ID: ${user['_id'] ?? user['id'] ?? 'NOT FOUND'}');
+            
             // Create full name from firstName and lastName
             final firstName = user['firstName'] ?? '';
             final lastName = user['lastName'] ?? '';
             final fullName = '$firstName $lastName'.trim();
+            
+            final userId = user['_id'] ?? user['id'] ?? '';
+            print('💾 Saving to SharedPreferences - ID: $userId');
             
             UserPrefs.saveUserData(
               name: fullName.isNotEmpty ? fullName : user['email'] ?? '',
               email: user['email'] ?? '',
               token: token,
               refreshToken: refreshToken,
-              id: user['_id'] ?? user['id'] ?? '',
+              id: userId,
             );
 
-            AppConstants.userId = user['_id'] ?? user['id'] ?? '';
+            AppConstants.userId = userId;
             AppConstants.authToken = token;
+            
+            print('✅ AppConstants.userId set to: ${AppConstants.userId}');
+            print('✅ AppConstants.authToken set to: ${AppConstants.authToken.substring(0, AppConstants.authToken.length > 20 ? 20 : AppConstants.authToken.length)}...');
 
             // For new registrations, always navigate to home screen
             Navigator.of(context).pushAndRemoveUntil(
@@ -119,27 +129,37 @@ class UserController extends GetxController {
             isSuccess.value = true;
             userData.assignAll(json['user'] ?? {});
 
+            print('✅ Login successful!');
+            print('📦 Full response: $json');
+            
             // Save to shared prefs
             final user = json['user'] ?? {};
             final token = json['token'] ?? '';
             final refreshToken = token; // Use same token if no separate refresh token
+            
+            print('🔑 Extracted token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+            print('👤 Extracted user ID: ${user['_id'] ?? user['id'] ?? 'NOT FOUND'}');
             
             // Create full name from firstName and lastName
             final firstName = user['firstName'] ?? '';
             final lastName = user['lastName'] ?? '';
             final fullName = '$firstName $lastName'.trim();
             
-            print('token: $token');
-            print('refreshToken: $refreshToken');
+            final userId = user['_id'] ?? user['id'] ?? '';
+            print('💾 Saving to SharedPreferences - ID: $userId');
+            
             AppConstants.authToken = token;
-            AppConstants.userId = user['_id'] ?? user['id'] ?? '';
+            AppConstants.userId = userId;
+            
+            print('✅ AppConstants.userId set to: ${AppConstants.userId}');
+            print('✅ AppConstants.authToken set to: ${AppConstants.authToken.substring(0, AppConstants.authToken.length > 20 ? 20 : AppConstants.authToken.length)}...');
             
             UserPrefs.saveUserData(
               name: fullName.isNotEmpty ? fullName : user['email'] ?? '',
               email: user['email'] ?? '',
               token: token,
               refreshToken: refreshToken,
-              id: user['_id'] ?? user['id'] ?? '',
+              id: userId,
             );
             result = true;
             

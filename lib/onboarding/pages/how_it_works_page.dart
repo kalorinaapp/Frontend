@@ -5,8 +5,9 @@ import '../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../providers/theme_provider.dart' show ThemeProvider;
 import '../../screens/paywall_screen.dart' show PaywallScreen;
 import '../../utils/theme_helper.dart';
+import '../../utils/page_animations.dart';
 
-class HowItWorksPage extends StatelessWidget {
+class HowItWorksPage extends StatefulWidget {
   final bool? postSignUp;
   final ThemeProvider themeProvider;
 
@@ -15,6 +16,69 @@ class HowItWorksPage extends StatelessWidget {
     this.postSignUp,
     required this.themeProvider,
   });
+
+  @override
+  State<HowItWorksPage> createState() => _HowItWorksPageState();
+}
+
+class _HowItWorksPageState extends State<HowItWorksPage> 
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late List<Animation<double>> _stepAnimations;
+  late Animation<double> _ctaAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Setup animations
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    
+    // Create staggered animations for each step
+    _stepAnimations = List.generate(3, (index) {
+      final startInterval = 0.25 + (index * 0.15);
+      final endInterval = (startInterval + 0.35).clamp(0.0, 1.0);
+      
+      return Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            startInterval,
+            endInterval,
+            curve: Curves.easeOut,
+          ),
+        ),
+      );
+    });
+    
+    // CTA button animation (appears last)
+    _ctaAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
+      ),
+    );
+    
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,70 +90,103 @@ class HowItWorksPage extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: 24, 
-            vertical: postSignUp == true ? 60 : 40,
+            vertical: widget.postSignUp == true ? 60 : 40,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Title
-              Text(
-                localizations.howItWorksUniqueApproach,
-                style: ThemeHelper.textStyleWithColorAndSize(
-                  ThemeHelper.headline,
-                  ThemeHelper.textPrimary,
-                  28,
-                ).copyWith(
-                  fontWeight: FontWeight.w700,
-                  height: 1.3,
+              // Title with animation
+              PageAnimations.animatedTitle(
+                animation: _titleAnimation,
+                child: Text(
+                  localizations.howItWorksUniqueApproach,
+                  style: ThemeHelper.textStyleWithColorAndSize(
+                    ThemeHelper.headline,
+                    ThemeHelper.textPrimary,
+                    28,
+                  ).copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.3,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
       
               const SizedBox(height: 80),
       
-              // Step 1: Scan
-              _buildStep(
-                index: 0,
-                label: localizations.scan,
-                imagePath: 'assets/images/scan.png',
-                arrowPath: null,
-                rotation: -15, // Rotated counterclockwise
-                labelAlignment: Alignment.topLeft,
-                labelOffset: const Offset(40, -56),
+              // Step 1: Scan with animation
+              FadeTransition(
+                opacity: _stepAnimations[0],
+                child: ScaleTransition(
+                  scale: Tween<double>(
+                    begin: 0.95,
+                    end: 1.0,
+                  ).animate(_stepAnimations[0]),
+                  child: _buildStep(
+                    index: 0,
+                    label: localizations.scan,
+                    imagePath: 'assets/images/scan.png',
+                    arrowPath: null,
+                    rotation: -15, // Rotated counterclockwise
+                    labelAlignment: Alignment.topLeft,
+                    labelOffset: const Offset(40, -56),
+                  ),
+                ),
               ),
       
               const SizedBox(height: 20),
       
-              // Step 2: Analyze
-              _buildStep(
-                index: 1,
-                label: localizations.analyze,
-                imagePath: 'assets/images/analyze.png',
-                arrowPath: 'assets/icons/arrow_one.png',
-                rotation: 8, // Slight rotation to the right
-                labelAlignment: Alignment.topRight,
-                labelOffset: const Offset(-40, -48),
+              // Step 2: Analyze with animation
+              FadeTransition(
+                opacity: _stepAnimations[1],
+                child: ScaleTransition(
+                  scale: Tween<double>(
+                    begin: 0.95,
+                    end: 1.0,
+                  ).animate(_stepAnimations[1]),
+                  child: _buildStep(
+                    index: 1,
+                    label: localizations.analyze,
+                    imagePath: 'assets/images/analyze.png',
+                    arrowPath: 'assets/icons/arrow_one.png',
+                    rotation: 8, // Slight rotation to the right
+                    labelAlignment: Alignment.topRight,
+                    labelOffset: const Offset(-40, -48),
+                  ),
+                ),
               ),
       
               const SizedBox(height: 20),
       
-              // Step 3: Track
-              _buildStep(
-                index: 2,
-                label: localizations.track,
-                imagePath: 'assets/images/track.png',
-                arrowPath: 'assets/icons/arrow_two.png',
-                rotation: 0, // No rotation
-                labelAlignment: Alignment.topLeft,
-                labelOffset: const Offset(80, -40), // Positioned next to arrow
+              // Step 3: Track with animation
+              FadeTransition(
+                opacity: _stepAnimations[2],
+                child: ScaleTransition(
+                  scale: Tween<double>(
+                    begin: 0.95,
+                    end: 1.0,
+                  ).animate(_stepAnimations[2]),
+                  child: _buildStep(
+                    index: 2,
+                    label: localizations.track,
+                    imagePath: 'assets/images/track.png',
+                    arrowPath: 'assets/icons/arrow_two.png',
+                    rotation: 0, // No rotation
+                    labelAlignment: Alignment.topLeft,
+                    labelOffset: const Offset(80, -40), // Positioned next to arrow
+                  ),
+                ),
               ),
       
               const SizedBox(height: 40),
               
-              // Post signup design
-              if (postSignUp == true) ...[
+              // Post signup design with animation
+              if (widget.postSignUp == true) ...[
                 const SizedBox(height: 40),
-                _buildPostSignUpDesign(context),
+                PageAnimations.animatedContent(
+                  animation: _ctaAnimation,
+                  child: _buildPostSignUpDesign(context),
+                ),
               ],
             ],
           ),
@@ -209,7 +306,7 @@ class HowItWorksPage extends StatelessWidget {
           onTap: () {
             Navigator.of(context).push(
               CupertinoPageRoute(
-                builder: (context) => PaywallScreen(themeProvider: themeProvider),
+                builder: (context) => PaywallScreen(themeProvider: widget.themeProvider),
               ),
             );
           },

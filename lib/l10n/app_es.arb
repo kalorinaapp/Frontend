@@ -52,6 +52,7 @@
   "welcomeBack": "Bienvenido de nuevo",
   "continueWithApple": "Continuar con Apple",
   "continueWithGoogle": "Continuar con Google",
+  "creatingAccount": "Creando cuenta...",
   "wantToSignInLater": "¿Quieres iniciar sesión más tarde? ",
   "skip": "Omitir",
   "byContinuingAgree": "Al continuar, aceptas nuestros\nTérminos de servicio y Política de privacidad",
@@ -394,5 +395,7 @@
   "testimonial3Name": "Miguel R.",
   "testimonial3Review": "Perfecto para mi rutina diaria. Escaneo mis comidas rápidamente y siento progreso en una semana.",
   "testimonial4Name": "Elena K.",
-  "testimonial4Review": "Simple, preciso y útil. Rastro calorías sin complicaciones y me siento más ligera durante el día."
+  "testimonial4Review": "Simple, preciso y útil. Rastro calorías sin complicaciones y me siento más ligera durante el día.",
+  "yes": "Sí",
+  "no": "No"
 }

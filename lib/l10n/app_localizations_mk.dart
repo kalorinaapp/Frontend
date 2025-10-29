@@ -293,6 +293,9 @@ class AppLocalizationsMk extends AppLocalizations {
   String get continueWithGoogle => 'Продолжи со Google';
 
   @override
+  String get creatingAccount => 'Креирање сметка...';
+
+  @override
   String get wantToSignInLater => 'Сакаш да се пријавиш подоцна? ';
 
   @override
@@ -1336,4 +1339,10 @@ class AppLocalizationsMk extends AppLocalizations {
   @override
   String get testimonial4Review =>
       'Совршено за секојдневна рутина. Брзо ги скенирам оброците и чувствувам напредок веќе по една недела.';
+
+  @override
+  String get yes => 'Да';
+
+  @override
+  String get no => 'Не';
 }

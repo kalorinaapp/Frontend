@@ -95,6 +95,7 @@
   "welcomeBack": "Bine ai revenit",
   "continueWithApple": "Continuă cu Apple",
   "continueWithGoogle": "Continuă cu Google",
+  "creatingAccount": "Crearea contului...",
   "wantToSignInLater": "Vrei să te autentifici mai târziu? ",
   "skip": "Sari peste",
   "byContinuingAgree": "Continuând, ești de acord cu\nTermenii de utilizare și Politica de confidențialitate",
@@ -436,6 +437,8 @@
   "testimonial3Name": "Elena K.",
   "testimonial3Review": "Precizia introducerii m-a impresionat. În sfârșit am control asupra caloriilor fără stres și numărare.",
   "testimonial4Name": "Emir S.",
-  "testimonial4Review": "Perfect pentru rutina zilnică. Scanez rapid mesele și simt progresul deja după o săptămână."
+  "testimonial4Review": "Perfect pentru rutina zilnică. Scanez rapid mesele și simt progresul deja după o săptămână.",
+  "yes": "Da",
+  "no": "Nu"
 }
 

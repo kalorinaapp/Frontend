@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'dart:math';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../../providers/theme_provider.dart';
+import '../../../utils/page_animations.dart';
 import '../../controller/onboarding.controller.dart';
 import '../../../utils/theme_helper.dart';
 
@@ -16,16 +17,33 @@ class CalorieTransferPage extends StatefulWidget {
 }
 
 class _CalorieTransferPageState extends State<CalorieTransferPage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
 
   late OnboardingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _contentAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
+    
+    // Initialize simple fade-in animation for entire content
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 900),
+      vsync: this,
+    );
+    
+    _contentAnimation = PageAnimations.createContentAnimation(_animationController);
+    _animationController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   // Calculate daily calorie goal based on user data
@@ -93,11 +111,13 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
     final int todayEaten = 2100;
     final double todayProgress = (todayEaten / todayGoal).clamp(0.0, 1.0);
 
-    return Container(
-      width: 393,
-      height: 852,
-      decoration: BoxDecoration(color: ThemeHelper.background),
-      child: SingleChildScrollView(
+    return PageAnimations.animatedContent(
+      animation: _contentAnimation,
+      child: Container(
+        width: 393,
+        height: 852,
+        decoration: BoxDecoration(color: ThemeHelper.background),
+        child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
@@ -379,6 +399,7 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
              
             ],
           ),
+        ),
         ),
       ),
     );

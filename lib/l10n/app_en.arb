@@ -95,6 +95,7 @@
   "welcomeBack": "Welcome Back",
   "continueWithApple": "Continue with Apple",
   "continueWithGoogle": "Continue with Google",
+  "creatingAccount": "Creating account...",
   "wantToSignInLater": "Want to sign in later? ",
   "skip": "Skip",
   "byContinuingAgree": "By continuing, you agree to our\nTerms of Service and Privacy Policy",
@@ -444,5 +445,7 @@
   "testimonial3Name": "Michael R.",
   "testimonial3Review": "Perfect for my daily routine. I scan my meals quickly and feel progress within a week.",
   "testimonial4Name": "Emma K.",
-  "testimonial4Review": "Simple, accurate, and useful. I track calories without hassle and feel lighter throughout the day."
+  "testimonial4Review": "Simple, accurate, and useful. I track calories without hassle and feel lighter throughout the day.",
+  "yes": "Yes",
+  "no": "No"
 }

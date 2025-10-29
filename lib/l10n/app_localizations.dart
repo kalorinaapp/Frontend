@@ -654,6 +654,12 @@ abstract class AppLocalizations {
   /// **'Continue with Google'**
   String get continueWithGoogle;
 
+  /// No description provided for @creatingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating account...'**
+  String get creatingAccount;
+
   /// No description provided for @wantToSignInLater.
   ///
   /// In en, this message translates to:
@@ -2615,6 +2621,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Simple, accurate, and useful. I track calories without hassle and feel lighter throughout the day.'**
   String get testimonial4Review;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
 }
 
 class _AppLocalizationsDelegate

@@ -5,6 +5,7 @@ import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../controller/onboarding.controller.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
+import '../../../utils/page_animations.dart';
 
 class HeightWeightPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -16,11 +17,16 @@ class HeightWeightPage extends StatefulWidget {
 }
 
 class _HeightWeightPageState extends State<HeightWeightPage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
 
   late OnboardingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _subtitleAnimation;
+  late Animation<double> _toggleAnimation;
+  late Animation<double> _pickersAnimation;
 
   // Toggle: true = Metric, false = Imperial.
   bool _isMetric = true;
@@ -62,6 +68,47 @@ class _HeightWeightPageState extends State<HeightWeightPage>
   @override
   void initState() {
     super.initState();
+    
+    // Setup animations
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    
+    _subtitleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.2, 0.5, curve: Curves.easeOut),
+      ),
+    );
+    
+    _toggleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.3, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    
+    _pickersAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.4, 0.8, curve: Curves.easeOut),
+      ),
+    );
+    
+    _animationController.forward();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
     _controller = Get.find<OnboardingController>();
     
@@ -100,6 +147,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
 
   @override
   void dispose() {
+    _animationController.dispose();
     _heightScrollController?.dispose();
     _weightScrollController?.dispose();
     super.dispose();
@@ -151,44 +199,52 @@ class _HeightWeightPageState extends State<HeightWeightPage>
         children: [
           const SizedBox(height: 20),
           
-          // Title
-          Center(
-            child: Text(
-              localizations.heightAndWeight,
-              style: ThemeHelper.title1.copyWith(
-                color: ThemeHelper.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          
-          const SizedBox(height: 8),
-          
-          // Subtitle
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: ThemeHelper.cardBackground,
-              borderRadius: BorderRadius.circular(12),
-            ),
+          // Title with animation
+          PageAnimations.animatedTitle(
+            animation: _titleAnimation,
             child: Center(
               child: Text(
-                localizations.heightWeightSubtitle,
-                style: ThemeHelper.caption1.copyWith(
-                  fontSize: 13,
-                  color: ThemeHelper.textSecondary,
+                localizations.heightAndWeight,
+                style: ThemeHelper.title1.copyWith(
+                  color: ThemeHelper.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
           ),
           
+          const SizedBox(height: 8),
+          
+          // Subtitle with animation
+          PageAnimations.animatedContent(
+            animation: _subtitleAnimation,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: ThemeHelper.cardBackground,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  localizations.heightWeightSubtitle,
+                  style: ThemeHelper.caption1.copyWith(
+                    fontSize: 13,
+                    color: ThemeHelper.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+          
           const SizedBox(height: 40),
           
-          // Toggle Switch for Metric vs Imperial.
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
+          // Toggle Switch for Metric vs Imperial with animation
+          PageAnimations.animatedContent(
+            animation: _toggleAnimation,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
@@ -238,13 +294,16 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                 ),
               ],
             ),
+            ),
           ),
           
           const SizedBox(height: 20),
           
-          // Height & Weight selectors.
+          // Height & Weight selectors with animation
           Expanded(
-            child: Row(
+            child: PageAnimations.animatedContent(
+              animation: _pickersAnimation,
+              child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Height Selector.
@@ -342,6 +401,7 @@ class _HeightWeightPageState extends State<HeightWeightPage>
                   ),
                 ),
               ],
+            ),
             ),
           ),
         ],

@@ -95,6 +95,7 @@
   "welcomeBack": "Üdv újra itt",
   "continueWithApple": "Folytatás Apple-lel",
   "continueWithGoogle": "Folytatás Google-lel",
+  "creatingAccount": "Fiók létrehozása...",
   "wantToSignInLater": "Később szeretnél bejelentkezni? ",
   "skip": "Kihagyás",
   "byContinuingAgree": "A folytatással elfogadod a\nFelhasználási feltételeket és az Adatvédelmi irányelveket",
@@ -436,6 +437,8 @@
   "testimonial3Name": "Jelena K.",
   "testimonial3Review": "A bevitelek pontossága lenyűgözött. Végre kontroll alatt tartom a kalóriákat stressz és számolás nélkül.",
   "testimonial4Name": "Emir S.",
-  "testimonial4Review": "Tökéletes a napi rutinomhoz. Gyorsan szkenneltem az ételeket és már egy hét után érzem a fejlődést."
+  "testimonial4Review": "Tökéletes a napi rutinomhoz. Gyorsan szkenneltem az ételeket és már egy hét után érzem a fejlődést.",
+  "yes": "Igen",
+  "no": "Nem"
 }
 

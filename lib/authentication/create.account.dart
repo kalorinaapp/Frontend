@@ -13,6 +13,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart'
     show AppleIDAuthorizationScopes, SignInWithApple;
 import 'package:supabase_flutter/supabase_flutter.dart'
     show AuthException, GoTrueClientSignInProvider, OAuthProvider, Supabase, AuthChangeEvent;
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../onboarding/controller/onboarding.controller.dart';
@@ -50,6 +51,9 @@ class _CreateAccountPageState extends State<CreateAccountPage>
   // Language state
   String _currentLanguageCode = 'en';
   String _currentLanguageFlag = '🇬🇧';
+  
+  // Loading state
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -114,6 +118,15 @@ class _CreateAccountPageState extends State<CreateAccountPage>
     super.dispose();
   }
 
+  // Show/hide loading
+  void _setLoading(bool loading) {
+    if (mounted) {
+      setState(() {
+        _isLoading = loading;
+      });
+    }
+  }
+
   // Load current language from shared preferences
   Future<void> _loadCurrentLanguage() async {
     try {
@@ -165,8 +178,10 @@ class _CreateAccountPageState extends State<CreateAccountPage>
   Widget _buildLanguageChanger() {
     debugPrint('Building language changer with: $_currentLanguageCode and $_currentLanguageFlag');
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () async {
-        debugPrint('Language changer tapped - navigating to language selection screen');
+        
+       // debugPrint('Language changer tapped - navigating to language selection screen');
         try {
           final result = await  Navigator.push(context, CupertinoPageRoute(builder: (context) =>  LanguageSelectionScreen()));
           
@@ -202,7 +217,8 @@ class _CreateAccountPageState extends State<CreateAccountPage>
           ],
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               _currentLanguageFlag,
@@ -266,7 +282,7 @@ class _CreateAccountPageState extends State<CreateAccountPage>
   }
 
   // Helper function to collect all onboarding data
-  Map<String, dynamic> _collectOnboardingData(String? userId, String? email, String? name) {
+  Future<Map<String, dynamic>> _collectOnboardingData(String? userId, String? email, String? name) async {
     // Extract birth date and calculate age
     final birthDate = _controller.getDateTimeData('birth_date');
     int age = 25; // default age
@@ -289,7 +305,7 @@ class _CreateAccountPageState extends State<CreateAccountPage>
     }
     
     String firstName = '';
-    String lastName = 'Last';
+    String lastName = '';
     
     if (nameParts.isNotEmpty) {
       firstName = cleanName(nameParts.first);
@@ -317,6 +333,15 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       lastName = 'Last';
     }
 
+    // Get device timezone
+    String timezone = 'Europe/Zagreb'; // Default fallback
+    try {
+      timezone = await FlutterNativeTimezone.getLocalTimezone();
+      debugPrint('🌍 Device timezone: $timezone');
+    } catch (e) {
+      debugPrint('⚠️ Error getting timezone, using default: $e');
+    }
+
     // Map onboarding data to API format
     return {
       // Basic authentication fields
@@ -337,9 +362,9 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       "dailyCalorieGoal": _controller.getIntData('daily_calorie_goal') ?? 2250,
       "workoutsPerWeek": _mapWorkoutFrequencyToNumber(_controller.getStringData('workout_frequency') ?? '0'),
       "fitnessGoals": _mapGoalToFitnessGoal(_controller.getStringData('goal') ?? 'maintain_weight'),
-      "targetWeight": (_controller.getIntData('weight') ?? 70).toDouble(), // Default to current weight
-      "weeklyGoal": 0.5, // Default weekly goal in kg
-      "speedToGoal": "moderate", // Default speed
+      "targetWeight": _getTargetWeightInCorrectUnit(), // Converts weight to match unit system
+      "weeklyGoal": _controller.getDoubleData('weight_loss_speed') ?? 0.7, // From weight loss speed page
+      "speedToGoal": _controller.getDoubleData('weight_loss_speed') ?? 0.7, // Send as numeric value, not string
 
       // Dietary preferences
       "dietaryPreferences": [_controller.getStringData('dietary_preference') ?? 'classic'],
@@ -347,14 +372,14 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       "healthConditions": [], // Empty array as default
 
       // Preferences
-      "timezone": "Europe/Zagreb", // Default timezone for Croatian app
-      "language": "hr", // Croatian language
+      "timezone": timezone, // Device timezone
+      "language": _currentLanguageCode, // Croatian language
       "units": _controller.getBoolData('is_metric') ?? true ? "metric" : "imperial",
 
       // OAuth fields
       "provider": "google", // Will be updated per provider
       "providerId": userId.toString(),
-      "supabaseId": _generateRandomId(prefix: 'supabase_user_id', length: 8),
+      "supabaseId": Supabase.instance.client.auth.currentSession?.user.id ?? '',
       "revenueCatId": _generateRandomId(prefix: 'revenuecat_user_id', length: 8),
 
       // Referral tracking
@@ -435,6 +460,34 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       default:
         return 'other';
     }
+  }
+
+  // Helper method to get target weight with proper unit conversion
+  double _getTargetWeightInCorrectUnit() {
+    final double? desiredWeight = _controller.getDoubleData('desired_weight');
+    final bool? weightUnitIsLbs = _controller.getBoolData('weight_unit_lbs');
+    final bool isMetric = _controller.getBoolData('is_metric') ?? true;
+    
+    if (desiredWeight == null) {
+      // Fallback to current weight if desired weight not set
+      return (_controller.getIntData('weight') ?? 70).toDouble();
+    }
+    
+    // Check if conversion is needed
+    final bool storedInLbs = weightUnitIsLbs ?? true;
+    final bool needsKg = isMetric;
+    
+    // If stored in lbs but backend expects kg, convert
+    if (storedInLbs && needsKg) {
+      return desiredWeight * 0.453592; // lbs to kg
+    }
+    // If stored in kg but backend expects lbs, convert
+    else if (!storedInLbs && !needsKg) {
+      return desiredWeight * 2.20462; // kg to lbs
+    }
+    
+    // No conversion needed
+    return desiredWeight;
   }
 
   // ignore: unused_element
@@ -590,44 +643,47 @@ class _CreateAccountPageState extends State<CreateAccountPage>
                     ),
                   ),
               
-                   const SizedBox(height: 12),
-                   Row(
-                     mainAxisAlignment: MainAxisAlignment.center,
-                     children: [
-                       Text(
-                         l10n.wantToSignInLater,
-                         style: ThemeHelper.textStyleWithColorAndSize(
-                           ThemeHelper.caption1,
-                           ThemeHelper.textSecondary,
-                           12,
-                         ),
-                       ),
-                       GestureDetector(
-                         onTap: () {
-                           // Navigate to home screen without authentication
-                           _onboardingController.goToNextPage();
-
-                           if (!widget.isLogin) {
-                           Navigator.of(context).push(
-                             CupertinoPageRoute(
-                               builder: (context) => HowItWorksPage(themeProvider: widget.themeProvider, postSignUp: true),
-                             ),
-                           );
-                           }
-                         },
-                         child: Text(
-                           l10n.skip,
+                   // Only show "Want to sign in later? Skip" on login screen
+                   if (widget.isLogin) ...[
+                     const SizedBox(height: 12),
+                     Row(
+                       mainAxisAlignment: MainAxisAlignment.center,
+                       children: [
+                         Text(
+                           l10n.wantToSignInLater,
                            style: ThemeHelper.textStyleWithColorAndSize(
                              ThemeHelper.caption1,
                              ThemeHelper.textSecondary,
                              12,
-                           ).copyWith(
-                             decoration: TextDecoration.underline,
                            ),
                          ),
-                       ),
-                     ],
-                   ),
+                         GestureDetector(
+                           onTap: () {
+                             // Navigate to home screen without authentication
+                             _onboardingController.goToNextPage();
+
+                             if (!widget.isLogin) {
+                             Navigator.of(context).push(
+                               CupertinoPageRoute(
+                                 builder: (context) => HowItWorksPage(themeProvider: widget.themeProvider, postSignUp: true),
+                               ),
+                             );
+                             }
+                           },
+                           child: Text(
+                             l10n.skip,
+                             style: ThemeHelper.textStyleWithColorAndSize(
+                               ThemeHelper.caption1,
+                               ThemeHelper.textSecondary,
+                               12,
+                             ).copyWith(
+                               decoration: TextDecoration.underline,
+                             ),
+                           ),
+                         ),
+                       ],
+                     ),
+                   ],
           
                    const SizedBox(height: 24),
               
@@ -649,12 +705,47 @@ class _CreateAccountPageState extends State<CreateAccountPage>
                     ],
                   ),
                 ),
-                 // Language changer positioned in top-right
-                 Positioned(
-                   top: 20,
-                   right: 20,
-                   child: _buildLanguageChanger(),
-                 ),
+                 // Language changer positioned in top-right (only shown on login screen)
+                 if (widget.isLogin)
+                   Positioned(
+                     top: 20,
+                     right: 20,
+                     child: _buildLanguageChanger(),
+                   ),
+                 // Loading overlay
+                 if (_isLoading)
+                   Positioned.fill(
+                     child: Container(
+                       color: CupertinoColors.black.withOpacity(0.5),
+                       child: Center(
+                         child: Container(
+                           padding: const EdgeInsets.all(24),
+                           decoration: BoxDecoration(
+                             color: ThemeHelper.background,
+                             borderRadius: BorderRadius.circular(16),
+                           ),
+                           child: Column(
+                             mainAxisSize: MainAxisSize.min,
+                             children: [
+                               CupertinoActivityIndicator(
+                                 radius: 16,
+                                 color: ThemeHelper.textPrimary,
+                               ),
+                               const SizedBox(height: 16),
+                               Text(
+                                 l10n.creatingAccount,
+                                 style: TextStyle(
+                                   color: ThemeHelper.textPrimary,
+                                   fontSize: 16,
+                                   fontWeight: FontWeight.w600,
+                                 ),
+                               ),
+                             ],
+                           ),
+                         ),
+                       ),
+                     ),
+                   ),
               ],
             ),
           ),
@@ -664,235 +755,287 @@ class _CreateAccountPageState extends State<CreateAccountPage>
   }
 
   Future googleSignIn() async {
-    // const webClientId =
-    //     '70719570257-re7p2dpf84jr9ej2blpcls4d9hger7pl.apps.googleusercontent.com';
-    const iosClientId =
-        '726539598663-ihlddonmqbsh0dnr37ugfbpvjdaddvpf.apps.googleusercontent.com';
+    try {
+      // const webClientId =
+      //     '70719570257-re7p2dpf84jr9ej2blpcls4d9hger7pl.apps.googleusercontent.com';
+      const iosClientId =
+          '726539598663-ihlddonmqbsh0dnr37ugfbpvjdaddvpf.apps.googleusercontent.com';
 
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      clientId:  iosClientId,
-    );
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId:  iosClientId,
+      );
 
-    final googleUser = await googleSignIn.signIn();
-    final googleAuth = await googleUser!.authentication;
-    final accessToken = googleAuth.accessToken;
-    final idToken = googleAuth.idToken;
+      final googleUser = await googleSignIn.signIn();
+      final googleAuth = await googleUser!.authentication;
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
 
-    if (accessToken == null) {
-      throw 'No Access Token found.';
-    }
-    if (idToken == null) {
-      throw 'No ID Token found.';
-    }
+      if (accessToken == null) {
+        throw 'No Access Token found.';
+      }
+      if (idToken == null) {
+        throw 'No ID Token found.';
+      }
 
-    final signedInUser = await Supabase.instance.client.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-      accessToken: accessToken,
-    );
+      final signedInUser = await Supabase.instance.client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
 
-    String? userId = signedInUser.session?.user.id;
-    String? email = signedInUser.user?.email ?? '';
-    // If email present but name missing, derive name from email local part
-    String? name = signedInUser.user?.userMetadata?['full_name'] ?? '';
-    if ((name == null || name.trim().isEmpty) && (email.isNotEmpty)) {
-      name = email.split('@').first;
-    }
+      String? userId = signedInUser.session?.user.id;
+      String? email = signedInUser.user?.email ?? '';
+      // If email present but name missing, derive name from email local part
+      String? name = signedInUser.user?.userMetadata?['full_name'] ?? '';
+      if ((name == null || name.trim().isEmpty) && (email.isNotEmpty)) {
+        name = email.split('@').first;
+      }
 
-    print('userId: $userId');
-    print('email: $email');
-    print('name: $name');
+      print('userId: $userId');
+      print('email: $email');
+      print('name: $name');
 
-    final Map<String, dynamic> params = widget.isLogin 
-        ? _collectLoginData(userId, email, name)
-        : _collectOnboardingData(userId, email, name);
-    params["provider"] = "google";
-    
-    print('Collected ${widget.isLogin ? "login" : "onboarding"} data: $params');
-    if (!widget.isLogin) {
-      print('firstName validation: "${params["firstName"]}" (length: ${params["firstName"].toString().length})');
-      print('lastName validation: "${params["lastName"]}" (length: ${params["lastName"].toString().length})');
-      print('hearAboutUs validation: "${params["hearAboutUs"]}"');
-    }
-    print('provider validation: "${params["provider"]}"');
-    
-    if (widget.isLogin) {
-      await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
-    } else {
-      await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
+      final Map<String, dynamic> params = widget.isLogin 
+          ? _collectLoginData(userId, email, name)
+          : await _collectOnboardingData(userId, email, name);
+      params["provider"] = "google";
+      
+      print('Collected ${widget.isLogin ? "login" : "onboarding"} data: $params');
+      if (!widget.isLogin) {
+        print('firstName validation: "${params["firstName"]}" (length: ${params["firstName"].toString().length})');
+        print('lastName validation: "${params["lastName"]}" (length: ${params["lastName"].toString().length})');
+        print('hearAboutUs validation: "${params["hearAboutUs"]}"');
+      }
+      print('provider validation: "${params["provider"]}"');
+      
+      // Show loading
+      _setLoading(true);
+      
+      if (widget.isLogin) {
+        await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
+      } else {
+        await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
+      }
+      
+      // Hide loading on success
+      _setLoading(false);
+    } catch (e) {
+      // Hide loading on error
+      _setLoading(false);
+      print('Error in googleSignIn: $e');
+      rethrow;
     }
   }
 
   Future googleSignInByIdAndroid() async {
-     print('webClientId: ');
-    const webClientId =
-        '70719570257-rcpn5agku035d2fv5tgoohgekh8pnrje.apps.googleusercontent.com';
-    // const iosClientId =
-        // '70719570257-4jc9hkfhdag3lrjp5p0vrae898379bus.apps.googleusercontent.com';
+    try {
+      print('webClientId: ');
+      const webClientId =
+          '70719570257-rcpn5agku035d2fv5tgoohgekh8pnrje.apps.googleusercontent.com';
+      // const iosClientId =
+          // '70719570257-4jc9hkfhdag3lrjp5p0vrae898379bus.apps.googleusercontent.com';
 
-       
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId:  webClientId,
+      );
 
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      serverClientId:  webClientId,
-    );
+      print('webClientId: $webClientId');
 
-    print('webClientId: $webClientId');
+      final googleUser = await googleSignIn.signIn();
+      final googleAuth = await googleUser!.authentication;
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
 
-    final googleUser = await googleSignIn.signIn();
-    final googleAuth = await googleUser!.authentication;
-    final accessToken = googleAuth.accessToken;
-    final idToken = googleAuth.idToken;
+      if (accessToken == null) {
+        throw 'No Access Token found.';
+      }
+      if (idToken == null) {
+        throw 'No ID Token found.';
+      }
 
-    
+      final signedInUser = await Supabase.instance.client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
 
-    if (accessToken == null) {
-      throw 'No Access Token found.';
-    }
-    if (idToken == null) {
-      throw 'No ID Token found.';
-    }
+      String? userId = signedInUser.session?.user.id;
+      String? email = signedInUser.user?.email ?? '';
+      // If email present but name missing, derive name from email local part
+      String? name = signedInUser.user?.userMetadata?['full_name'] ?? '';
+      if ((name == null || name.trim().isEmpty) && (email.isNotEmpty)) {
+        name = email.split('@').first;
+      }
 
-    final signedInUser = await Supabase.instance.client.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-      accessToken: accessToken,
-    );
-
-    String? userId = signedInUser.session?.user.id;
-    String? email = signedInUser.user?.email ?? '';
-    // If email present but name missing, derive name from email local part
-    String? name = signedInUser.user?.userMetadata?['full_name'] ?? '';
-    if ((name == null || name.trim().isEmpty) && (email.isNotEmpty)) {
-      name = email.split('@').first;
-    }
-
-    final Map<String, dynamic> params = widget.isLogin 
-        ? _collectLoginData(userId, email, name)
-        : _collectOnboardingData(userId, email, name);
-    params["provider"] = "google";
-    
-    print('Collected ${widget.isLogin ? "login" : "onboarding"} data (Android): $params');
-    if (!widget.isLogin) {
-      print('firstName validation: "${params["firstName"]}" (length: ${params["firstName"].toString().length})');
-      print('lastName validation: "${params["lastName"]}" (length: ${params["lastName"].toString().length})');
-      print('hearAboutUs validation: "${params["hearAboutUs"]}"');
-    }
-    print('provider validation: "${params["provider"]}"');
-    
-    if (widget.isLogin) {
-      await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
-    } else {
-      await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
+      final Map<String, dynamic> params = widget.isLogin 
+          ? _collectLoginData(userId, email, name)
+          : await _collectOnboardingData(userId, email, name);
+      params["provider"] = "google";
+      
+      print('Collected ${widget.isLogin ? "login" : "onboarding"} data (Android): $params');
+      if (!widget.isLogin) {
+        print('firstName validation: "${params["firstName"]}" (length: ${params["firstName"].toString().length})');
+        print('lastName validation: "${params["lastName"]}" (length: ${params["lastName"].toString().length})');
+        print('hearAboutUs validation: "${params["hearAboutUs"]}"');
+      }
+      print('provider validation: "${params["provider"]}"');
+      
+      // Show loading
+      _setLoading(true);
+      
+      if (widget.isLogin) {
+        await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
+      } else {
+        await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
+      }
+      
+      // Hide loading on success
+      _setLoading(false);
+    } catch (e) {
+      // Hide loading on error
+      _setLoading(false);
+      print('Error in googleSignInByIdAndroid: $e');
+      rethrow;
     }
   }
 
   Future appleSignIn() async {
-    final rawNonce = Supabase.instance.client.auth.generateRawNonce();
-    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
+    try {
+      final rawNonce = Supabase.instance.client.auth.generateRawNonce();
+      final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
 
-    final credential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-      nonce: hashedNonce,
-    );
-
-    final idToken = credential.identityToken;
-    if (idToken == null) {
-      throw const AuthException(
-        'Could not find ID Token from generated credential.',
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: hashedNonce,
       );
-    }
-    final signedInUser = await Supabase.instance.client.auth.signInWithIdToken(
-      provider: OAuthProvider.apple,
-      idToken: idToken,
-      nonce: rawNonce,
-    );
-    String? providerId = credential.userIdentifier;
-    
-    // Extract user info from Apple sign-in
-    final session = Supabase.instance.client.auth.currentSession;
-    final metaName = session?.user.userMetadata?['name'];
-    String name = '';
-    if (metaName != null && metaName.toString().trim().isNotEmpty) {
-      name = metaName.toString();
-    } else {
-      final email = session?.user.email ?? '';
-      if (email.isNotEmpty) {
-        name = email.split('@').first;
-      }
-    }
-    final email = session?.user.email ?? '';
 
-    print('Apple Sign-in - providerId: $providerId');
-    print('Apple Sign-in - name: $name');
-    print('Apple Sign-in - email: $email');
-    
-    final Map<String, dynamic> params = widget.isLogin 
-        ? _collectLoginData(providerId, email, name)
-        : _collectOnboardingData(providerId, email, name);
-    params["provider"] = "apple";
-    
-    print('Collected ${widget.isLogin ? "login" : "onboarding"} data (Apple): $params');
-    if (!widget.isLogin) {
-      print('firstName validation: "${params["firstName"]}" (length: ${params["firstName"].toString().length})');
-      print('lastName validation: "${params["lastName"]}" (length: ${params["lastName"].toString().length})');
-      print('hearAboutUs validation: "${params["hearAboutUs"]}"');
-    }
-    print('provider validation: "${params["provider"]}"');
-    
-    if (widget.isLogin) {
-      await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
-    } else {
-      await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
+      final idToken = credential.identityToken;
+      if (idToken == null) {
+        throw const AuthException(
+          'Could not find ID Token from generated credential.',
+        );
+      }
+      final signedInUser = await Supabase.instance.client.auth.signInWithIdToken(
+        provider: OAuthProvider.apple,
+        idToken: idToken,
+        nonce: rawNonce,
+      );
+      String? providerId = credential.userIdentifier;
+      
+      // Extract user info from Apple sign-in
+      final session = Supabase.instance.client.auth.currentSession;
+      final metaName = session?.user.userMetadata?['name'];
+      String name = '';
+      if (metaName != null && metaName.toString().trim().isNotEmpty) {
+        name = metaName.toString();
+      } else {
+        final email = session?.user.email ?? '';
+        if (email.isNotEmpty) {
+          name = email.split('@').first;
+        }
+      }
+      final email = session?.user.email ?? '';
+
+      print('Apple Sign-in - providerId: $providerId');
+      print('Apple Sign-in - name: $name');
+      print('Apple Sign-in - email: $email');
+      
+      final Map<String, dynamic> params = widget.isLogin 
+          ? _collectLoginData(providerId, email, name)
+          : await _collectOnboardingData(providerId, email, name);
+      params["provider"] = "apple";
+      
+      print('Collected ${widget.isLogin ? "login" : "onboarding"} data (Apple): $params');
+      if (!widget.isLogin) {
+        print('firstName validation: "${params["firstName"]}" (length: ${params["firstName"].toString().length})');
+        print('lastName validation: "${params["lastName"]}" (length: ${params["lastName"].toString().length})');
+        print('hearAboutUs validation: "${params["hearAboutUs"]}"');
+      }
+      print('provider validation: "${params["provider"]}"');
+      
+      // Show loading
+      _setLoading(true);
+      
+      if (widget.isLogin) {
+        await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
+      } else {
+        await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
+      }
+      
+      // Hide loading on success
+      _setLoading(false);
+    } catch (e) {
+      // Hide loading on error
+      _setLoading(false);
+      print('Error in appleSignIn: $e');
+      rethrow;
     }
   }
 
 
 
     Future<void> googleSignInAndroid() async {
-    final completer = Completer<void>();
-    Supabase.instance.client.auth.onAuthStateChange.listen((event) async {
-      final session = event.session;
-      if (session != null) {
-        String? userId = Supabase.instance.client.auth.currentSession?.user.id;
-        String? email =
-            Supabase.instance.client.auth.currentSession?.user.email;
-        String? name = Supabase.instance.client.auth.currentSession?.user
-            .userMetadata?['full_name'];
+    try {
+      final completer = Completer<void>();
+      Supabase.instance.client.auth.onAuthStateChange.listen((event) async {
+        final session = event.session;
+        if (session != null) {
+          String? userId = Supabase.instance.client.auth.currentSession?.user.id;
+          String? email =
+              Supabase.instance.client.auth.currentSession?.user.email;
+          String? name = Supabase.instance.client.auth.currentSession?.user
+              .userMetadata?['full_name'];
 
-        // Utils.logger.e('Signed In Google User -->> ${name}');
+          // Utils.logger.e('Signed In Google User -->> ${name}');
 
-        final Map<String, dynamic> params = widget.isLogin 
-            ? _collectLoginData(userId, email, name)
-            : _collectOnboardingData(userId, email, name);
-        params["provider"] = "google";
-        
-        print('Collected ${widget.isLogin ? "login" : "onboarding"} data (Android OAuth): $params');
-        if (!widget.isLogin) {
-          print('firstName validation: "${params["firstName"]}" (length: ${params["firstName"].toString().length})');
-          print('lastName validation: "${params["lastName"]}" (length: ${params["lastName"].toString().length})');
+          final Map<String, dynamic> params = widget.isLogin 
+              ? _collectLoginData(userId, email, name)
+              : await _collectOnboardingData(userId, email, name);
+          params["provider"] = "google";
+          
+          print('Collected ${widget.isLogin ? "login" : "onboarding"} data (Android OAuth): $params');
+          if (!widget.isLogin) {
+            print('firstName validation: "${params["firstName"]}" (length: ${params["firstName"].toString().length})');
+            print('lastName validation: "${params["lastName"]}" (length: ${params["lastName"].toString().length})');
+          }
+          
+          // Show loading
+          _setLoading(true);
+          
+          try {
+            if (widget.isLogin) {
+              await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
+            } else {
+              await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
+            }
+            
+            // Hide loading on success
+            _setLoading(false);
+            completer.complete(); // Complete the Future when sign-in is successful
+          } catch (e) {
+            // Hide loading on error
+            _setLoading(false);
+            completer.completeError(e);
+          }
+        } else if (event.event == AuthChangeEvent.signedOut) {
+          completer.completeError('User canceled or sign-out occurred.');
         }
-        
-        if (widget.isLogin) {
-          await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
-        } else {
-          await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
-        }
+      });
 
-      
-        completer.complete(); // Complete the Future when sign-in is successful
-      } else if (event.event == AuthChangeEvent.signedOut) {
-        completer.completeError('User canceled or sign-out occurred.');
-      }
-    });
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'travy://app',
+      );
 
-    await Supabase.instance.client.auth.signInWithOAuth(
-      OAuthProvider.google,
-      redirectTo: 'travy://app',
-    );
-
-    await completer.future; // Wait for the sign-in to complete
+      await completer.future; // Wait for the sign-in to complete
+    } catch (e) {
+      // Hide loading on error
+      _setLoading(false);
+      print('Error in googleSignInAndroid: $e');
+      rethrow;
+    }
   }
 }

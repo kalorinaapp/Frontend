@@ -294,6 +294,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get continueWithGoogle => 'Continuă cu Google';
 
   @override
+  String get creatingAccount => 'Crearea contului...';
+
+  @override
   String get wantToSignInLater => 'Vrei să te autentifici mai târziu? ';
 
   @override
@@ -1336,4 +1339,10 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get testimonial4Review =>
       'Perfect pentru rutina zilnică. Scanez rapid mesele și simt progresul deja după o săptămână.';
+
+  @override
+  String get yes => 'Da';
+
+  @override
+  String get no => 'Nu';
 }

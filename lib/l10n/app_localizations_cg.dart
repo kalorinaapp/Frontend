@@ -12,6 +12,15 @@ class AppLocalizationsCg extends AppLocalizations {
   String get appTitle => 'Karolina';
 
   @override
+  String get creatingAccount => 'Kreiranje naloga';
+
+  @override
+  String get yes => 'Da';
+
+  @override
+  String get no => 'Ne';
+
+  @override
   String get analyze => 'Analiziraj';
 
   @override

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../utils/page_animations.dart';
 import '../../controller/onboarding.controller.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
@@ -16,11 +17,17 @@ class DesiredWeightPage extends StatefulWidget {
 }
 
 class _DesiredWeightPageState extends State<DesiredWeightPage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
 
   late OnboardingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _toggleAnimation;
+  late Animation<double> _goalTextAnimation;
+  late Animation<double> _weightDisplayAnimation;
+  late Animation<double> _sliderAnimation;
   
   // Weight unit: true = lbs, false = kg
   bool _isLbs = true;
@@ -42,6 +49,45 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
+    
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    
+    _toggleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.2, 0.5, curve: Curves.easeOut),
+      ),
+    );
+    
+    _goalTextAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.3, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    
+    _weightDisplayAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.4, 0.7, curve: Curves.easeOut),
+      ),
+    );
+    
+    _sliderAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.5, 0.9, curve: Curves.easeOut),
+      ),
+    );
+    
+    _animationController.forward();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       
       
@@ -49,6 +95,12 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
       _controller.setDoubleData('desired_weight', _currentWeight);
       _controller.setBoolData('weight_unit_lbs', _isLbs);
     });
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _updateWeight(double newWeight) {
@@ -153,72 +205,78 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
         const SizedBox(height: 20),
         
         // Title
-        Padding(
-          padding: const EdgeInsets.only(left: 24),
-          child: Text(
-            _getTitleText(localizations),
-            style: ThemeHelper.title3.copyWith(
-              color: ThemeHelper.textPrimary,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
+        PageAnimations.animatedTitle(
+          animation: _titleAnimation,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 24),
+            child: Text(
+              _getTitleText(localizations),
+              style: ThemeHelper.title3.copyWith(
+                color: ThemeHelper.textPrimary,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.start,
             ),
-            textAlign: TextAlign.start,
           ),
         ),
         
         const SizedBox(height: 40),
         
         // Weight unit selection
-        Center(
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: ThemeHelper.cardBackground,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (!_isLbs) _toggleUnit();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _isLbs ? ThemeHelper.background : ThemeHelper.cardBackground,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'lbs',
-                      style: ThemeHelper.headline.copyWith(
-                        color: _isLbs ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
-                        fontWeight: FontWeight.w600,
+        PageAnimations.animatedContent(
+          animation: _toggleAnimation,
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: ThemeHelper.cardBackground,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      if (!_isLbs) _toggleUnit();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _isLbs ? ThemeHelper.background : ThemeHelper.cardBackground,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'lbs',
+                        style: ThemeHelper.headline.copyWith(
+                          color: _isLbs ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    if (_isLbs) _toggleUnit();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: !_isLbs ? ThemeHelper.background : ThemeHelper.cardBackground,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Kg',
-                      style: ThemeHelper.headline.copyWith(
-                        color: !_isLbs ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
-                        fontWeight: FontWeight.w600,
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      if (_isLbs) _toggleUnit();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: !_isLbs ? ThemeHelper.background : ThemeHelper.cardBackground,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Kg',
+                        style: ThemeHelper.headline.copyWith(
+                          color: !_isLbs ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -226,12 +284,15 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
         const SizedBox(height: 30),
         
         // Goal text
-        Center(
-          child: Text(
-            _getGoalText(localizations),
-            style: ThemeHelper.body1.copyWith(
-              color: ThemeHelper.textSecondary,
-              fontSize: 16,
+        PageAnimations.animatedContent(
+          animation: _goalTextAnimation,
+          child: Center(
+            child: Text(
+              _getGoalText(localizations),
+              style: ThemeHelper.body1.copyWith(
+                color: ThemeHelper.textSecondary,
+                fontSize: 16,
+              ),
             ),
           ),
         ),
@@ -239,13 +300,16 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
         const SizedBox(height: 10),
         
         // Current weight display
-        Center(
-          child: Text(
-            _formatWeight(_currentWeight),
-            style: ThemeHelper.title1.copyWith(
-              color: ThemeHelper.textPrimary,
-              fontSize: 48,
-              fontWeight: FontWeight.bold,
+        PageAnimations.animatedContent(
+          animation: _weightDisplayAnimation,
+          child: Center(
+            child: Text(
+              _formatWeight(_currentWeight),
+              style: ThemeHelper.title1.copyWith(
+                color: ThemeHelper.textPrimary,
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -254,11 +318,13 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
         
         // Weight slider
         Expanded(
-          child: Center(
-            child: SizedBox(
-              height: 100,
-              width: double.infinity,
-              child: GestureDetector(
+          child: PageAnimations.animatedContent(
+            animation: _sliderAnimation,
+            child: Center(
+              child: SizedBox(
+                height: 100,
+                width: double.infinity,
+                child: GestureDetector(
                 onPanStart: (details) {
                   _updateWeightFromPosition(details.localPosition.dx);
                 },
@@ -336,6 +402,7 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
                 ),
               ),
             ),
+          ),
           ),
         ),
         

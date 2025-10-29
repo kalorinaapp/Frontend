@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../utils/page_animations.dart';
 import '../../controller/onboarding.controller.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
@@ -14,13 +15,102 @@ class DietaryPreferencePage extends StatefulWidget {
   State<DietaryPreferencePage> createState() => _DietaryPreferencePageState();
 }
 
-class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
-  late OnboardingController _controller; 
+class _DietaryPreferencePageState extends State<DietaryPreferencePage>
+    with SingleTickerProviderStateMixin {
+  late OnboardingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _infoAnimation;
+  late List<Animation<double>> _optionAnimations;
 
   @override
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
+    
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    
+    _infoAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.2, 0.5, curve: Curves.easeOut),
+      ),
+    );
+    
+    // Staggered option animations
+    _optionAnimations = List.generate(5, (index) {
+      return Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            0.3 + (index * 0.08),
+            0.55 + (index * 0.08),
+            curve: Curves.easeOut,
+          ),
+        ),
+      );
+    });
+    
+    _animationController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+  
+  Widget _buildAnimatedOption({
+    required int index,
+    required String value,
+    required String iconPath,
+    required String label,
+  }) {
+    return PageAnimations.animatedContent(
+      animation: _optionAnimations[index],
+      child: Obx(() {
+        final isSelected = _controller.getStringData('dietary_preference') == value;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: PageAnimations.animatedSelectionCard(
+            isSelected: isSelected,
+            onTap: () {
+              _controller.setStringData('dietary_preference', value);
+            },
+            selectedColor: ThemeHelper.textPrimary,
+            unselectedColor: ThemeHelper.cardBackground,
+            selectedBorderColor: ThemeHelper.textPrimary,
+            unselectedBorderColor: ThemeHelper.divider,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Row(
+                children: [
+                  const SizedBox(width: 16),
+                  Image.asset(iconPath, width: 48, height: 48),
+                  const SizedBox(width: 12),
+                  Text(
+                    label,
+                    style: ThemeHelper.headline.copyWith(
+                      color: isSelected ? ThemeHelper.background : ThemeHelper.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
+    );
   }
 
   @override
@@ -36,42 +126,48 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
             const SizedBox(height: 20),
             
             // Title
-            Center(
-              child: Text(
-                localizations.doYouFollowDiet,
-                style: ThemeHelper.title3.copyWith(
-                  color: ThemeHelper.textPrimary,
+            PageAnimations.animatedTitle(
+              animation: _titleAnimation,
+              child: Center(
+                child: Text(
+                  localizations.doYouFollowDiet,
+                  style: ThemeHelper.title3.copyWith(
+                    color: ThemeHelper.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
             
             const SizedBox(height: 16),
             
             // Informational banner with carrot icon
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: ThemeHelper.cardBackground,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  // Carrot icon
-                  const Text('🥕', style: TextStyle(fontSize: 24)),
-                  const SizedBox(width: 12),
-                  // Informational text
-                  Expanded(
-                    child: Text(
-                      localizations.helpTrackCaloriesDiet,
-                      style: ThemeHelper.caption1.copyWith(
-                        fontSize: 13,
-                        color: ThemeHelper.textSecondary,
+            PageAnimations.animatedContent(
+              animation: _infoAnimation,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: ThemeHelper.cardBackground,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    // Carrot icon
+                    const Text('🥕', style: TextStyle(fontSize: 24)),
+                    const SizedBox(width: 12),
+                    // Informational text
+                    Expanded(
+                      child: Text(
+                        localizations.helpTrackCaloriesDiet,
+                        style: ThemeHelper.caption1.copyWith(
+                          fontSize: 13,
+                          color: ThemeHelper.textSecondary,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             
@@ -81,235 +177,44 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage> {
             Column(
               children: [
                 // Option 1: Classic
-                Obx(() => GestureDetector(
-                  onTap: () {
-                    _controller.setStringData('dietary_preference', 'classic');
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: _controller.getStringData('dietary_preference') == 'classic' 
-                          ? ThemeHelper.textPrimary
-                          : ThemeHelper.cardBackground,
-                      border: Border.all(
-                        color: _controller.getStringData('dietary_preference') == 'classic'
-                            ? ThemeHelper.textPrimary
-                            : ThemeHelper.divider,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      // mainAxisAlignment: MainAxisAlignment.,
-                      children: [
-                      const SizedBox(width: 16),
-                       Image.asset(
-                         'assets/icons/plates.png',
-                         width: 48,
-                         height: 48,
-                       ),
-                        const SizedBox(width: 12),
-                        Text(
-                          localizations.classic,
-                          style: ThemeHelper.headline.copyWith(
-                            color: _controller.getStringData('dietary_preference') == 'classic'
-                                ? ThemeHelper.background
-                                : ThemeHelper.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const Spacer()
-                      ],
-                      
-                    ),
-                  ),
-                )),
+                _buildAnimatedOption(
+                  index: 0,
+                  value: 'classic',
+                  iconPath: 'assets/icons/plates.png',
+                  label: localizations.classic,
+                ),
                 
                 // Option 2: Carnivore
-                Obx(() => GestureDetector(
-                  onTap: () {
-                    _controller.setStringData('dietary_preference', 'carnivore');
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: _controller.getStringData('dietary_preference') == 'carnivore' 
-                          ? ThemeHelper.textPrimary
-                          : ThemeHelper.cardBackground,
-                      border: Border.all(
-                        color: _controller.getStringData('dietary_preference') == 'carnivore'
-                            ? ThemeHelper.textPrimary
-                            : ThemeHelper.divider,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 16),
-                       Image.asset(
-                         'assets/icons/chicken.png',
-                         width: 48,
-                         height: 48,
-                       ),
-                        const SizedBox(width: 12),
-                        Text(
-                          localizations.carnivore,
-                          style: ThemeHelper.headline.copyWith(
-                            color: _controller.getStringData('dietary_preference') == 'carnivore'
-                                ? ThemeHelper.background
-                                : ThemeHelper.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const Spacer()
-                      ],
-                    ),
-                  ),
-                )),
+                _buildAnimatedOption(
+                  index: 1,
+                  value: 'carnivore',
+                  iconPath: 'assets/icons/chicken.png',
+                  label: localizations.carnivore,
+                ),
                 
                 // Option 3: Keto
-                Obx(() => GestureDetector(
-                  onTap: () {
-                    _controller.setStringData('dietary_preference', 'keto');
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: _controller.getStringData('dietary_preference') == 'keto' 
-                          ? ThemeHelper.textPrimary
-                          : ThemeHelper.cardBackground,
-                      border: Border.all(
-                        color: _controller.getStringData('dietary_preference') == 'keto'
-                            ? ThemeHelper.textPrimary
-                            : ThemeHelper.divider,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 16),
-                     Image.asset(
-                       'assets/icons/avacado.png',
-                       width: 48,
-                       height: 48,
-                     ),
-                      const SizedBox(width: 12),
-                        Text(
-                          localizations.keto,
-                          style: ThemeHelper.headline.copyWith(
-                            color: _controller.getStringData('dietary_preference') == 'keto'
-                                ? ThemeHelper.background
-                                : ThemeHelper.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const Spacer()
-                      ],
-                    ),
-                  ),
-                )),
+                _buildAnimatedOption(
+                  index: 2,
+                  value: 'keto',
+                  iconPath: 'assets/icons/avacado.png',
+                  label: localizations.keto,
+                ),
                 
                 // Option 4: Vegan
-                Obx(() => GestureDetector(
-                  onTap: () {
-                    _controller.setStringData('dietary_preference', 'vegan');
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: _controller.getStringData('dietary_preference') == 'vegan' 
-                          ? ThemeHelper.textPrimary
-                          : ThemeHelper.cardBackground,
-                      border: Border.all(
-                        color: _controller.getStringData('dietary_preference') == 'vegan'
-                            ? ThemeHelper.textPrimary
-                            : ThemeHelper.divider,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-const SizedBox(width: 16),
-                     Image.asset(
-                       'assets/icons/vegan.png',
-                       width: 48,
-                       height: 48,
-                     ),
-                      const SizedBox(width: 12),
-                        Text(
-                          localizations.vegan,
-                          style: ThemeHelper.headline.copyWith(
-                            color: _controller.getStringData('dietary_preference') == 'vegan'
-                                ? ThemeHelper.background
-                                : ThemeHelper.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const Spacer()
-                      ],
-                    ),
-                  ),
-                )),
+                _buildAnimatedOption(
+                  index: 3,
+                  value: 'vegan',
+                  iconPath: 'assets/icons/vegan.png',
+                  label: localizations.vegan,
+                ),
                 
                 // Option 5: Vegetarian
-                Obx(() => GestureDetector(
-                  onTap: () {
-                    _controller.setStringData('dietary_preference', 'vegetarian');
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    decoration: BoxDecoration(
-                      color: _controller.getStringData('dietary_preference') == 'vegetarian' 
-                          ? ThemeHelper.textPrimary
-                          : ThemeHelper.cardBackground,
-                      border: Border.all(
-                        color: _controller.getStringData('dietary_preference') == 'vegetarian'
-                            ? ThemeHelper.textPrimary
-                            : ThemeHelper.divider,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 16),
-                     Image.asset(
-                       'assets/icons/vegetarian.png',
-                       width: 48,
-                       height: 48,
-                     ),
-                      const SizedBox(width: 12),
-                        Text(
-                          localizations.vegetarian,
-                          style: ThemeHelper.headline.copyWith(
-                            color: _controller.getStringData('dietary_preference') == 'vegetarian'
-                                ? ThemeHelper.background
-                                : ThemeHelper.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const Spacer()
-                      ],
-                    ),
-                  ),
-                )),
+                _buildAnimatedOption(
+                  index: 4,
+                  value: 'vegetarian',
+                  iconPath: 'assets/icons/vegetarian.png',
+                  label: localizations.vegetarian,
+                ),
               ],
             ),
           ],

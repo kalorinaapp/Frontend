@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../utils/page_animations.dart';
 import '../../controller/onboarding.controller.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
@@ -17,11 +18,16 @@ class WeightLossSpeedPage extends StatefulWidget {
 }
 
 class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
 
   late OnboardingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _speedDisplayAnimation;
+  late Animation<double> _sliderAnimation;
+  late Animation<double> _buttonAnimation;
   
   // Weight loss speed values (kg/week)
   static const double _minSpeed = 0.2;
@@ -39,6 +45,38 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
+    
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1100),
+      vsync: this,
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    
+    _speedDisplayAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.2, 0.5, curve: Curves.easeOut),
+      ),
+    );
+    
+    _sliderAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
+      ),
+    );
+    
+    _buttonAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.5, 0.9, curve: Curves.easeOut),
+      ),
+    );
+    
+    _animationController.forward();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.setDoubleData('weight_loss_speed', _currentSpeed);
       debugPrint('========== Weight Loss Speed Page Initialized ==========');
@@ -46,6 +84,12 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
       debugPrint('==========================================');
     });
    
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _updateSpeed(double newSpeed) {
@@ -96,39 +140,47 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
           const SizedBox(height: 40),
           
           // Title
-          Text(
-            _getTitleText(localizations),
-            style: ThemeHelper.title1.copyWith(
-              color: ThemeHelper.textPrimary,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
+          PageAnimations.animatedTitle(
+            animation: _titleAnimation,
+            child: Text(
+              _getTitleText(localizations),
+              style: ThemeHelper.title1.copyWith(
+                color: ThemeHelper.textPrimary,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
           
           const SizedBox(height: 40),
           
           // Current speed display
-          Text(
-            _formatSpeed(_currentSpeed),
-            style: ThemeHelper.title2.copyWith(
-              color: ThemeHelper.textPrimary,
-              fontSize: 24,
-              fontWeight: FontWeight.w500,
+          PageAnimations.animatedContent(
+            animation: _speedDisplayAnimation,
+            child: Text(
+              _formatSpeed(_currentSpeed),
+              style: ThemeHelper.title2.copyWith(
+                color: ThemeHelper.textPrimary,
+                fontSize: 24,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
           
           const SizedBox(height: 60),
           
           // Vertical slider
-          SizedBox(
-            height: 350,
-            child: Center(
-              child: SizedBox(
-                height: 350,
-                width: 200,
-                child: Stack(
+          PageAnimations.animatedContent(
+            animation: _sliderAnimation,
+            child: SizedBox(
+              height: 350,
+              child: Center(
+                child: SizedBox(
+                  height: 350,
+                  width: 200,
+                  child: Stack(
                   children: [
                     // Speed indicators and icons
                     // Slow speed (top)
@@ -282,15 +334,18 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                 ),
               ),
             ),
+            ),
           ),
           
           const SizedBox(height: 40),
           
           // Speed level button
-          SizedBox(
-            width: double.infinity,
-            height: 75,
-            child: CupertinoButton(
+          PageAnimations.animatedContent(
+            animation: _buttonAnimation,
+            child: SizedBox(
+              width: double.infinity,
+              height: 75,
+              child: CupertinoButton(
               onPressed: () {
                 debugPrint('========== Weight Loss Speed Page - Moving to Next ==========');
                 debugPrint('Final Speed Selected: $_currentSpeed kg/week');
@@ -319,6 +374,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                   ),
                 ),
               ),
+            ),
             ),
           ),
           

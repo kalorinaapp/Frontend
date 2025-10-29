@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../utils/page_animations.dart';
 
 class ConsistencyHealthPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -15,9 +16,33 @@ class ConsistencyHealthPage extends StatefulWidget {
 }
 
 class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
+
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _contentAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    _contentAnimation = PageAnimations.createContentAnimation(_animationController);
+    _animationController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,41 +61,49 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
             const SizedBox(height: 60),
             
             // Main Title
-            SizedBox(
-              width: 320,
-              child: Text(
-                l10n.consistencyBuildsHealth,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ThemeHelper.textPrimary,
-                  fontSize: 30,
-                  fontFamily: 'Instrument Sans',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Descriptive Text
-            SizedBox(
-              width: 336,
-              child: Text(
-                l10n.everydayLogFireReflect,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ThemeHelper.textSecondary,
-                  fontSize: 16,
-                  fontFamily: 'Instrument Sans',
-                  fontWeight: FontWeight.w500,
-                ),
+            PageAnimations.animatedTitle(
+              animation: _titleAnimation,
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: 320,
+                    child: Text(
+                      l10n.consistencyBuildsHealth,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
+                        fontSize: 30,
+                        fontFamily: 'Instrument Sans',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  SizedBox(
+                    width: 336,
+                    child: Text(
+                      l10n.everydayLogFireReflect,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ThemeHelper.textSecondary,
+                        fontSize: 16,
+                        fontFamily: 'Instrument Sans',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             
             const SizedBox(height: 40),
             
             // Fire streak visualization with flow of opacity
-            Container(
+            PageAnimations.animatedContent(
+              animation: _contentAnimation,
+              child: Container(
               width: 300,
               height: 45,
               decoration: ShapeDecoration(
@@ -108,8 +141,9 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
                 ),
               ),
             ),
+            ),
             
-            const SizedBox(height: 40),
+          const SizedBox(height: 40),
             
             // Statistics Card
             Container(

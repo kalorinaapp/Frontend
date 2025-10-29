@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../utils/page_animations.dart';
 import '../../controller/onboarding.controller.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 
@@ -16,16 +17,63 @@ class WeightLossMotivationPage extends StatefulWidget {
 }
 
 class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
 
   late OnboardingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _circleAnimation;
+  late Animation<double> _motivationAnimation;
+  late Animation<double> _encouragementAnimation;
+  late Animation<double> _statsAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
+    
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1400),
+      vsync: this,
+    );
+    
+    _circleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+      ),
+    );
+    
+    _motivationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.3, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    
+    _encouragementAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.5, 0.8, curve: Curves.easeOut),
+      ),
+    );
+    
+    _statsAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
+      ),
+    );
+    
+    _animationController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   // Calculate weight change goal based on current and desired weight
@@ -159,39 +207,42 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
           const SizedBox(height: 40),
           
           // Weight change goal circle
-          Container(
-            width: 160,
-            height: 160,
-            decoration: BoxDecoration(
-              color: ThemeHelper.cardBackground,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color.fromARGB(255, 207, 173, 128), // Light tan/brown border
-                width: 12,
+          PageAnimations.animatedContent(
+            animation: _circleAnimation,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                color: ThemeHelper.cardBackground,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color.fromARGB(255, 207, 173, 128), // Light tan/brown border
+                  width: 12,
+                ),
               ),
-            ),
-            child: Center(
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '$weightSign${weightChangeGoal.toStringAsFixed(1)}',
-                      style: ThemeHelper.title1.copyWith(
-                        color: ThemeHelper.textPrimary,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+              child: Center(
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '$weightSign${weightChangeGoal.toStringAsFixed(1)}',
+                        style: ThemeHelper.title1.copyWith(
+                          color: ThemeHelper.textPrimary,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    TextSpan(
-                      text: weightUnit,
-                      style: ThemeHelper.title1.copyWith(
-                        color: ThemeHelper.textPrimary,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                      TextSpan(
+                        text: weightUnit,
+                        style: ThemeHelper.title1.copyWith(
+                          color: ThemeHelper.textPrimary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -200,78 +251,87 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
           const SizedBox(height: 40),
           
           // Main motivational message
-          RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: '$weightSign${weightChangeGoal.toStringAsFixed(1)}$weightUnit',
-                  style: ThemeHelper.title2.copyWith(
-                    color: ThemeHelper.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+          PageAnimations.animatedContent(
+            animation: _motivationAnimation,
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$weightSign${weightChangeGoal.toStringAsFixed(1)}$weightUnit',
+                    style: ThemeHelper.title2.copyWith(
+                      color: ThemeHelper.textPrimary,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                TextSpan(
-                  text: ' ${localizations.isRealisticGoal}\n${_getMotivationalMessage(localizations, weightChangeGoal, isLbs)}',
-                  style: ThemeHelper.title2.copyWith(
-                    color: ThemeHelper.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.normal,
+                  TextSpan(
+                    text: ' ${localizations.isRealisticGoal}\n${_getMotivationalMessage(localizations, weightChangeGoal, isLbs)}',
+                    style: ThemeHelper.title2.copyWith(
+                      color: ThemeHelper.textPrimary,
+                      fontSize: 24,
+                      fontWeight: FontWeight.normal,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           
           const SizedBox(height: 30),
           
           // Encouragement message
-          Text(
-            _getEncouragementMessage(localizations, weightChangeGoal, isLbs),
-            style: ThemeHelper.title1.copyWith(
-              color: ThemeHelper.textPrimary,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+          PageAnimations.animatedContent(
+            animation: _encouragementAnimation,
+            child: Text(
+              _getEncouragementMessage(localizations, weightChangeGoal, isLbs),
+              style: ThemeHelper.title1.copyWith(
+                color: ThemeHelper.textPrimary,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
           
           const SizedBox(height: 60),
           
           // Statistics box
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: ThemeHelper.cardBackground,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                // Graph icon placeholder
-                Image.asset(
-                  'assets/icons/graph.png',
-                  width: 36,
-                  height: 36,
-                  color: ThemeHelper.textPrimary,
-                ),
-                
-                const SizedBox(width: 16),
-                
-                // Statistics text
-                Expanded(
-                  child: Text(
-                    localizations.nineOutOfTenUsers,
-                    style: ThemeHelper.body1.copyWith(
-                      color: ThemeHelper.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.normal,
-                      height: 1.4,
+          PageAnimations.animatedContent(
+            animation: _statsAnimation,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: ThemeHelper.cardBackground,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  // Graph icon placeholder
+                  Image.asset(
+                    'assets/icons/graph.png',
+                    width: 36,
+                    height: 36,
+                    color: ThemeHelper.textPrimary,
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  // Statistics text
+                  Expanded(
+                    child: Text(
+                      localizations.nineOutOfTenUsers,
+                      style: ThemeHelper.body1.copyWith(
+                        color: ThemeHelper.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                        height: 1.4,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           

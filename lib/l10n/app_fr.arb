@@ -52,6 +52,7 @@
   "welcomeBack": "Bon retour",
   "continueWithApple": "Continuer avec Apple",
   "continueWithGoogle": "Continuer avec Google",
+  "creatingAccount": "Création du compte...",
   "wantToSignInLater": "Vous voulez vous connecter plus tard ? ",
   "skip": "Passer",
   "byContinuingAgree": "En continuant, vous acceptez nos\nConditions d'utilisation et Politique de confidentialité",
@@ -342,5 +343,7 @@
   "testimonial3Name": "Michel R.",
   "testimonial3Review": "Parfait pour ma routine quotidienne. Je scanne mes repas rapidement et je ressens des progrès en une semaine.",
   "testimonial4Name": "Emma K.",
-  "testimonial4Review": "Simple, précis et utile. Je suis les calories sans tracas et me sens plus légère toute la journée."
+  "testimonial4Review": "Simple, précis et utile. Je suis les calories sans tracas et me sens plus légère toute la journée.",
+  "yes": "Oui",
+  "no": "Non"
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
+import '../../../utils/page_animations.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../controller/onboarding.controller.dart';
 
@@ -16,16 +17,57 @@ class ProgressMotivationPage extends StatefulWidget {
 }
 
 class _ProgressMotivationPageState extends State<ProgressMotivationPage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
 
   late OnboardingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _titleAnimation;
+  late List<Animation<double>> _cardAnimations;
+  late Animation<double> _imageAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = Get.find<OnboardingController>();
+    
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1400),
+      vsync: this,
+    );
+    
+    _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
+    
+    // Staggered card animations for 4 tip cards
+    _cardAnimations = List.generate(4, (index) {
+      return Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            0.25 + (index * 0.1),
+            0.5 + (index * 0.1),
+            curve: Curves.easeOut,
+          ),
+        ),
+      );
+    });
+    
+    _imageAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
+      ),
+    );
+    
+    _animationController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   // Get current weight for categorization
@@ -109,12 +151,15 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
             const SizedBox(height: 40),
             
             // Main title
-            Text(
-              _getPersonalizedTitle(l10n),
-              style: ThemeHelper.title1.copyWith(
-                color: ThemeHelper.textPrimary,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+            PageAnimations.animatedTitle(
+              animation: _titleAnimation,
+              child: Text(
+                _getPersonalizedTitle(l10n),
+                style: ThemeHelper.title1.copyWith(
+                  color: ThemeHelper.textPrimary,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             
@@ -127,9 +172,12 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
               return Column(
                 children: [
                   if (index > 0) const SizedBox(height: 16),
-                  _buildTipCard(
-                    icon: tip['icon']!,
-                    text: tip['text']!,
+                  PageAnimations.animatedContent(
+                    animation: _cardAnimations[index],
+                    child: _buildTipCard(
+                      icon: tip['icon']!,
+                      text: tip['text']!,
+                    ),
                   ),
                 ],
               );
@@ -138,7 +186,10 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
             const SizedBox(height: 40),
             
             // Progress section
-            Image.asset('assets/images/progress.png'),
+            PageAnimations.animatedContent(
+              animation: _imageAnimation,
+              child: Image.asset('assets/images/progress.png'),
+            ),
          
             
             const SizedBox(height: 40),

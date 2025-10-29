@@ -291,6 +291,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get continueWithGoogle => 'Nadaljuj z Google';
 
   @override
+  String get creatingAccount => 'Ustvarjanje računa...';
+
+  @override
   String get wantToSignInLater => 'Se želiš prijaviti kasneje? ';
 
   @override
@@ -1329,4 +1332,10 @@ class AppLocalizationsSl extends AppLocalizations {
   @override
   String get testimonial4Review =>
       'Popolno za dnevno rutino. Hitro skeniram obroke in čutim napredek že po tednu.';
+
+  @override
+  String get yes => 'Da';
+
+  @override
+  String get no => 'Ne';
 }
