@@ -499,19 +499,21 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         ),
                         child: Row(
                           children: [
-                            // Back button
-                            GestureDetector(
-                              onTap: () {
-                                HapticFeedback.mediumImpact();
-                                _previousPage();
-                              },
-                              child: SvgPicture.asset(
-                                color: ThemeHelper.textPrimary,
-                                'assets/icons/back.svg',
-                                width: 20,
-                                height: 20,
-                              ),
-                            ),
+                            // Back button (hidden on first page)
+                            _controller.currentPage.value > 0
+                                ? GestureDetector(
+                                    onTap: () {
+                                      HapticFeedback.mediumImpact();
+                                      _previousPage();
+                                    },
+                                    child: SvgPicture.asset(
+                                      color: ThemeHelper.textPrimary,
+                                      'assets/icons/back.svg',
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                  )
+                                : const SizedBox(width: 20, height: 20),
                               
                             const SizedBox(width: 16),
                               

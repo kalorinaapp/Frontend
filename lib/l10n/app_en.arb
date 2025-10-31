@@ -447,5 +447,13 @@
   "testimonial4Name": "Emma K.",
   "testimonial4Review": "Simple, accurate, and useful. I track calories without hassle and feel lighter throughout the day.",
   "yes": "Yes",
-  "no": "No"
+  "no": "No",
+  "authenticationError": "Authentication Error",
+  "registrationFailed": "Registration Failed",
+  "loginFailed": "Login Failed",
+  "networkError": "Network Error",
+  "networkErrorDescription": "Unable to connect to the server. Please check your internet connection and try again.",
+  "unexpectedError": "Unexpected Error",
+  "unexpectedErrorDescription": "Something went wrong. Please try again later.",
+  "tryAgain": "Try Again"
 }

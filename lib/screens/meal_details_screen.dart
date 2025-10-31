@@ -1,6 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
@@ -226,294 +224,337 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     final carbs = (_currentMealData['totalCarbs'] as num?)?.toInt() ?? 0;
     final fat = (_currentMealData['totalFat'] as num?)?.toInt() ?? 0;
     final entries = (_currentMealData['entries'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+    final bool isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
 
     return CupertinoPageScaffold(
       backgroundColor: ThemeHelper.background,
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Header with back button and title
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Row(
+      child: Column(
+        children: [
+          const SizedBox(height: 60),
+          // Header with back button and title
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: SvgPicture.asset(
+                    'assets/icons/back.svg',
+                    width: 24,
+                    height: 24,
+                    color: ThemeHelper.textPrimary,
+                  ),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
+          ),
+          
+          // Content
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
                 children: [
+                  // const SizedBox(height: 16),
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: SvgPicture.asset(
-                      'assets/icons/back.svg',
-                      width: 24,
-                      height: 24,
-                      color: ThemeHelper.textPrimary,
+                    onTap: () => _navigateToEditMealName(context),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          mealName,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: ThemeHelper.textPrimary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(width: 8.0),
+                        Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-                ],
-              ),
-            ),
-            
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () => _navigateToEditMealName(context),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                const SizedBox(width: 60), 
+                  
+                  // Meal Image with Amount Badge
+                  if (imageUrl != null && imageUrl.isNotEmpty)
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+                      child: Stack(
                         children: [
-                          Text(
-                            mealName,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: ThemeHelper.textPrimary,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(width: 8.0),
-                          Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(width: 60), 
-                    
-                    // Meal Image with Amount Badge
-                    if (imageUrl != null && imageUrl.isNotEmpty)
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              height: 106,
-                              decoration: BoxDecoration(
-                                color: ThemeHelper.cardBackground,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: ThemeHelper.textPrimary.withOpacity(0.2),
-                                    blurRadius: 3,
-                                    offset: Offset(0, 0),
-                                    spreadRadius: 0,
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  const SizedBox(width: 12),
-                                  // Image
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(15),
-                                    child: Container(
-                                      width: 91,
-                                      height: 91,
-                                      color: ThemeHelper.background,
-                                      child: _buildImageWidget(imageUrl),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  // Amount badge
-                                  GestureDetector(
-                                    onTap: () => _showEditAmountSheet(context),
-                                    child: Container(
-                                      height: 30,
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: ThemeHelper.background,
-                                        borderRadius: BorderRadius.circular(13),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: ThemeHelper.textPrimary.withOpacity(0.25),
-                                            blurRadius: 5,
-                                            offset: Offset(0, 0),
-                                            spreadRadius: 1,
-                                          ),
-                                        ],
+                          Container(
+                            width: double.infinity,
+                            height: 106,
+                            decoration: BoxDecoration(
+                              color: ThemeHelper.cardBackground,
+                              borderRadius: BorderRadius.circular(15),
+                              boxShadow: isDark
+                                  ? []
+                                  : [
+                                      BoxShadow(
+                                        color: ThemeHelper.textPrimary.withOpacity(0.2),
+                                        blurRadius: 3,
+                                        offset: Offset(0, 0),
+                                        spreadRadius: 0,
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            '$_servingAmount',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                              color: ThemeHelper.textPrimary,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Icon(
-                                            CupertinoIcons.pencil,
-                                            size: 14,
+                                    ],
+                            ),
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 12),
+                                // Image
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: Container(
+                                    width: 91,
+                                    height: 91,
+                                    color: ThemeHelper.background,
+                                    child: _buildImageWidget(imageUrl),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                // Amount badge
+                                GestureDetector(
+                                  onTap: () => _showEditAmountSheet(context),
+                                  child: Container(
+                                    height: 30,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: ThemeHelper.background,
+                                      borderRadius: BorderRadius.circular(13),
+                                      boxShadow: isDark
+                                          ? []
+                                          : [
+                                              BoxShadow(
+                                                color: ThemeHelper.textPrimary.withOpacity(0.25),
+                                                blurRadius: 5,
+                                                offset: Offset(0, 0),
+                                                spreadRadius: 1,
+                                              ),
+                                            ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          '$_servingAmount',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
                                             color: ThemeHelper.textPrimary,
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Icon(
+                                          CupertinoIcons.pencil,
+                                          size: 14,
+                                          color: ThemeHelper.textPrimary,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  const Spacer(),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Macros Row (3 cards)
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _buildMacroCard(
-                              context,
-                              'Carbs',
-                              '$carbs g',
-                              'assets/icons/carbs.png',
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildMacroCard(
-                              context,
-                              'Protein',
-                              '$protein g',
-                              'assets/icons/drumstick.png',
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildMacroCard(
-                              context,
-                              'Fats',
-                              '$fat g',
-                              'assets/icons/fat.png',
+                                ),
+                                const Spacer(),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Calories Card
-                    GestureDetector(
-                      onTap: () => _showEditCaloriesSheet(context),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 24),
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: ThemeHelper.cardBackground,
-                          borderRadius: BorderRadius.circular(13),
-                          boxShadow: [
-                            BoxShadow(
-                              color: ThemeHelper.textPrimary.withOpacity(0.25),
-                              blurRadius: 5,
-                              offset: Offset(0, 0),
-                              spreadRadius: 1,
-                            ),
-                          ],
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Macros Row (3 cards)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildMacroCard(
+                            context,
+                            'Carbs',
+                            '$carbs g',
+                            'assets/icons/carbs.png',
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            Image.asset('assets/icons/flame_black.png', width: 28, height: 28, color: ThemeHelper.textPrimary),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Calories',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w400,
-                                    color: ThemeHelper.textSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '$calories',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w700,
-                                    color: ThemeHelper.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildMacroCard(
+                            context,
+                            'Protein',
+                            '$protein g',
+                            'assets/icons/drumstick.png',
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildMacroCard(
+                            context,
+                            'Fats',
+                            '$fat g',
+                            'assets/icons/fat.png',
+                          ),
+                        ),
+                      ],
                     ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Ingredients Section
-                    Container(
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Calories Card
+                  GestureDetector(
+                    onTap: () => _showEditCaloriesSheet(context),
+                    child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       width: double.infinity,
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: ThemeHelper.cardBackground,
                         borderRadius: BorderRadius.circular(13),
-                        boxShadow: [
-                          BoxShadow(
-                            color: ThemeHelper.textPrimary.withOpacity(0.25),
-                            blurRadius: 5,
-                            offset: Offset(0, 0),
-                            spreadRadius: 1,
-                          ),
-                        ],
+                        boxShadow: isDark
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: ThemeHelper.textPrimary.withOpacity(0.25),
+                                  blurRadius: 5,
+                                  offset: Offset(0, 0),
+                                  spreadRadius: 1,
+                                ),
+                              ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          // Header row with title and buttons
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Image.asset('assets/icons/flame_black.png', width: 28, height: 28, color: ThemeHelper.textPrimary),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Ingredients',
+                                'Calories',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: ThemeHelper.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$calories',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w700,
                                   color: ThemeHelper.textPrimary,
                                 ),
                               ),
-                              Row(
-                                children: [
-                                  // Fix Issue button
-                                  Container(
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Ingredients Section
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: ThemeHelper.cardBackground,
+                      borderRadius: BorderRadius.circular(13),
+                      boxShadow: isDark
+                          ? []
+                          : [
+                              BoxShadow(
+                                color: ThemeHelper.textPrimary.withOpacity(0.25),
+                                blurRadius: 5,
+                                offset: Offset(0, 0),
+                                spreadRadius: 1,
+                              ),
+                            ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header row with title and buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Ingredients',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: ThemeHelper.textPrimary,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                // Fix Issue button
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: ThemeHelper.background,
+                                    borderRadius: BorderRadius.circular(13),
+                        boxShadow: isDark
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: ThemeHelper.textPrimary.withOpacity(0.25),
+                                  blurRadius: 5,
+                                  offset: Offset(0, 0),
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.asset(
+                      'assets/icons/Spark.svg',
+                      width: 16,
+                      height: 16,
+                      color: ThemeHelper.textPrimary,
+                    ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Fix Issue',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: ThemeHelper.textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Add More button
+                                GestureDetector(
+                                  onTap: () => _showAddIngredientSheet(context),
+                                  child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: ThemeHelper.background,
                                       borderRadius: BorderRadius.circular(13),
                                       boxShadow: [
-                                        BoxShadow(
-                                          color: ThemeHelper.textPrimary.withOpacity(0.25),
-                                          blurRadius: 5,
-                                          offset: Offset(0, 0),
-                                          spreadRadius: 1,
-                                        ),
+                                        // BoxShadow(
+                                        //   color: ThemeHelper.textPrimary.withOpacity(0.25),
+                                        //   blurRadius: 5,
+                                        //   offset: Offset(0, 0),
+                                        //   spreadRadius: 1,
+                                        // ),
                                       ],
                                     ),
                                     child: Row(
                                       children: [
-                                        SvgPicture.asset(
-                        'assets/icons/Spark.svg',
-                        width: 16,
-                        height: 16,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                                        const SizedBox(width: 6),
                                         Text(
-                                          'Fix Issue',
+                                          'Add More',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontSize: 10,
@@ -521,166 +562,135 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                             color: ThemeHelper.textPrimary,
                                           ),
                                         ),
+                                        const SizedBox(width: 6),
+                                        Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  // Add More button
-                                  GestureDetector(
-                                    onTap: () => _showAddIngredientSheet(context),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: ThemeHelper.background,
-                                        borderRadius: BorderRadius.circular(13),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: ThemeHelper.textPrimary.withOpacity(0.25),
-                                            blurRadius: 5,
-                                            offset: Offset(0, 0),
-                                            spreadRadius: 1,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'Add More',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                              color: ThemeHelper.textPrimary,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          
-                          const SizedBox(height: 16),
-                          
-                          // Ingredients list
-                          if (entries.isEmpty)
-                            Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Text(
-                                  'No ingredients available',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: ThemeHelper.textSecondary,
-                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Ingredients list
+                        if (entries.isEmpty)
+                          Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Text(
+                                'No ingredients available',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: ThemeHelper.textSecondary,
                                 ),
                               ),
-                            )
-                          else
-                            ...entries.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final ingredient = entry.value;
-                              final showDivider = index < entries.length - 1;
-                              
-                              return Column(
-                                children: [
-                                  _buildIngredientRow(ingredient),
-                                  if (showDivider) ...[
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      height: 1.47,
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          bottom: BorderSide(
-                                            width: 1,
-                                            color: ThemeHelper.divider,
-                                          ),
+                            ),
+                          )
+                        else
+                          ...entries.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final ingredient = entry.value;
+                            final showDivider = index < entries.length - 1;
+                            
+                            return Column(
+                              children: [
+                                _buildIngredientRow(ingredient),
+                                if (showDivider) ...[
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    height: 1.47,
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          width: 1,
+                                          color: ThemeHelper.divider,
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 12),
-                                  ],
+                                  ),
+                                  const SizedBox(height: 12),
                                 ],
-                              );
-                            }).toList(),
-                        ],
-                      ),
+                              ],
+                            );
+                          }).toList(),
+                      ],
                     ),
-                    
-                    const SizedBox(height: 100), // Space for bottom button
-                  ],
-                ),
-              ),
-            ),
-            
-            // Bottom Save/Done Button
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: ThemeHelper.cardBackground,
-                boxShadow: [
-                  BoxShadow(
-                    color: ThemeHelper.textPrimary.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
-                    spreadRadius: 0,
                   ),
+                  
+                  const SizedBox(height: 100), // Space for bottom button
                 ],
               ),
-              child: GestureDetector(
-                onTap: _isSaving ? null : () async {
-                  // Check if this is a new scanned meal that needs to be saved
-                  final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
-                  final isScanned = _currentMealData['isScanned'] ?? false;
-                  
-                  if (mealId == null && isScanned) {
-                    // This is a new scanned meal - save it first
-                    final savedMeal = await _saveScannedMeal();
-                    if (savedMeal != null) {
-                      // Return the saved meal data for optimistic update
-                      Navigator.of(context).pop(savedMeal);
-                      return;
-                    }
+            ),
+          ),
+          
+          // Bottom Save/Done Button
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: ThemeHelper.background,
+              boxShadow: isDark
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: ThemeHelper.textPrimary.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2),
+                        spreadRadius: 0,
+                      ),
+                    ],
+            ),
+            child: GestureDetector(
+              onTap: _isSaving ? null : () async {
+                // Check if this is a new scanned meal that needs to be saved
+                final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+                final isScanned = _currentMealData['isScanned'] ?? false;
+                
+                if (mealId == null && isScanned) {
+                  // This is a new scanned meal - save it first
+                  final savedMeal = await _saveScannedMeal();
+                  if (savedMeal != null) {
+                    // Return the saved meal data for optimistic update
+                    Navigator.of(context).pop(savedMeal);
+                    return;
                   }
-                  
-                  Navigator.of(context).pop();
-                },
-                child: Container(
-                  width: 250,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: ThemeHelper.textPrimary,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Center(
-                    child: _isSaving 
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CupertinoActivityIndicator(
-                            color: ThemeHelper.background,
-                          ),
-                        )
-                      : Text(
-                          _getButtonText(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: ThemeHelper.background,
-                          ),
+                }
+                
+                Navigator.of(context).pop();
+              },
+              child: Container(
+                width: 250,
+                height: 45,
+                decoration: BoxDecoration(
+                  color: ThemeHelper.textPrimary,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Center(
+                  child: _isSaving 
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CupertinoActivityIndicator(
+                          color: ThemeHelper.background,
                         ),
-                  ),
+                      )
+                    : Text(
+                        _getButtonText(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: ThemeHelper.background,
+                        ),
+                      ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -758,20 +768,22 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
             color: ThemeHelper.divider,
             width: 1.5,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: ThemeHelper.textPrimary.withOpacity(0.08),
-              blurRadius: 15,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: ThemeHelper.textPrimary.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-              spreadRadius: 0,
-            ),
-          ],
+          boxShadow: (CupertinoTheme.of(context).brightness == Brightness.dark)
+              ? []
+              : [
+                  BoxShadow(
+                    color: ThemeHelper.textPrimary.withOpacity(0.08),
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: ThemeHelper.textPrimary.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                    spreadRadius: 0,
+                  ),
+                ],
         ),
         child: Column(
           children: [

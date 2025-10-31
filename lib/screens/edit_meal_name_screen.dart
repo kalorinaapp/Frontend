@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../utils/theme_helper.dart' show ThemeHelper;
 
 class EditMealNameScreen extends StatefulWidget {
   final String currentName;
@@ -31,7 +32,7 @@ class _EditMealNameScreenState extends State<EditMealNameScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.white,
+      backgroundColor: ThemeHelper.background,
       child: Column(
         children: [
           const SizedBox(height: 50),
@@ -42,13 +43,13 @@ class _EditMealNameScreenState extends State<EditMealNameScreen> {
               children: [
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
-                  child: const SizedBox(
+                  child: SizedBox(
                     width: 24,
                     height: 24,
                     child: Text(
                       '←',
                       style: TextStyle(
-                        color: Colors.black,
+                        color: ThemeHelper.textPrimary,
                         fontSize: 28,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w500,
@@ -69,13 +70,13 @@ class _EditMealNameScreenState extends State<EditMealNameScreen> {
                   const SizedBox(height: 40),
                   
                   // Title
-                  const SizedBox(
+                  SizedBox(
                     width: 274,
                     child: Text(
                       'Name Change',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Color(0xFF1E1822),
+                        color: ThemeHelper.textPrimary,
                         fontSize: 26,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w600,
@@ -90,30 +91,32 @@ class _EditMealNameScreenState extends State<EditMealNameScreen> {
                     width: 335,
                     height: 44,
                     decoration: ShapeDecoration(
-                      color: Colors.white,
+                      color: ThemeHelper.cardBackground,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(13),
                       ),
-                      shadows: const [
-                        BoxShadow(
-                          color: Color(0x3F000000),
-                          blurRadius: 5,
-                          offset: Offset(0, 0),
-                          spreadRadius: 1,
-                        ),
-                      ],
+                      shadows: CupertinoTheme.of(context).brightness == Brightness.dark
+                          ? []
+                          : const [
+                              BoxShadow(
+                                color: Color(0x3F000000),
+                                blurRadius: 5,
+                                offset: Offset(0, 0),
+                                spreadRadius: 1,
+                              ),
+                            ],
                     ),
                     child: CupertinoTextField(
                       controller: _nameController,
                       placeholder: 'Enter meal name',
-                      placeholderStyle: const TextStyle(
-                        color: Color(0xFF999999),
+                      placeholderStyle: TextStyle(
+                        color: ThemeHelper.textSecondary,
                         fontSize: 14,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w400,
                       ),
-                      style: const TextStyle(
-                        color: Color(0xFF1E1822),
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
                         fontSize: 14,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w600,
@@ -134,16 +137,18 @@ class _EditMealNameScreenState extends State<EditMealNameScreen> {
           Container(
             width: 393,
             height: 76,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x19000000),
-                  blurRadius: 10,
-                  offset: Offset(0, -2),
-                  spreadRadius: 0,
-                ),
-              ],
+            decoration: BoxDecoration(
+              color: ThemeHelper.background,
+              boxShadow: CupertinoTheme.of(context).brightness == Brightness.dark
+                  ? []
+                  : const [
+                      BoxShadow(
+                        color: Color(0x19000000),
+                        blurRadius: 10,
+                        offset: Offset(0, -2),
+                        spreadRadius: 0,
+                      ),
+                    ],
             ),
             child: Center(
               child: GestureDetector(
@@ -157,12 +162,12 @@ class _EditMealNameScreenState extends State<EditMealNameScreen> {
                   width: 250,
                   height: 45,
                   decoration: ShapeDecoration(
-                    color: Colors.black,
+                    color: ThemeHelper.textPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: SizedBox(
                       width: 73,
                       height: 16,
@@ -170,7 +175,7 @@ class _EditMealNameScreenState extends State<EditMealNameScreen> {
                         'Update',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: ThemeHelper.background,
                           fontSize: 14,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w600,

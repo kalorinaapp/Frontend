@@ -45,6 +45,11 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
 
   Future<void> _initCamera() async {
     try {
+      // Dispose any existing controller before re-initializing
+      final oldController = _controller;
+      _controller = null;
+      await oldController?.dispose();
+
       _cameras ??= await availableCameras();
       final desired = _isRear
           ? _cameras!.firstWhere((c) => c.lensDirection == CameraLensDirection.back,
@@ -59,8 +64,11 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
         imageFormatGroup: Platform.isIOS ? ImageFormatGroup.bgra8888 : ImageFormatGroup.yuv420,
       );
       _controller = controller;
+      // Eagerly initialize and wait, then rebuild so preview shows immediately
       _initializeFuture = controller.initialize();
-      if (mounted) setState(() {});
+      await _initializeFuture;
+      if (!mounted) return;
+      setState(() {});
     } catch (e) {
       debugPrint('Camera init error: $e');
     }
@@ -74,7 +82,8 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
       await _initializeFuture;
       final file = await _controller!.takePicture();
       if (!mounted) return;
-      await _sendToBackend(file.path);
+      // Return image path to previous screen to reuse the same analyzing flow
+      Navigator.of(context).pop(<String, dynamic>{'imagePath': file.path});
     } catch (e) {
       debugPrint('Capture error: $e');
     } finally {
@@ -88,7 +97,8 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
       final picked = await picker.pickImage(source: ImageSource.gallery);
       if (picked == null) return;
       if (!mounted) return;
-      await _sendToBackend(picked.path);
+      // Return image path to previous screen to reuse the same analyzing flow
+      Navigator.of(context).pop(<String, dynamic>{'imagePath': picked.path});
     } catch (e) {
       debugPrint('Gallery pick error: $e');
     }
@@ -104,29 +114,12 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
       };
       final imgPath = path;
       final reqInfo = '${AppConstants.baseUrl}/api/scanning/scan-image';
+      // Deprecated debug screen navigation: handled upstream by dashboard
+      // Keeping request utility available if needed in future.
       await multiPostAPINew(
         methodName: '/api/scanning/scan-image',
         param: payload,
-        callback: (resp) {
-          Map<String, dynamic> result;
-          try {
-            result = jsonDecode(resp.response) as Map<String, dynamic>;
-          } catch (_) {
-            result = {'message': resp.response, 'status': resp.code};
-          }
-          if (!mounted) return;
-          Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (_) => ScanResultPage(
-                result: result,
-                imagePath: imgPath,
-                rawResponse: resp.response,
-                statusCode: resp.code,
-                requestInfo: reqInfo,
-              ),
-            ),
-          );
-        },
+        callback: (_) {},
       );
     } catch (e) {
       debugPrint('Scan send error: $e');

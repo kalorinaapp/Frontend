@@ -1,6 +1,10 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Slider, SliderTheme, SliderThemeData, RoundSliderThumbShape, RoundSliderOverlayShape, Material;
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
+import '../utils/theme_helper.dart' show ThemeHelper;
+import 'edit_macro_screen.dart';
 
 class IngredientDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> ingredientData;
@@ -78,9 +82,10 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
     final protein = _getScaledValue('protein');
     final carbs = _getScaledValue('carbs');
     final fat = _getScaledValue('fat');
+    final bool isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
 
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.white,
+      backgroundColor: ThemeHelper.background,
       child: SafeArea(
         child: Column(
           children: [
@@ -95,7 +100,7 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                       'assets/icons/back.svg',
                       width: 24,
                       height: 24,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                   const Spacer(),
@@ -104,8 +109,8 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                     child: Text(
                       foodName,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: CupertinoColors.black,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
                         fontSize: 20,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w600,
@@ -135,39 +140,41 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.cardBackground,
                           borderRadius: BorderRadius.circular(13),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 5,
-                              offset: Offset(0, 0),
-                              spreadRadius: 1,
-                            ),
-                          ],
+                          boxShadow: isDark
+                              ? []
+                              : const [
+                                  BoxShadow(
+                                    color: Color(0x3F000000),
+                                    blurRadius: 5,
+                                    offset: Offset(0, 0),
+                                    spreadRadius: 1,
+                                  ),
+                                ],
                         ),
                         child: Row(
                           children: [
-                            Image.asset('assets/icons/flame_black.png', width: 28, height: 28),
+                            Image.asset('assets/icons/flame_black.png', width: 28, height: 28, color: ThemeHelper.textPrimary),
                             const SizedBox(width: 12),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Calories',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
-                                    color: Color(0xB21E1822),
+                                    color: ThemeHelper.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   '$calories',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xE61E1822),
+                                    color: ThemeHelper.textPrimary,
                                   ),
                                 ),
                               ],
@@ -186,6 +193,7 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                               'Carbs',
                               '$carbs g',
                               'assets/icons/carbs.png',
+                              onTap: () => _navigateToEditMacro(context, label: 'Carbs', currentValue: carbs, iconAsset: 'assets/icons/carbs.png', keyName: 'carbs'),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -194,6 +202,7 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                               'Protein',
                               '$protein g',
                               'assets/icons/drumstick.png',
+                              onTap: () => _navigateToEditMacro(context, label: 'Protein', currentValue: protein, iconAsset: 'assets/icons/drumstick.png', keyName: 'protein'),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -202,6 +211,7 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                               'Fats',
                               '$fat g',
                               'assets/icons/fat.png',
+                              onTap: () => _navigateToEditMacro(context, label: 'Fats', currentValue: fat, iconAsset: 'assets/icons/fat.png', keyName: 'fat'),
                             ),
                           ),
                         ],
@@ -210,10 +220,10 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                       const SizedBox(height: 32),
                       
                       // Size Section
-                      const Text(
+                      Text(
                         'Size',
                         style: TextStyle(
-                          color: Color(0xFF1E1822),
+                          color: ThemeHelper.textPrimary,
                           fontSize: 12,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w600,
@@ -239,22 +249,24 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                               decoration: BoxDecoration(
-                                color: isSelected ? CupertinoColors.black : CupertinoColors.white,
+                                color: isSelected ? ThemeHelper.textPrimary : ThemeHelper.cardBackground,
                                 borderRadius: BorderRadius.circular(10),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x33000000),
-                                    blurRadius: 3,
-                                    offset: Offset(0, 0),
-                                    spreadRadius: 0,
-                                  ),
-                                ],
+                                boxShadow: isDark
+                                    ? []
+                                    : const [
+                                        BoxShadow(
+                                          color: Color(0x33000000),
+                                          blurRadius: 3,
+                                          offset: Offset(0, 0),
+                                          spreadRadius: 0,
+                                        ),
+                                      ],
                               ),
                               child: Text(
                                 size,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: isSelected ? CupertinoColors.white : CupertinoColors.black,
+                                  color: isSelected ? ThemeHelper.background : ThemeHelper.textPrimary,
                                   fontSize: 10,
                                   fontFamily: 'Instrument Sans',
                                   fontWeight: FontWeight.w600,
@@ -271,14 +283,14 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         child: Material(
-                          color: CupertinoColors.white,
+                          color: ThemeHelper.cardBackground,
                           child: SliderTheme(
                             data: SliderThemeData(
                               trackHeight: 6,
                               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0),
                               overlayShape: const RoundSliderOverlayShape(overlayRadius: 0),
-                              activeTrackColor: CupertinoColors.black,
-                              inactiveTrackColor: CupertinoColors.black.withOpacity(0.20),
+                              activeTrackColor: ThemeHelper.textPrimary,
+                              inactiveTrackColor: ThemeHelper.textPrimary.withOpacity(0.20),
                             ),
                             child: Slider(
                               value: _servingAmount,
@@ -298,11 +310,11 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                       const SizedBox(height: 20),
                       
                       // Number of servings Section
-                      const Text(
+                      Text(
                         'Number of servings',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Color(0xFF1E1822),
+                          color: ThemeHelper.textPrimary,
                           fontSize: 12,
                           fontFamily: 'Instrument Sans',
                           fontWeight: FontWeight.w600,
@@ -317,16 +329,18 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                             decoration: BoxDecoration(
-                              color: CupertinoColors.white,
+                              color: ThemeHelper.cardBackground,
                               borderRadius: BorderRadius.circular(13),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x3F000000),
-                                  blurRadius: 5,
-                                  offset: Offset(0, 0),
-                                  spreadRadius: 1,
-                                ),
-                              ],
+                              boxShadow: isDark
+                                  ? []
+                                  : const [
+                                      BoxShadow(
+                                        color: Color(0x3F000000),
+                                        blurRadius: 5,
+                                        offset: Offset(0, 0),
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -334,18 +348,18 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                                 Text(
                                   _servingAmount.toStringAsFixed(_servingAmount.truncateToDouble() == _servingAmount ? 0 : 1),
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Color(0xFF1E1822),
+                                  style: TextStyle(
+                                    color: ThemeHelper.textPrimary,
                                     fontSize: 14,
                                     fontFamily: 'Instrument Sans',
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Icon(
+                                Icon(
                                   CupertinoIcons.pencil,
                                   size: 14,
-                                  color: Color(0xFF1E1822),
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ],
                             ),
@@ -365,15 +379,17 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: CupertinoColors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
-                    spreadRadius: 0,
-                  ),
-                ],
+                color: ThemeHelper.background,
+                boxShadow: isDark
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: ThemeHelper.textPrimary.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, -2),
+                          spreadRadius: 0,
+                        ),
+                      ],
               ),
               child: GestureDetector(
                 onTap: () {
@@ -396,10 +412,10 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                   width: 250,
                   height: 45,
                   decoration: BoxDecoration(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'Done',
                       textAlign: TextAlign.center,
@@ -407,7 +423,7 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                         fontSize: 14,
                         fontFamily: 'Instrument Sans',
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.white,
+                        color: ThemeHelper.background,
                       ),
                     ),
                   ),
@@ -420,29 +436,33 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
     );
   }
 
-  Widget _buildMacroCard(String label, String value, String iconAsset) {
-    return Container(
+  Widget _buildMacroCard(String label, String value, String iconAsset, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       decoration: BoxDecoration(
-        color: CupertinoColors.white,
+        color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE8E8E8),
-          width: 1.5,
+          color: ThemeHelper.divider,
+          width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
-          ),
-        ],
+        boxShadow: CupertinoTheme.of(context).brightness == Brightness.dark
+            ? []
+            : [
+                BoxShadow(
+                  color: ThemeHelper.textPrimary.withOpacity(0.08),
+                  blurRadius: 15,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: ThemeHelper.textPrimary.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                  spreadRadius: 0,
+                ),
+              ],
       ),
       child: Column(
         children: [
@@ -450,9 +470,9 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: const BoxDecoration(
-              color: CupertinoColors.systemGrey6,
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              color: ThemeHelper.divider.withOpacity(0.5),
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
@@ -464,10 +484,10 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                 const SizedBox(width: 4),
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: CupertinoColors.systemGrey,
+                    color: ThemeHelper.textSecondary,
                     letterSpacing: 0.1,
                   ),
                 ),
@@ -479,14 +499,15 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -501,21 +522,21 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
       builder: (BuildContext context) => Container(
         height: 300,
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: CupertinoColors.white,
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          color: ThemeHelper.cardBackground,
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
           ),
         ),
         child: Column(
           children: [
-            const Text(
+            Text(
               'Enter Serving Amount',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
               ),
             ),
             const SizedBox(height: 20),
@@ -524,11 +545,11 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
               controller: controller,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               placeholder: 'Enter amount',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16, color: ThemeHelper.textPrimary),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: const Color(0xFFE8E8E8),
-                  width: 1.5,
+                  color: ThemeHelper.divider,
+                  width: 1,
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -543,15 +564,15 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                 Expanded(
                   child: CupertinoButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
-                      style: TextStyle(color: CupertinoColors.systemGrey),
+                      style: TextStyle(color: ThemeHelper.textSecondary),
                     ),
                   ),
                 ),
                 Expanded(
                   child: CupertinoButton(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     onPressed: () {
                       final newAmount = double.tryParse(controller.text) ?? 1.0;
                       setState(() {
@@ -559,15 +580,58 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                       });
                       Navigator.of(context).pop();
                     },
-                    child: const Text(
+                    child: Text(
                       'Save',
-                      style: TextStyle(color: CupertinoColors.white),
+                      style: TextStyle(color: ThemeHelper.background),
                     ),
                   ),
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToEditMacro(BuildContext context, {required String label, required int currentValue, required String iconAsset, required String keyName}) {
+    // Determine color based on macro type
+    Color color;
+    if (label == 'Carbs') {
+      color = CupertinoColors.systemOrange;
+    } else if (label == 'Protein') {
+      color = CupertinoColors.systemBlue;
+    } else if (label == 'Fats') {
+      color = CupertinoColors.systemRed;
+    } else {
+      color = CupertinoColors.systemGrey;
+    }
+    
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) => EditMacroScreen(
+          macroName: label,
+          iconAsset: iconAsset,
+          color: color,
+          initialValue: currentValue,
+          onValueChanged: (newScaled) {
+            setState(() {
+              // Calculate new base value: newScaled / current serving amount
+              final double base = newScaled / (_servingAmount == 0 ? 1 : _servingAmount);
+              final int newBase = base.round();
+              switch (keyName) {
+                case 'carbs':
+                  _baseCarbs = newBase;
+                  break;
+                case 'protein':
+                  _baseProtein = newBase;
+                  break;
+                case 'fat':
+                  _baseFat = newBase;
+                  break;
+              }
+            });
+          },
         ),
       ),
     );

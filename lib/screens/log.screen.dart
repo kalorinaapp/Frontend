@@ -231,20 +231,22 @@ class _LogScreenState extends State<LogScreen> {
             color: ThemeHelper.divider,
             width: 1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: ThemeHelper.textPrimary.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: ThemeHelper.textPrimary.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-              spreadRadius: 0,
-            ),
-          ],
+          boxShadow: CupertinoTheme.of(context).brightness == Brightness.dark
+              ? []
+              : [
+                  BoxShadow(
+                    color: ThemeHelper.textPrimary.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: ThemeHelper.textPrimary.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                    spreadRadius: 0,
+                  ),
+                ],
         ),
         child: Row(
           children: [

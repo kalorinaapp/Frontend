@@ -1,18 +1,16 @@
-// ignore_for_file: unused_element
-
 import 'dart:convert' show json;
 import 'dart:io' show Platform;
-
 import 'package:calorie_ai_app/utils/network.dart' show multiPostAPINew;
 import 'package:calorie_ai_app/utils/store.config.dart' show EntitleMents, StoreConfig;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
+import 'package:onesignal_flutter/onesignal_flutter.dart' show OneSignal, OSLogLevel;
 import 'package:purchases_flutter/models/customer_info_wrapper.dart' show CustomerInfo;
 import 'package:purchases_flutter/models/entitlement_info_wrapper.dart' show EntitlementInfo;
 import 'package:purchases_flutter/models/store.dart' show Store;
 import 'package:purchases_flutter/purchases_flutter.dart' show Purchases, LogLevel, PurchasesConfiguration, PurchasesAreCompletedByRevenueCat, AmazonConfiguration;
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
-
 import '../constants/app_constants.dart' show AppConstants;
+
 
 class AppInitializationMethods with RefreshToken {
   Future<void> initialize() async {
@@ -28,6 +26,8 @@ class AppInitializationMethods with RefreshToken {
         );
       }
 
+      // await initPlatformState();
+
       //    await _configureSDK();
 
   
@@ -36,6 +36,22 @@ class AppInitializationMethods with RefreshToken {
 
     
     } 
+
+
+
+    // Platform messages are asynchronous, so we initialize in an async method.
+  static Future<void> initPlatformState() async {
+       OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+
+    OneSignal.Debug.setAlertLevel(OSLogLevel.none);
+     OneSignal.consentRequired(true);
+    // OneSignal.consentRequired(_requireConsent);
+
+    // NOTE: Replace with your own app ID from https://www.onesignal.com
+    OneSignal.initialize("c5fb6b72-40ad-4062-82ec-c576bd7709c8");
+
+      OneSignal.consentGiven(true);
+  }
 
 
   static Future<void> _configureSDK() async {

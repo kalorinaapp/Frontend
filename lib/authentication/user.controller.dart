@@ -30,79 +30,83 @@ class UserController extends GetxController {
     ThemeProvider themeProvider,
     LanguageProvider languageProvider,
   ) async {
-    isLoading.value = true;
-    errorMessage.value = '';
-    isSuccess.value = false;
-    userData.clear();
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      isSuccess.value = false;
+      userData.clear();
 
-    await multiPostAPINew(
-      methodName: 'api/users',
-      param: data,
-      callback: (response) {
-        isLoading.value = false;
-        // if (response.code == 200 || response.code == 201) {
-        final decoded = response.response;
-       
-        try {
-          final json = decoded is String ? jsonDecode(decoded) : decoded;
-          if (json['success'] == true) {
-            isSuccess.value = true;
-            userData.assignAll(json['user'] ?? {});
+      await multiPostAPINew(
+        methodName: 'api/users',
+        param: data,
+        callback: (response) {
+          try {
+            isLoading.value = false;
+            final decoded = response.response;
+           
+            final json = decoded is String ? jsonDecode(decoded) : decoded;
+            if (json['success'] == true) {
+              isSuccess.value = true;
+              userData.assignAll(json['user'] ?? {});
 
-            print('✅ Registration successful!');
-            print('📦 Full response: $json');
-            
-            // Save to shared prefs
-            final user = json['user'] ?? {};
-            final token = json['token'] ?? '';
-            final refreshToken = token; // Use same token as refresh token if not provided separately
-            
-            print('🔑 Extracted token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
-            print('👤 Extracted user ID: ${user['_id'] ?? user['id'] ?? 'NOT FOUND'}');
-            
-            // Create full name from firstName and lastName
-            final firstName = user['firstName'] ?? '';
-            final lastName = user['lastName'] ?? '';
-            final fullName = '$firstName $lastName'.trim();
-            
-            final userId = user['_id'] ?? user['id'] ?? '';
-            print('💾 Saving to SharedPreferences - ID: $userId');
-            
-            UserPrefs.saveUserData(
-              name: fullName.isNotEmpty ? fullName : user['email'] ?? '',
-              email: user['email'] ?? '',
-              token: token,
-              refreshToken: refreshToken,
-              id: userId,
-            );
+              print('✅ Registration successful!');
+              print('📦 Full response: $json');
+              
+              // Save to shared prefs
+              final user = json['user'] ?? {};
+              final token = json['token'] ?? '';
+              final refreshToken = token; // Use same token as refresh token if not provided separately
+              
+              print('🔑 Extracted token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+              print('👤 Extracted user ID: ${user['_id'] ?? user['id'] ?? 'NOT FOUND'}');
+              
+              // Create full name from firstName and lastName
+              final firstName = user['firstName'] ?? '';
+              final lastName = user['lastName'] ?? '';
+              final fullName = '$firstName $lastName'.trim();
+              
+              final userId = user['_id'] ?? user['id'] ?? '';
+              print('💾 Saving to SharedPreferences - ID: $userId');
+              
+              UserPrefs.saveUserData(
+                name: fullName.isNotEmpty ? fullName : user['email'] ?? '',
+                email: user['email'] ?? '',
+                token: token,
+                refreshToken: refreshToken,
+                id: userId,
+              );
 
-            AppConstants.userId = userId;
-            AppConstants.authToken = token;
-            
-            print('✅ AppConstants.userId set to: ${AppConstants.userId}');
-            print('✅ AppConstants.authToken set to: ${AppConstants.authToken.substring(0, AppConstants.authToken.length > 20 ? 20 : AppConstants.authToken.length)}...');
+              AppConstants.userId = userId;
+              AppConstants.authToken = token;
+              
+              print('✅ AppConstants.userId set to: ${AppConstants.userId}');
+              print('✅ AppConstants.authToken set to: ${AppConstants.authToken.substring(0, AppConstants.authToken.length > 20 ? 20 : AppConstants.authToken.length)}...');
 
-            // For new registrations, always navigate to home screen
-            Navigator.of(context).pushAndRemoveUntil(
-              CupertinoPageRoute(
-                builder: (context) => HomeScreen(
-                  themeProvider: themeProvider, 
-                  languageProvider: languageProvider,
+              // For new registrations, always navigate to home screen
+              Navigator.of(context).pushAndRemoveUntil(
+                CupertinoPageRoute(
+                  builder: (context) => HomeScreen(
+                    themeProvider: themeProvider, 
+                    languageProvider: languageProvider,
+                  ),
                 ),
-              ),
-              (route) => false, // Remove all previous routes
-            );
-          } else {
-            errorMessage.value = json['message'] ?? 'Registration failed.';
+                (route) => false, // Remove all previous routes
+              );
+            } else {
+              errorMessage.value = json['message'] ?? 'Registration failed.';
+            }
+          } catch (e) {
+            isLoading.value = false;
+            errorMessage.value = 'Invalid server response.';
+            print('❌ Error processing registration response: $e');
           }
-        } catch (e) {
-          errorMessage.value = 'Invalid server response.';
-        }
-        // } else {
-        //   errorMessage.value = response.response;
-        // }
-      },
-    );
+        },
+      );
+    } catch (e) {
+      isLoading.value = false;
+      errorMessage.value = 'Registration failed. Please check your connection and try again.';
+      print('❌ Error during registration: $e');
+    }
   }
 
   Future<bool> loginUser(
@@ -111,94 +115,102 @@ class UserController extends GetxController {
     ThemeProvider themeProvider,
     LanguageProvider languageProvider,
   ) async {
-    isLoading.value = true;
-    errorMessage.value = '';
-    isSuccess.value = false;
-    userData.clear();
-
     bool result = false;
-    await multiPostAPINew(
-      methodName: 'api/users/login',
-      param: data,
-      callback: (response) {
-        isLoading.value = false;
-        final decoded = response.response;
-        try {
-          final json = decoded is String ? jsonDecode(decoded) : decoded;
-          if (json['success'] == true) {
-            isSuccess.value = true;
-            userData.assignAll(json['user'] ?? {});
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      isSuccess.value = false;
+      userData.clear();
 
-            print('✅ Login successful!');
-            print('📦 Full response: $json');
-            
-            // Save to shared prefs
-            final user = json['user'] ?? {};
-            final token = json['token'] ?? '';
-            final refreshToken = token; // Use same token if no separate refresh token
-            
-            print('🔑 Extracted token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
-            print('👤 Extracted user ID: ${user['_id'] ?? user['id'] ?? 'NOT FOUND'}');
-            
-            // Create full name from firstName and lastName
-            final firstName = user['firstName'] ?? '';
-            final lastName = user['lastName'] ?? '';
-            final fullName = '$firstName $lastName'.trim();
-            
-            final userId = user['_id'] ?? user['id'] ?? '';
-            print('💾 Saving to SharedPreferences - ID: $userId');
-            
-            AppConstants.authToken = token;
-            AppConstants.userId = userId;
-            
-            print('✅ AppConstants.userId set to: ${AppConstants.userId}');
-            print('✅ AppConstants.authToken set to: ${AppConstants.authToken.substring(0, AppConstants.authToken.length > 20 ? 20 : AppConstants.authToken.length)}...');
-            
-            UserPrefs.saveUserData(
-              name: fullName.isNotEmpty ? fullName : user['email'] ?? '',
-              email: user['email'] ?? '',
-              token: token,
-              refreshToken: refreshToken,
-              id: userId,
-            );
-            result = true;
-            
-            // Navigate to home screen and remove all previous routes
-            Navigator.of(context).pushAndRemoveUntil(
-              CupertinoPageRoute(
-                builder: (context) => HomeScreen(
-                  themeProvider: themeProvider, 
-                  languageProvider: languageProvider,
-                ),
-              ),
-              (route) => false, // Remove all previous routes
-            );
-          } else {
-            errorMessage.value = json['message'] ?? 'Login failed.';
-            // If backend indicates user not found, show a Cupertino dialog (no Material)
-            (json['message'] ?? '').toString().toLowerCase();
-            // if (msg.contains('not found') || msg.contains('no user')) {
-              showCupertinoDialog(
-                context: context,
-                builder: (ctx) => CupertinoAlertDialog(
-                  title: const Text('Account Not Found'),
-                  content: const Text('This account does not exist.'),
-                  actions: [
-                    CupertinoDialogAction(
-                      isDefaultAction: true,
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
+      await multiPostAPINew(
+        methodName: 'api/users/login',
+        param: data,
+        callback: (response) {
+          try {
+            isLoading.value = false;
+            final decoded = response.response;
+            final json = decoded is String ? jsonDecode(decoded) : decoded;
+            if (json['success'] == true) {
+              isSuccess.value = true;
+              userData.assignAll(json['user'] ?? {});
+
+              print('✅ Login successful!');
+              print('📦 Full response: $json');
+              
+              // Save to shared prefs
+              final user = json['user'] ?? {};
+              final token = json['token'] ?? '';
+              final refreshToken = token; // Use same token if no separate refresh token
+              
+              print('🔑 Extracted token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+              print('👤 Extracted user ID: ${user['_id'] ?? user['id'] ?? 'NOT FOUND'}');
+              
+              // Create full name from firstName and lastName
+              final firstName = user['firstName'] ?? '';
+              final lastName = user['lastName'] ?? '';
+              final fullName = '$firstName $lastName'.trim();
+              
+              final userId = user['_id'] ?? user['id'] ?? '';
+              print('💾 Saving to SharedPreferences - ID: $userId');
+              
+              AppConstants.authToken = token;
+              AppConstants.userId = userId;
+              
+              print('✅ AppConstants.userId set to: ${AppConstants.userId}');
+              print('✅ AppConstants.authToken set to: ${AppConstants.authToken.substring(0, AppConstants.authToken.length > 20 ? 20 : AppConstants.authToken.length)}...');
+              
+              UserPrefs.saveUserData(
+                name: fullName.isNotEmpty ? fullName : user['email'] ?? '',
+                email: user['email'] ?? '',
+                token: token,
+                refreshToken: refreshToken,
+                id: userId,
               );
-            // }
+              result = true;
+              
+              // Navigate to home screen and remove all previous routes
+              Navigator.of(context).pushAndRemoveUntil(
+                CupertinoPageRoute(
+                  builder: (context) => HomeScreen(
+                    themeProvider: themeProvider, 
+                    languageProvider: languageProvider,
+                  ),
+                ),
+                (route) => false, // Remove all previous routes
+              );
+            } else {
+              errorMessage.value = json['message'] ?? 'Login failed.';
+              // If backend indicates user not found, show a Cupertino dialog (no Material)
+              (json['message'] ?? '').toString().toLowerCase();
+              // if (msg.contains('not found') || msg.contains('no user')) {
+                showCupertinoDialog(
+                  context: context,
+                  builder: (ctx) => CupertinoAlertDialog(
+                    title: const Text('Account Not Found'),
+                    content: const Text('This account does not exist.'),
+                    actions: [
+                      CupertinoDialogAction(
+                        isDefaultAction: true,
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              // }
+            }
+          } catch (e) {
+            isLoading.value = false;
+            errorMessage.value = 'Invalid server response.';
+            print('❌ Error processing login response: $e');
           }
-        } catch (e) {
-          errorMessage.value = 'Invalid server response.';
-        }
-      },
-    );
+        },
+      );
+    } catch (e) {
+      isLoading.value = false;
+      errorMessage.value = 'Login failed. Please check your connection and try again.';
+      print('❌ Error during login: $e');
+    }
     return result;
   }
 

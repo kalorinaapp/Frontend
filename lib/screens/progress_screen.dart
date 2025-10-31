@@ -31,6 +31,17 @@ class ProgressScreen extends StatelessWidget {
     this.onWeightLogged,
   });
 
+  // Format a weight value to at most 2 decimal places (trim trailing zeros)
+  static String _formatWeight2dp(num? value) {
+    if (value == null) return '-';
+    String s = value.toStringAsFixed(2);
+    if (s.contains('.')) {
+      s = s.replaceAll(RegExp(r'0+$'), '');
+      s = s.replaceAll(RegExp(r'\.$'), '');
+    }
+    return s;
+  }
+
   // Helper method to check if weigh-in is due today
   Future<bool> _isWeighInDueToday() async {
     final DateTime? lastWeighIn = await UserPrefs.getLastWeighInDate();
@@ -97,7 +108,8 @@ class ProgressScreen extends StatelessWidget {
                       w ??= (userController.userData['user'] is Map) ? userController.userData['user']['weight'] : null;
                       // Last resort fallback if stored in constants
                       w ??= AppConstants.userId.isNotEmpty ? null : null;
-                      final String weightStr = (w == null || (w is String && w.isEmpty)) ? '-' : w.toString();
+                      final num? weightNum = w is num ? w : num.tryParse('${w ?? ''}');
+                      final String weightStr = _formatWeight2dp(weightNum);
                       return _WeightTile(
                         title: l10n.myWeight,
                         value: '$weightStr kg',
@@ -119,7 +131,8 @@ class ProgressScreen extends StatelessWidget {
                       // Fallbacks if API nests data differently
                       tw ??= (userController.userData['data'] is Map) ? userController.userData['data']['targetWeight'] : null;
                       tw ??= (userController.userData['user'] is Map) ? userController.userData['user']['targetWeight'] : null;
-                      final String targetStr = (tw == null || (tw is String && tw.isEmpty)) ? '-' : tw.toString();
+                      final num? targetNum = tw is num ? tw : num.tryParse('${tw ?? ''}');
+                      final String targetStr = _formatWeight2dp(targetNum);
                       return _WeightTile(
                         title: l10n.targetWeight,
                         value: '$targetStr kg',
@@ -328,8 +341,10 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
               w ??= (uc.userData['user'] is Map) ? uc.userData['user']['weight'] : null;
               tw ??= (uc.userData['data'] is Map) ? uc.userData['data']['targetWeight'] : null;
               tw ??= (uc.userData['user'] is Map) ? uc.userData['user']['targetWeight'] : null;
-              final String weightStr = (w == null || (w is String && w.isEmpty)) ? '-' : w.toString();
-              final String targetStr = (tw == null || (tw is String && tw.isEmpty)) ? '-' : tw.toString();
+              final num? weightNum = w is num ? w : num.tryParse('${w ?? ''}');
+              final num? targetNum = tw is num ? tw : num.tryParse('${tw ?? ''}');
+              final String weightStr = ProgressScreen._formatWeight2dp(weightNum);
+              final String targetStr = ProgressScreen._formatWeight2dp(targetNum);
               return Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [

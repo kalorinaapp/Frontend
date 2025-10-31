@@ -52,7 +52,12 @@ class _SettingsPageState extends State<SettingsPage> {
           child: SafeArea(
             child: SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                16,
+                20,
+                16 + MediaQuery.of(context).padding.bottom + 20,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -87,16 +92,16 @@ class _CardShell extends StatelessWidget {
         color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ThemeHelper.divider, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: ThemeHelper.isLightMode 
-                ? CupertinoColors.black.withOpacity(0.2)
-                : CupertinoColors.systemGrey.withOpacity(0.3),
-            blurRadius: 8.0,
-            offset: const Offset(0, 4),
-            spreadRadius: 2,
-          ),
-        ],
+        boxShadow: CupertinoTheme.of(context).brightness == Brightness.dark
+            ? []
+            : [
+                BoxShadow(
+                  color: CupertinoColors.black.withOpacity(0.2),
+                  blurRadius: 8.0,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 2,
+                ),
+              ],
       ),
       child: child,
     );
@@ -109,69 +114,103 @@ class _UserCard extends StatelessWidget {
 
   void _showUsernameDialog(BuildContext context, UserController userController, String currentName) {
     final TextEditingController controller = TextEditingController(text: currentName);
-    
-    showCupertinoDialog(
+
+    showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          content: Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: CupertinoTextField(
-              controller: controller,
-              placeholder: AppLocalizations.of(context)!.enterUsername,
-              style: const TextStyle(fontSize: 16),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: ThemeHelper.background,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              autofocus: true,
+        return Container(
+          height: 220,
+          padding: const EdgeInsets.only(top: 6.0),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: CupertinoColors.separator,
+                        width: 0.0,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Text('Cancel', style: TextStyle(color: ThemeHelper.textPrimary)),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      Text(
+                        AppLocalizations.of(context)!.enterUsername,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
+                        onPressed: () {
+                          final newName = controller.text.trim();
+                          if (newName.isNotEmpty) {
+                            final parts = newName.split(' ');
+                            final firstName = parts.isNotEmpty ? parts[0] : '';
+                            final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+
+                            final oldFirstName = userController.userData['firstName'];
+                            final oldLastName = userController.userData['lastName'];
+
+                            userController.userData['firstName'] = firstName;
+                            userController.userData['lastName'] = lastName;
+
+                            userController
+                                .updateUser(
+                                  AppConstants.userId,
+                                  {
+                                    'firstName': firstName,
+                                    'lastName': lastName,
+                                  },
+                                  context,
+                                  Get.find<ThemeProvider>(),
+                                  Get.find<LanguageProvider>(),
+                                )
+                                .catchError((error) {
+                              debugPrint('Error updating name: $error');
+                              userController.userData['firstName'] = oldFirstName;
+                              userController.userData['lastName'] = oldLastName;
+                              return false;
+                            });
+                          }
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: CupertinoTextField(
+                      controller: controller,
+                      placeholder: AppLocalizations.of(context)!.enterUsername,
+                      style: const TextStyle(fontSize: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: ThemeHelper.background,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      autofocus: true,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          actions: [
-            CupertinoDialogAction(
-              child: Text('Cancel', style: TextStyle(color: ThemeHelper.textPrimary)),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            CupertinoDialogAction(
-              child: Text('Save', style: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600)),
-              onPressed: () {
-                final newName = controller.text.trim();
-                if (newName.isNotEmpty) {
-                  final parts = newName.split(' ');
-                  final firstName = parts.isNotEmpty ? parts[0] : '';
-                  final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-                  
-                  // Store old values for rollback
-                  final oldFirstName = userController.userData['firstName'];
-                  final oldLastName = userController.userData['lastName'];
-                  
-                  // Optimistically update the UI
-                  userController.userData['firstName'] = firstName;
-                  userController.userData['lastName'] = lastName;
-                  
-                  // Make the API call in the background
-                  userController.updateUser(
-                    AppConstants.userId,
-                    {
-                      'firstName': firstName,
-                      'lastName': lastName,
-                    },
-                    context,
-                    Get.find<ThemeProvider>(),
-                    Get.find<LanguageProvider>(),
-                  ).catchError((error) {
-                    // If the API call fails, revert the change
-                    debugPrint('Error updating name: $error');
-                    userController.userData['firstName'] = oldFirstName;
-                    userController.userData['lastName'] = oldLastName;
-                    return false;
-                  });
-                }
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
         );
       },
     );
@@ -775,16 +814,16 @@ class _PersonalDetailsCard extends StatelessWidget {
         color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ThemeHelper.divider, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: ThemeHelper.isLightMode 
-                ? CupertinoColors.black.withOpacity(0.2)
-                : CupertinoColors.systemGrey.withOpacity(0.3),
-            blurRadius: 8.0,
-            offset: const Offset(0, 4),
-            spreadRadius: 2,
-          ),
-        ],
+        boxShadow: CupertinoTheme.of(context).brightness == Brightness.dark
+            ? []
+            : [
+                BoxShadow(
+                  color: CupertinoColors.black.withOpacity(0.2),
+                  blurRadius: 8.0,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 2,
+                ),
+              ],
       ),
       child: Obx(() {
         final weight = (userController.userData['weight'] as num?)?.toDouble() ?? 70.0;

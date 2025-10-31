@@ -1352,4 +1352,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get no => 'Nein';
+
+  @override
+  String get authenticationError => 'Authentication Error';
+
+  @override
+  String get registrationFailed => 'Registration Failed';
+
+  @override
+  String get loginFailed => 'Login Failed';
+
+  @override
+  String get networkError => 'Network Error';
+
+  @override
+  String get networkErrorDescription =>
+      'Unable to connect to the server. Please check your internet connection and try again.';
+
+  @override
+  String get unexpectedError => 'Unexpected Error';
+
+  @override
+  String get unexpectedErrorDescription =>
+      'Something went wrong. Please try again later.';
+
+  @override
+  String get tryAgain => 'Try Again';
 }

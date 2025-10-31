@@ -261,7 +261,7 @@ class StreakService extends GetxController {
       final String endDateStr = _formatDate(endDate);
 
       List<Map<String, dynamic>>? result;
-      
+       
       await getAPI(
         methodName: 'api/streaks/date-range?startDate=$startDateStr&endDate=$endDateStr&currentDate=${DateTime.now().toLocal().toIso8601String()}',
         callback: (response) {

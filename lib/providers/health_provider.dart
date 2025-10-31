@@ -24,9 +24,8 @@ class HealthProvider extends ChangeNotifier {
   bool get hasPermissions => _hasPermissions;
 
   // Platform-specific health data types
-  final List<HealthDataType> _dataTypes = Platform.isAndroid
-      ? <HealthDataType>[HealthDataType.STEPS]
-      : <HealthDataType>[HealthDataType.STEPS];
+  final List<HealthDataType> _dataTypes = <HealthDataType>[HealthDataType.STEPS];
+  final List<HealthDataAccess> _dataAccess = <HealthDataAccess>[HealthDataAccess.READ];
 
   @override
   void dispose() {
@@ -75,7 +74,7 @@ class HealthProvider extends ChangeNotifier {
       }
 
       // Check health permissions
-      final hasPermissions = await _health.hasPermissions(_dataTypes);
+      final hasPermissions = await _health.hasPermissions(_dataTypes, permissions: _dataAccess);
       _hasPermissions = hasPermissions ?? false;
     } catch (e) {
       _errorMessage = 'Failed to check permissions: $e';
@@ -93,13 +92,14 @@ class HealthProvider extends ChangeNotifier {
         await Permission.activityRecognition.request();
       }
 
-      // Request health permissions
-      final authorized = await _health.requestAuthorization(_dataTypes);
+      // Request health read permissions
+      final authorized = await _health.requestAuthorization(_dataTypes, permissions: _dataAccess);
       _hasPermissions = authorized;
       await UserPrefs.setHealthPermissionsGranted(_hasPermissions);
 
       if (_hasPermissions) {
         await _fetchTodaysSteps();
+        _startAutoRefresh();
       }
     } catch (e) {
       _errorMessage = 'Failed to request permissions: $e';
@@ -115,21 +115,33 @@ class HealthProvider extends ChangeNotifier {
       final now = DateTime.now();
       final startOfDay = DateTime(now.year, now.month, now.day);
       
-      final steps = await _health.getHealthDataFromTypes(
-        types: _dataTypes,
-        startTime: startOfDay,
-        endTime: now,
-      );
+      // Prefer the built-in total steps aggregation if available
+      int total = 0;
+      try {
+        final int? totalSteps = await _health.getTotalStepsInInterval(startOfDay, now);
+        if (totalSteps != null) {
+          total = totalSteps;
+        }
+      } catch (_) {
+        // Fallback path below
+      }
 
-      // Sum up all steps from today
-      int totalSteps = 0;
-      for (final dataPoint in steps) {
-        if (dataPoint.type == HealthDataType.STEPS) {
-          totalSteps += (dataPoint.value as NumericHealthValue).numericValue.toInt();
+      if (total == 0) {
+        // Fallback: manually sum step samples and de-duplicate
+        final samples = await _health.getHealthDataFromTypes(
+          types: _dataTypes,
+          startTime: startOfDay,
+          endTime: now,
+        );
+        for (final dp in samples) {
+          if (dp.type == HealthDataType.STEPS) {
+            final val = (dp.value as NumericHealthValue).numericValue;
+            total += val.isFinite ? val.toInt() : 0;
+          }
         }
       }
 
-      _stepsToday = totalSteps;
+      _stepsToday = total;
       _errorMessage = '';
     } catch (e) {
       _errorMessage = 'Failed to fetch steps: $e';

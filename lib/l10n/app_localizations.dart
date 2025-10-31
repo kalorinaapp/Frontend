@@ -2633,6 +2633,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get no;
+
+  /// No description provided for @authenticationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication Error'**
+  String get authenticationError;
+
+  /// No description provided for @registrationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration Failed'**
+  String get registrationFailed;
+
+  /// No description provided for @loginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Failed'**
+  String get loginFailed;
+
+  /// No description provided for @networkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Network Error'**
+  String get networkError;
+
+  /// No description provided for @networkErrorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to connect to the server. Please check your internet connection and try again.'**
+  String get networkErrorDescription;
+
+  /// No description provided for @unexpectedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected Error'**
+  String get unexpectedError;
+
+  /// No description provided for @unexpectedErrorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again later.'**
+  String get unexpectedErrorDescription;
+
+  /// No description provided for @tryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get tryAgain;
 }
 
 class _AppLocalizationsDelegate

@@ -69,15 +69,9 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       _loadCurrentLanguage();
     });
 
-    OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+   
 
-    OneSignal.Debug.setAlertLevel(OSLogLevel.none);
-    // OneSignal.consentRequired(_requireConsent);
-
-    // NOTE: Replace with your own app ID from https://www.onesignal.com
-    OneSignal.initialize("5e051ce3-f17b-478b-a53e-f975af027029");
-
-    _handleAllowNotifications();
+    // _handleAllowNotifications();
 
     _controller = Get.find<OnboardingController>();
     _userController = Get.put(UserController());
@@ -154,6 +148,27 @@ class _CreateAccountPageState extends State<CreateAccountPage>
         _currentLanguageFlag = '🇭🇷';
       });
     }
+  }
+
+  // Show error dialog with localization
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    
+    final l10n = AppLocalizations.of(context)!;
+    showCupertinoDialog(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: Text(l10n.error),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.ok),
+          ),
+        ],
+      ),
+    );
   }
 
   // Get language information by code
@@ -382,8 +397,11 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       "supabaseId": Supabase.instance.client.auth.currentSession?.user.id ?? '',
       "revenueCatId": _generateRandomId(prefix: 'revenuecat_user_id', length: 8),
 
+
       // Referral tracking
       "referrerId": _generateRandomId(prefix: 'referrer_user_id', length: 8),
+
+      "oneSignalId": OneSignal.User.pushSubscription.id.toString(),
 
       // Onboarding questionnaire fields
       "hearAboutUs": _mapHearAboutUsToEnum(_controller.getStringData('hear_about_us') ?? ''),
@@ -889,13 +907,18 @@ class _CreateAccountPageState extends State<CreateAccountPage>
         await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
       }
       
-      // Hide loading on success
+      // Hide loading and check for errors
       _setLoading(false);
+      
+      // Check if there was an error
+      if (_userController.errorMessage.value.isNotEmpty && !_userController.isSuccess.value) {
+        _showErrorDialog(_userController.errorMessage.value);
+      }
     } catch (e) {
       // Hide loading on error
       _setLoading(false);
       print('Error in googleSignInByIdAndroid: $e');
-      rethrow;
+      _showErrorDialog(AppLocalizations.of(context)!.networkErrorDescription);
     }
   }
 
@@ -1012,15 +1035,24 @@ class _CreateAccountPageState extends State<CreateAccountPage>
               await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
             }
             
-            // Hide loading on success
+            // Hide loading and check for errors
             _setLoading(false);
-            completer.complete(); // Complete the Future when sign-in is successful
+            
+            // Check if there was an error
+            if (_userController.errorMessage.value.isNotEmpty && !_userController.isSuccess.value) {
+              _showErrorDialog(_userController.errorMessage.value);
+              completer.completeError(_userController.errorMessage.value);
+            } else {
+              completer.complete(); // Complete the Future when sign-in is successful
+            }
           } catch (e) {
             // Hide loading on error
             _setLoading(false);
+            _showErrorDialog(AppLocalizations.of(context)!.networkErrorDescription);
             completer.completeError(e);
           }
         } else if (event.event == AuthChangeEvent.signedOut) {
+          _setLoading(false);
           completer.completeError('User canceled or sign-out occurred.');
         }
       });
@@ -1035,7 +1067,7 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       // Hide loading on error
       _setLoading(false);
       print('Error in googleSignInAndroid: $e');
-      rethrow;
+      _showErrorDialog(AppLocalizations.of(context)!.networkErrorDescription);
     }
   }
 }

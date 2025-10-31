@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'package:get/get.dart';
 import '../l10n/app_localizations.dart' show AppLocalizations;
@@ -380,6 +381,14 @@ class _HomeScreenState extends State<HomeScreen> {
             
             debugPrint('Created meal data: $mealData');
             debugPrint('Navigating to MealDetailsScreen');
+
+            // Clear selected image before navigating so dashboard state remains unchanged unless saved
+            if (mounted) {
+              setState(() {
+                _selectedImage = null;
+              });
+              _updateScreens();
+            }
             
             final savedMeal = await Navigator.of(context).push<Map<String, dynamic>>(
               CupertinoPageRoute(
@@ -396,6 +405,16 @@ class _HomeScreenState extends State<HomeScreen> {
               });
               // Refresh today totals to get updated data
               _fetchTodayTotals();
+            } else {
+              // User backed out without saving: revert transient scan state
+              if (!mounted) return;
+              setState(() {
+                _selectedImage = null;
+                _scanResult = null;
+                _hasScanError = false;
+                _isAnalyzing = false;
+              });
+              _updateScreens();
             }
           } else {
             debugPrint('Scan failed or no scan result, taking fallback path');
@@ -494,9 +513,13 @@ class _HomeScreenState extends State<HomeScreen> {
       _showAddOptions();
       return;
     }
-    setState(() {
-      _currentIndex = index > 2 ? index - 1 : index; // Adjust for center button
-    });
+    final int newIndex = index > 2 ? index - 1 : index;
+    if (newIndex != _currentIndex) {
+      HapticFeedback.lightImpact();
+      setState(() {
+        _currentIndex = newIndex; // Adjust for center button
+      });
+    }
   }
 
   @override
@@ -719,6 +742,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 imageAsset,
                 width: 24,
                 height: 24,
+                color: widget.themeProvider.isLightMode ? null : Colors.white,
               ),
               if (title.isNotEmpty) ...[
                 const SizedBox(height: 8),

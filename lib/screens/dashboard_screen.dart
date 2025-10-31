@@ -14,6 +14,7 @@ import '../services/progress_service.dart';
 import '../utils/theme_helper.dart' show ThemeHelper;
 import 'log_streak_screen.dart' show LogStreakScreen;
 import 'set_goals_screen.dart' show SetGoalsScreen;
+import 'meal_details_screen.dart' show MealDetailsScreen;
 
 enum StreakStatus {
   completed,
@@ -83,6 +84,15 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     streakService = Get.put(StreakService());
     _initializeWeek();
     _loadStreaksForWeek();
+    // Ensure progress data loads independently of meals fetch timing
+    try {
+      final now = DateTime.now();
+      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final progressService = Get.find<ProgressService>();
+      // Fire and forget; GetBuilder will rebuild on update
+      // ignore: discarded_futures
+      progressService.fetchDailyProgress(dateYYYYMMDD: dateStr);
+    } catch (_) {}
     
     _percentageController = AnimationController(
       duration: const Duration(seconds: 3),
@@ -269,7 +279,16 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     // Left side - Calories Card
                     Expanded(
                       flex: 2,
-                        child: Container(
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SetGoalsScreen(dailyProgress: widget.todayTotals),
+                              ),
+                            );
+                          },
+                          child: Container(
                         height: 264, // Match macro stack height (3×80 + 2×12)
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -423,9 +442,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         ),
                       ),
                     ),
-                    
+                    ),
+
                     const SizedBox(width: 16),
-                    
+
                     // Right side - Macro Cards (stacked vertically)
                     Expanded(
                       flex: 3,
@@ -628,7 +648,12 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       // Removed optimistic scanned food card - only show after meal is saved
                       if ((widget.todayMeals ?? []).isNotEmpty) ...[
                         Column(
-                          children: widget.todayMeals!.map((meal) => _buildMealTotalsCard(meal, l10n)).toList(),
+                          children: widget.todayMeals!
+                              .map((meal) => GestureDetector(
+                                    onTap: () => _openMealDetails(meal),
+                                    child: _buildMealTotalsCard(meal, l10n),
+                                  ))
+                              .toList(),
                         ),
                         const SizedBox(height: 12),
                       ] else if (widget.todayTotals != null) ...[
@@ -642,7 +667,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 ),
               ),
               
-              const SizedBox(height: 40), // Replace Spacer with fixed height
+              SizedBox(height: 40 + MediaQuery.of(context).padding.bottom + 20),
                       ],
                     ),
                   ),
@@ -677,6 +702,16 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           ),
         );
       },
+    );
+  }
+
+  void _openMealDetails(Map<String, dynamic> meal) {
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) => MealDetailsScreen(
+          mealData: meal,
+        ),
+      ),
     );
   }
 
