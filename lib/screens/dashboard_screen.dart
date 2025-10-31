@@ -317,7 +317,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             const SizedBox(height: 20),
                             // Progress ring with apple icon
                             Center(
-                              child: Container(
+                              child: SizedBox(
                                 width: 80,
                                 height: 80,
                                 child: Stack(
