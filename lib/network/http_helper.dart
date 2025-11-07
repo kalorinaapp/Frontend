@@ -123,6 +123,31 @@ Future multiPutAPINew({
   }
 }
 
+Future multiDeleteAPINew({
+  required String methodName,
+  required Function(ResponseAPI) callback,
+}) async {
+  if (await isInternetAvailable()) {
+    final url = AppConstants.baseUrl + methodName;
+    final uri = Uri.parse(url);
+    log('==DELETE request== $uri');
+    final headers = getHeaders();
+    final response = await http
+        .delete(uri, headers: headers)
+        .timeout(const Duration(seconds: 20))
+        .onError((error, stackTrace) {
+          log('onError== $error');
+          log('stackTrace== $stackTrace');
+          _handleError(error, callback);
+          return Future.value(ResponseAPI(0, 'Something went wrong', isError: true) as FutureOr<http.Response>?);
+        })
+        .catchError((error) => _handleError(error, callback));
+    _handleResponse(response, callback);
+  } else {
+    callback.call(ResponseAPI(0, 'No Internet', isError: true));
+  }
+}
+
 void _handleResponse(http.Response value, Function(ResponseAPI) callback) {
   callback.call(ResponseAPI(value.statusCode, value.body));
 }

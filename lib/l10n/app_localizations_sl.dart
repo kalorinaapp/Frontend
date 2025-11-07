@@ -121,6 +121,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get confirm => 'Potrdi';
 
   @override
+  String get generateYourPlan => 'Ustvari svoj načrt';
+
+  @override
   String get generatingYourPlan => 'Ustvarjamo vaš\npriljubljen načrt';
 
   @override

@@ -121,6 +121,9 @@ class AppLocalizationsMk extends AppLocalizations {
   String get confirm => 'Потврди';
 
   @override
+  String get generateYourPlan => 'Генерирај го твојот план';
+
+  @override
   String get generatingYourPlan => 'Генерирање на твојот\nперсонализиран план';
 
   @override

@@ -127,7 +127,13 @@ class _HomeScreenState extends State<HomeScreen> {
         onRetryScan: _retryScan,
         onCloseError: _closeErrorCard,
       ),
-      LogScreen(themeProvider: widget.themeProvider),
+      LogScreen(
+        themeProvider: widget.themeProvider,
+        onExerciseLogged: () {
+          // Refresh data when exercise is logged
+          _fetchTodayTotals();
+        },
+      ),
       ProgressScreen(
         themeProvider: widget.themeProvider, 
         healthProvider: healthProvider,
@@ -182,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadInitialData() async {
     try {
-      final now = DateTime.now();
+      final now = DateTime.now().toLocal();
       final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final userId = AppConstants.userId;
       

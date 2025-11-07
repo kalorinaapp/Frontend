@@ -121,6 +121,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get confirm => 'Confirmă';
 
   @override
+  String get generateYourPlan => 'Generează-ți Planul';
+
+  @override
   String get generatingYourPlan => 'Generarea planului tău\npersonalizat';
 
   @override

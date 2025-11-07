@@ -121,6 +121,9 @@ class AppLocalizationsBs extends AppLocalizations {
   String get confirm => 'Potvrdi';
 
   @override
+  String get generateYourPlan => 'Generiraj Svoj Plan';
+
+  @override
   String get generatingYourPlan => 'Generiramo vaš\nplan po mjeri';
 
   @override

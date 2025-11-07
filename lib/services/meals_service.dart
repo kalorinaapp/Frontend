@@ -43,6 +43,7 @@ class MealsService {
       callback: (resp) async {
         try {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+          debugPrint('MealsService fetchDailyMeals response: $parsed');
         } catch (e) {
           debugPrint('MealsService fetchDailyMeals parse error: $e');
           parsed = null;

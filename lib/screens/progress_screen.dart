@@ -1,10 +1,12 @@
 // ignore_for_file: deprecated_member_use
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'confirm_weight_screen.dart' show ConfirmWeightScreen;
+import 'progress_photos_screen.dart' show ProgressPhotosScreen, ProgressPhotoItem;
+import 'progress_photo_detail_screen.dart' show ProgressPhotoDetailScreen;
+import '../controllers/progress_photos_card_controller.dart';
 import '../providers/theme_provider.dart';
 import '../providers/health_provider.dart';
 import '../providers/language_provider.dart';
@@ -1201,14 +1203,14 @@ class _ProgressPhotosCard extends StatefulWidget {
 }
 
 class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerProviderStateMixin {
-  final ImagePicker _picker = ImagePicker();
-  final List<XFile> _images = [];
+  late final ProgressPhotosCardController _controller;
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _controller = Get.put(ProgressPhotosCardController());
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -1231,6 +1233,7 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerPro
 
   @override
   void dispose() {
+    Get.delete<ProgressPhotosCardController>();
     _shakeController.dispose();
     super.dispose();
   }
@@ -1435,9 +1438,9 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerPro
           CupertinoActionSheetAction(
             onPressed: () async {
               Navigator.of(ctx).pop();
-              final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 85);
+              final XFile? photo = await _controller.picker.pickImage(source: ImageSource.camera, imageQuality: 85);
               if (photo != null) {
-                setState(() => _images.add(photo));
+                _controller.addLocalImage(photo);
                 // Navigate to confirm screen
                 await Navigator.of(context).push(CupertinoPageRoute(
                   builder: (_) => ConfirmWeightScreen(
@@ -1452,9 +1455,9 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerPro
           CupertinoActionSheetAction(
             onPressed: () async {
               Navigator.of(ctx).pop();
-              final List<XFile> files = await _picker.pickMultiImage(imageQuality: 85);
+              final List<XFile> files = await _controller.picker.pickMultiImage(imageQuality: 85);
               if (files.isNotEmpty) {
-                setState(() => _images.addAll(files));
+                _controller.addLocalImages(files);
                 await Navigator.of(context).push(CupertinoPageRoute(
                   builder: (_) => ConfirmWeightScreen(
                     weightLabel: _currentWeightLabel(context),
@@ -1494,71 +1497,91 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerPro
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(AppLocalizations.of(context)!.progressPhotos, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
-                if (_images.isNotEmpty)
-                Container(
-                  width: 102,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: ThemeHelper.cardBackground,
-                    borderRadius: BorderRadius.circular(13),
-                    boxShadow: [
-                      BoxShadow(
-                        color: ThemeHelper.textPrimary.withOpacity(0.1),
-                        blurRadius: 5,
-                        offset: Offset(0, 0),
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: SizedBox(
-                      width: 77,
-                      height: 15,
-                      child: Text(
-                        AppLocalizations.of(context)!.seeProgress,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: ThemeHelper.textSecondary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                Obx(() {
+                  if (_controller.serverPhotos.isNotEmpty || _controller.localImages.isNotEmpty) {
+                    return GestureDetector(
+                      onTap: () async {
+                        // Navigate to progress photos screen with current server photos
+                        await Navigator.of(context).push(
+                          CupertinoPageRoute(
+                            builder: (_) => ProgressPhotosScreen(
+                              photos: _controller.serverPhotos.toList(),
+                              shouldFetchFromServer: true,
+                            ),
+                          ),
+                        );
+                        // Refresh server photos when returning (in case a photo was deleted)
+                        _controller.loadServerPhotos();
+                      },
+                      child: Container(
+                        width: 102,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: ThemeHelper.cardBackground,
+                          borderRadius: BorderRadius.circular(13),
+                          boxShadow: [
+                            BoxShadow(
+                              color: ThemeHelper.textPrimary.withOpacity(0.1),
+                              blurRadius: 5,
+                              offset: Offset(0, 0),
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: SizedBox(
+                            width: 77,
+                            height: 15,
+                            child: Text(
+                              AppLocalizations.of(context)!.seeProgress,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: ThemeHelper.textSecondary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          if (_images.isEmpty)
-            Center(
-              child: GestureDetector(
-                onTap: () => _showPickerSheet(context),
-                child:widget.isWeighInDueToday
-                    ? _buildAnimatedUploadButton(context)
-                    : Container(
-                        width: MediaQuery.of(context).size.width * 0.75,
-                        height: 99,
-                        decoration: BoxDecoration(
-                          color: ThemeHelper.cardBackground,
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 3)],
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(AppLocalizations.of(context)!.uploadPhoto, style: TextStyle(fontSize: 12, color: ThemeHelper.textSecondary)),
-                              SizedBox(height: 4),
-                              Text('+', style: TextStyle(fontSize: 22, color: ThemeHelper.textSecondary)),
-                            ],
+          Obx(() {
+            if (_controller.serverPhotos.isEmpty && _controller.localImages.isEmpty) {
+              return Center(
+                child: GestureDetector(
+                  onTap: () => _showPickerSheet(context),
+                  child:widget.isWeighInDueToday
+                      ? _buildAnimatedUploadButton(context)
+                      : Container(
+                          width: MediaQuery.of(context).size.width * 0.75,
+                          height: 99,
+                          decoration: BoxDecoration(
+                            color: ThemeHelper.cardBackground,
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.1), blurRadius: 3)],
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(AppLocalizations.of(context)!.uploadPhoto, style: TextStyle(fontSize: 12, color: ThemeHelper.textSecondary)),
+                                SizedBox(height: 4),
+                                Text('+', style: TextStyle(fontSize: 22, color: ThemeHelper.textSecondary)),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-              ),
-            )
-          else
-            Padding(
+                ),
+              );
+            }
+            return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Wrap(
                 spacing: 8,
@@ -1587,9 +1610,72 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerPro
                             ),
                           ),
                   ),
-                  // Existing images with delete button
-                  ..._images.asMap().entries.map((entry) {
-                    final XFile x = entry.value;
+                  // Server photos
+                  ..._controller.serverPhotos.take(6).map((photo) {
+                    return GestureDetector(
+                      onTap: () async {
+                        await Navigator.of(context).push(
+                          CupertinoPageRoute(
+                            builder: (context) => ProgressPhotoDetailScreen(
+                              photos: _controller.serverPhotos.toList(),
+                              initialIndex: _controller.serverPhotos.indexOf(photo),
+                              onLoadMore: (page) async {
+                                final res = await _controller.service.fetchProgressPhotos(page: page, limit: 60);
+                                if (res != null && res['success'] == true) {
+                                  final List<dynamic> photosData = (res['photos'] as List<dynamic>? ?? <dynamic>[]);
+                                  return photosData.map((p) {
+                                    final Map<String, dynamic> m = Map<String, dynamic>.from(p as Map);
+                                    final double? w = (m['weight'] as num?)?.toDouble();
+                                    final String takenAt = (m['takenAt'] ?? '') as String;
+                                    final String photoId = (m['id'] ?? m['_id'] ?? '') as String;
+                                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                                    String dateLabel = '';
+                                    try {
+                                      final d = DateTime.tryParse(takenAt)?.toLocal();
+                                      if (d != null) {
+                                        dateLabel = '${months[d.month-1]} ${d.day}, ${d.year}';
+                                      }
+                                    } catch (_) {}
+                                    final String label = w != null ? '${w.toStringAsFixed(1)} kg - $dateLabel' : dateLabel;
+                                    return ProgressPhotoItem(
+                                      imagePath: (m['imageUrl'] ?? '') as String,
+                                      label: label,
+                                      isNetwork: true,
+                                      weight: w,
+                                      takenAt: takenAt,
+                                      photoId: photoId,
+                                    );
+                                  }).toList();
+                                }
+                                return <ProgressPhotoItem>[];
+                              },
+                              onPhotoDeleted: (deletedPhotoId) {
+                                // Optimistically remove the photo from the card
+                                _controller.optimisticallyRemovePhoto(deletedPhotoId);
+                              },
+                            ),
+                          ),
+                        );
+                        // Refresh after returning
+                        _controller.loadServerPhotos();
+                      },
+                      child: Container(
+                        width: 88,
+                        height: 120,
+                        decoration: ShapeDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage(photo.imagePath) as ImageProvider,
+                            fit: BoxFit.cover,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  // Local images (not yet uploaded)
+                  ..._controller.localImages.map((x) {
                     return Stack(
                       children: [
                         Container(
@@ -1605,15 +1691,13 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerPro
                             ),
                           ),
                         ),
-                
                       ],
                     );
                   }).toList(),
-                  // Upload tile (same ratio) to add more
-                 
                 ],
               ),
-            ),
+            );
+          }),
           const SizedBox(height: 24),
         ],
       ),
@@ -1701,14 +1785,16 @@ class _StepsCard extends StatelessWidget {
               ],
             ),
           ),
-          if (healthProvider.hasPermissions && !healthProvider.isLoading)
+          if (healthProvider.hasPermissions)
             GestureDetector(
-              onTap: () => healthProvider.refreshSteps(),
-              child: Icon(
-                CupertinoIcons.refresh,
-                color: ThemeHelper.textSecondary,
-                size: 16,
-              ),
+              onTap: () async { await healthProvider.refreshSteps(); },
+              child: healthProvider.isLoading
+                  ? const SizedBox(width: 16, height: 16, child: CupertinoActivityIndicator(radius: 7))
+                  : Icon(
+                      CupertinoIcons.refresh,
+                      color: ThemeHelper.textSecondary,
+                      size: 16,
+                    ),
             ),
         ],
       ),

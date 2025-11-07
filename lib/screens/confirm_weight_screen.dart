@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import '../services/progress_service.dart';
 import 'progress_photos_screen.dart' show ProgressPhotosScreen, ProgressPhotoItem;
 import '../utils/user.prefs.dart' show UserPrefs;
+import '../utils/theme_helper.dart';
 import 'package:get/get.dart';
 import '../providers/theme_provider.dart' show ThemeProvider;
 
@@ -35,7 +36,7 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.white,
+      backgroundColor: ThemeHelper.background,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -51,7 +52,7 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
                       'assets/icons/back.svg',
                       width: 24,
                       height: 24,
-                      color: CupertinoColors.black,
+                      color: ThemeHelper.textPrimary,
                     ),
                   ),
                 ],
@@ -60,17 +61,17 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
 
         
 
-            const Text(
+            Text(
+              'Confirm your weight',
               textAlign: TextAlign.center,
-                    'Confirm your weight',
-                    style: TextStyle(
-                      color: Color(0xFF1E1822),
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+              style: TextStyle(
+                color: ThemeHelper.textPrimary,
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
 
-                      const SizedBox(height: 30),
+            const SizedBox(height: 30),
 
             // Weight box
             Center(
@@ -78,15 +79,17 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
                 width: 335,
                 height: 60,
                 decoration: ShapeDecoration(
-                  color: Colors.white,
+                  color: ThemeHelper.cardBackground,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(13),
                   ),
-                  shadows: const [
+                  shadows: [
                     BoxShadow(
-                      color: Color(0x3F000000),
+                      color: ThemeHelper.isLightMode 
+                          ? Colors.black.withOpacity(0.25)
+                          : Colors.transparent,
                       blurRadius: 5,
-                      offset: Offset(0, 0),
+                      offset: const Offset(0, 0),
                       spreadRadius: 1,
                     )
                   ],
@@ -98,8 +101,11 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
                     placeholder: 'Current weight',
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const BoxDecoration(color: Colors.transparent),
-                    style: const TextStyle(
-                      color: Colors.black,
+                    placeholderStyle: TextStyle(
+                      color: ThemeHelper.textSecondary,
+                    ),
+                    style: TextStyle(
+                      color: ThemeHelper.textPrimary,
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
                     ),
@@ -111,12 +117,12 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
             const SizedBox(height: 28),
 
             // Progress Photo label
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'Progress Photo',
                 style: TextStyle(
-                  color: Color(0xFF1E1822),
+                  color: ThemeHelper.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -155,13 +161,15 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
             Container(
               width: double.infinity,
               height: 76,
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: ThemeHelper.background,
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0x19000000),
+                    color: ThemeHelper.isLightMode 
+                        ? Colors.black.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.3),
                     blurRadius: 10,
-                    offset: Offset(0, -2),
+                    offset: const Offset(0, -2),
                     spreadRadius: 0,
                   )
                 ],
@@ -199,8 +207,15 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
                         // Build photo items with simple label
                         final String dateLabel = _formatDateLabel(DateTime.now());
                         final String label = ((weight ?? 0) > 0) ? '${weight!.toStringAsFixed(1)} kg - $dateLabel' : dateLabel;
+                        final now = DateTime.now().toLocal().toIso8601String();
                         final items = widget.imagePaths
-                            .map((p) => ProgressPhotoItem(imagePath: p, label: label, isNetwork: false))
+                            .map((p) => ProgressPhotoItem(
+                              imagePath: p,
+                              label: label,
+                              isNetwork: false,
+                              weight: weight,
+                              takenAt: now,
+                            ))
                             .toList();
                         await Navigator.of(context).pushReplacement(CupertinoPageRoute(
                           builder: (_) => ProgressPhotosScreen(photos: items, shouldFetchFromServer: true),
@@ -216,19 +231,19 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
                     width: 293,
                     height: 43,
                     decoration: ShapeDecoration(
-                      color: Colors.black,
+                      color: ThemeHelper.textPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
                     child: Center(
                       child: _saving
-                          ? const CupertinoActivityIndicator(color: CupertinoColors.white)
-                          : const Text(
+                          ? CupertinoActivityIndicator(color: ThemeHelper.background)
+                          : Text(
                               'Confirm',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: Colors.white,
+                                color: ThemeHelper.background,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),

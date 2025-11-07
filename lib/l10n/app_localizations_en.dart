@@ -121,6 +121,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirm => 'Confirm';
 
   @override
+  String get generateYourPlan => 'Generate Your Plan';
+
+  @override
   String get generatingYourPlan => 'Generating your\ncustom plan';
 
   @override

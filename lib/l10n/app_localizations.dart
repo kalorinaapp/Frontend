@@ -330,6 +330,12 @@ abstract class AppLocalizations {
   /// **'Confirm'**
   String get confirm;
 
+  /// No description provided for @generateYourPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Your Plan'**
+  String get generateYourPlan;
+
   /// No description provided for @generatingYourPlan.
   ///
   /// In en, this message translates to:

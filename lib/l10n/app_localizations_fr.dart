@@ -121,6 +121,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get confirm => 'Confirmer';
 
   @override
+  String get generateYourPlan => 'Générer votre plan';
+
+  @override
   String get generatingYourPlan => 'Génération de votre\nplan personnalisé';
 
   @override

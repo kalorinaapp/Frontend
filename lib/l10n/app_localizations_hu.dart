@@ -121,6 +121,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get confirm => 'Megerősítés';
 
   @override
+  String get generateYourPlan => 'Generáld a tervedet';
+
+  @override
   String get generatingYourPlan => 'Személyre szabott\nterv generálása';
 
   @override

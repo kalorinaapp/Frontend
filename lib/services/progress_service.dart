@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import '../network/http_helper.dart' show multiGetAPINew;
+import '../network/http_helper.dart' show multiGetAPINew, multiDeleteAPINew;
 import '../utils/network.dart' show multiPostAPINew;
 
 class ProgressService extends GetxController {
@@ -156,6 +156,24 @@ class ProgressService extends GetxController {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
         } catch (e) {
           debugPrint('ProgressService steps parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> deleteProgressPhoto({
+    required String photoId,
+  }) async {
+    Map<String, dynamic>? parsed;
+    await multiDeleteAPINew(
+      methodName: 'api/progress/photos/$photoId',
+      callback: (resp) async {
+        try {
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('ProgressService delete photo parse error: $e');
           parsed = null;
         }
       },

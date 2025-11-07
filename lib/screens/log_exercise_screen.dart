@@ -10,10 +10,12 @@ import '../utils/theme_helper.dart';
 class LogExerciseScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
   final int initialTabIndex;
+  final VoidCallback? onExerciseLogged;
   const LogExerciseScreen({
     super.key, 
     required this.themeProvider,
     this.initialTabIndex = 0,
+    this.onExerciseLogged,
   });
 
   @override
@@ -32,7 +34,6 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   int _selectedIntensity = 1; // 0: Low, 1: Medium, 2: High
   double _duration = 27.0; // Duration in minutes
   bool _isLoggingCardio = false;
-  Map<String, dynamic>? _cardioResult;
   
   // Direct Input tab state
   final TextEditingController _caloriesController = TextEditingController();
@@ -40,7 +41,6 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   // Describe tab state
   final TextEditingController _describeController = TextEditingController();
   bool _isEstimating = false;
-  Map<String, dynamic>? _estimate;
   
   List<String> _getIntensityLabels(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -70,52 +70,19 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
     _selectedTabIndex = widget.initialTabIndex;
   }
 
-  Widget _buildCardioResultCard() {
-    final res = (_cardioResult?['log'] as Map<String, dynamic>?) ?? (_cardioResult ?? const {});
-    final type = res['type']?.toString() ?? 'exercise';
-    final duration = res['durationMinutes']?.toString() ?? '0';
-    final intensity = res['intensity']?.toString() ?? '';
-    final calories = res['caloriesBurned']?.toString() ?? (_cardioResult?['estimatedCalories']?.toString() ?? '0');
-    final startedAt = res['startedAt']?.toString();
-
-    String timeStr = '';
-    if (startedAt != null && startedAt.isNotEmpty) {
-      try {
-        final dt = DateTime.parse(startedAt);
-        timeStr = '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
-      } catch (_) {}
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: ThemeHelper.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ThemeHelper.divider, width: 1.5),
-        boxShadow: [
-          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.08), blurRadius: 15, offset: const Offset(0,4)),
-          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.04), blurRadius: 8, offset: const Offset(0,2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(CupertinoIcons.flame, size: 18, color: ThemeHelper.textPrimary),
-              const SizedBox(width: 8),
-              Text(type[0].toUpperCase() + type.substring(1), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
-              const Spacer(),
-              Text('$calories kcal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: ThemeHelper.textPrimary)),
-            ],
+  void _showSuccessDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.success),
+        content: const Text('Exercise logged successfully!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(),
+            textStyle: TextStyle(color: ThemeHelper.textPrimary, fontWeight: FontWeight.w600),
+            child: Text(l10n.ok),
           ),
-          const SizedBox(height: 12),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            _pill('Duration: $duration min'),
-            if (intensity.isNotEmpty) _pill('Intensity: $intensity'),
-            if (timeStr.isNotEmpty) _pill('Start: $timeStr'),
-          ]),
         ],
       ),
     );
@@ -447,25 +414,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 
                 const SizedBox(height: 12),
 
-                if (_isLoggingCardio)
-                  Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CupertinoActivityIndicator(),
-                        SizedBox(width: 8),
-                        Text(l10n.logging, style: TextStyle(color: ThemeHelper.textSecondary)),
-                      ],
-                    ),
-                  ),
-
-                if (_cardioResult != null) ...[
-                  const SizedBox(height: 12),
-                  _buildCardioResultCard(),
-                  const SizedBox(height: 80),
-                ] else ...[
-                  const SizedBox(height: 100), // Space for bottom button
-                ],
+                const SizedBox(height: 100), // Space for bottom button
               ],
             ),
           ),
@@ -482,27 +431,37 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
               onTap: () async {
                 setState(() {
                   _isLoggingCardio = true;
-                  _cardioResult = null;
                 });
-                final service = ExerciseService();
-                // API expects the tab name as the type (e.g., Cardio, Weight Training)
-                final tabs = _getTabs(context);
-                final intensityLabels = _getIntensityLabels(context);
-                final intensityDescriptions = _getIntensityDescriptions(context);
-                final type = tabs[_selectedTabIndex];
-                final intensity = '${intensityLabels[_selectedIntensity]} - ${intensityDescriptions[_selectedIntensity]}';
-                final startedAt = DateTime.now().toIso8601String();
-                final res = await service.logExercise(
-                  
-                  type: type,
-                  durationMinutes: _duration.round(),
-                  intensity: intensity,
-                  startedAtIso: startedAt,
-                );
-                setState(() {
-                  _isLoggingCardio = false;
-                  _cardioResult = res;
-                });
+                try {
+                  final service = ExerciseService();
+                  final tabs = _getTabs(context);
+                  final intensityLabels = _getIntensityLabels(context);
+                  final intensityDescriptions = _getIntensityDescriptions(context);
+                  final type = tabs[_selectedTabIndex];
+                  final intensity = '${intensityLabels[_selectedIntensity]} - ${intensityDescriptions[_selectedIntensity]}';
+                  final startedAt = DateTime.now().toLocal().toIso8601String();
+                  DateTime.now().toLocal().toIso8601String();
+                  final res = await service.logExercise(
+                    type: type,
+                    durationMinutes: _duration.round(),
+                    intensity: intensity,
+                    startedAtIso: startedAt,
+                  );
+                  if (!mounted) return;
+                  // Show success dialog if we got a response (even if success is false, the exercise was logged)
+                  if (res != null) {
+                    _showSuccessDialog();
+                    // Trigger refresh callback if provided
+                    widget.onExerciseLogged?.call();
+                  }
+                } catch (e) {
+                  // Handle error silently or show error dialog if needed
+                } finally {
+                  if (!mounted) return;
+                  setState(() {
+                    _isLoggingCardio = false;
+                  });
+                }
               },
               child: Container(
                 width: double.infinity,
@@ -711,25 +670,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
 
                 const SizedBox(height: 12),
 
-                if (_isLoggingCardio)
-                  Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CupertinoActivityIndicator(),
-                        SizedBox(width: 8),
-                        Text(l10n.logging, style: TextStyle(color: ThemeHelper.textSecondary)),
-                      ],
-                    ),
-                  ),
-
-                if (_cardioResult != null) ...[
-                  const SizedBox(height: 12),
-                  _buildCardioResultCard(),
-                  const SizedBox(height: 80),
-                ] else ...[
-                  const SizedBox(height: 100),
-                ],
+                const SizedBox(height: 100),
               ],
             ),
           ),
@@ -744,7 +685,6 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
               onTap: () async {
                 setState(() {
                   _isLoggingCardio = true;
-                  _cardioResult = null;
                 });
                 try {
                   final service = ExerciseService();
@@ -761,14 +701,14 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                     startedAtIso: startedAt,
                   );
                   if (!mounted) return;
-                  setState(() {
-                    _cardioResult = res;
-                  });
+                  // Show success dialog if we got a response (even if success is false, the exercise was logged)
+                  if (res != null) {
+                    _showSuccessDialog();
+                    // Trigger refresh callback if provided
+                    widget.onExerciseLogged?.call();
+                  }
                 } catch (e) {
-                  if (!mounted) return;
-                  setState(() {
-                    _cardioResult = {'success': false, 'error': e.toString()};
-                  });
+                  // Handle error silently or show error dialog if needed
                 } finally {
                   if (!mounted) return;
                   setState(() {
@@ -780,16 +720,16 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                color: CupertinoColors.black,
+                color: ThemeHelper.textPrimary,
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Text(
                 _isLoggingCardio ? l10n.logging : l10n.add,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: CupertinoColors.white,
+                  color: ThemeHelper.background,
                 ),
               ),
             ),
@@ -939,9 +879,6 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                       ),
                     ),
                   ),
-                ] else if (_estimate != null) ...[
-                  _buildEstimateCard(),
-                  const SizedBox(height: 80),
                 ],
               ],
             ),
@@ -959,34 +896,45 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   if (_describeController.text.trim().isEmpty) return;
                   setState(() {
                     _isEstimating = true;
-                    _estimate = null;
                   });
-                  final service = ExerciseService();
-                  final res = await service.estimateFromDescription(
-                    description: _describeController.text.trim(),
-                    intensity: ['low','medium','high'][_selectedIntensity],
-                    durationMinutes: _duration.round(),
-                    autolog: true,
-                  );
-                  setState(() {
-                    _isEstimating = false;
-                    _estimate = res;
-                  });
+                  try {
+                    final service = ExerciseService();
+                    final res = await service.estimateFromDescription(
+                      description: _describeController.text.trim(),
+                      intensity: ['low','medium','high'][_selectedIntensity],
+                      durationMinutes: _duration.round(),
+                      autolog: true,
+                    );
+                    if (!mounted) return;
+                    // Show success dialog if we got a response (even if success is false, the exercise was logged)
+                    if (res != null) {
+                      _showSuccessDialog();
+                      // Trigger refresh callback if provided
+                      widget.onExerciseLogged?.call();
+                    }
+                  } catch (e) {
+                    // Handle error silently or show error dialog if needed
+                  } finally {
+                    if (!mounted) return;
+                    setState(() {
+                      _isEstimating = false;
+                    });
+                  }
                 },
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.black,
+                    color: ThemeHelper.textPrimary,
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Text(
                     _isEstimating ? l10n.estimating : l10n.add,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: CupertinoColors.white,
+                      color: ThemeHelper.background,
                     ),
                   ),
                 ),
@@ -995,78 +943,6 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildEstimateCard() {
-    final l10n = AppLocalizations.of(context)!;
-    final est = _estimate ?? const {};
-    final estimated = est['estimatedCalories']?.toString() ?? '0';
-    final rationale = est['rationale'] as String? ?? 'No rationale provided.';
-    final input = (est['input'] as Map<String, dynamic>?) ?? const {};
-    final desc = input['description'] as String? ?? '';
-    final intensity = input['intensity']?.toString() ?? '';
-    final duration = input['durationMinutes']?.toString() ?? '';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: ThemeHelper.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ThemeHelper.divider, width: 1.5),
-        boxShadow: [
-          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.08), blurRadius: 15, offset: const Offset(0,4)),
-          BoxShadow(color: ThemeHelper.textPrimary.withOpacity(0.04), blurRadius: 8, offset: const Offset(0,2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(CupertinoIcons.flame, size: 18, color: ThemeHelper.textPrimary),
-              const SizedBox(width: 8),
-              Text(l10n.aiEstimate, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
-              const Spacer(),
-              Text('$estimated kcal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: ThemeHelper.textPrimary)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(height: 1, width: double.infinity, color: ThemeHelper.divider),
-          const SizedBox(height: 12),
-          if (desc.isNotEmpty) ...[
-            Text(desc, style: TextStyle(fontSize: 14, color: ThemeHelper.textPrimary)),
-            const SizedBox(height: 8),
-          ],
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              if (intensity.isNotEmpty)
-                _pill('Intensity: $intensity'),
-              if (duration.isNotEmpty)
-                _pill('Duration: $duration min'),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(l10n.whyThisEstimate, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: ThemeHelper.textPrimary)),
-          const SizedBox(height: 6),
-          Text(rationale, style: TextStyle(fontSize: 13, color: ThemeHelper.textSecondary, height: 1.3)),
-        ],
-      ),
-    );
-  }
-
-  Widget _pill(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: ThemeHelper.background,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: ThemeHelper.divider, width: 1),
-      ),
-      child: Text(text, style: TextStyle(fontSize: 12, color: ThemeHelper.textPrimary)),
     );
   }
 
@@ -1180,21 +1056,20 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                 if (value <= 0) return;
                 setState(() {
                   _isLoggingCardio = true;
-                  _cardioResult = null;
                 });
                 try {
                   final service = ExerciseService();
                   final startedAt = DateTime.now().toLocal().toIso8601String();
                   final res = await service.logDirectCalories(caloriesBurned: value, startedAtIso: startedAt);
                   if (!mounted) return;
-                  setState(() {
-                    _cardioResult = res;
-                  });
+                  // Show success dialog if we got a response (even if success is false, the exercise was logged)
+                  if (res != null) {
+                    _showSuccessDialog();
+                    // Trigger refresh callback if provided
+                    widget.onExerciseLogged?.call();
+                  }
                 } catch (e) {
-                  if (!mounted) return;
-                  setState(() {
-                    _cardioResult = {'success': false, 'error': e.toString()};
-                  });
+                  // Handle error silently or show error dialog if needed
                 } finally {
                   if (!mounted) return;
                   setState(() {

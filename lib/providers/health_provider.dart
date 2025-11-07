@@ -151,7 +151,10 @@ class HealthProvider extends ChangeNotifier {
 
   Future<void> refreshSteps() async {
     if (_hasPermissions) {
+      _isLoading = true;
+      notifyListeners();
       await _fetchTodaysSteps();
+      _isLoading = false;
       notifyListeners();
     }
   }

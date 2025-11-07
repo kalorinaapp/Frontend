@@ -18,6 +18,7 @@ import 'onboarding/controller/onboarding.controller.dart';
 // Import onboarding pages
 import 'onboarding/screens/stage4_personalization/workout_frequency_page.dart';
 import 'utils/theme_helper.dart' show ThemeHelper;
+import 'l10n/app_localizations.dart' show AppLocalizations;
 
 class AutomaticGenerationPageview extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -438,7 +439,9 @@ class _AutomaticGenerationPageviewState extends State<AutomaticGenerationPagevie
                     else
                       Obx(
                         () => Text(
-                          _controller.currentPage.value == _pages.length || (_controller.getStringData('goal') != 'maintain_weight')  ? 'Generiraj Svoj Plan' : 'Nastavi',
+                          _controller.currentPage.value == _pages.length || (_controller.getStringData('goal') != 'maintain_weight')
+                              ? AppLocalizations.of(context)!.generateYourPlan
+                              : AppLocalizations.of(context)!.continue_,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

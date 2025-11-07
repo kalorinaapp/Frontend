@@ -121,6 +121,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get confirm => 'Потвърди';
 
   @override
+  String get generateYourPlan => 'Генерирай своя план';
+
+  @override
   String get generatingYourPlan => 'Генериране на твоя\nперсонализиран план';
 
   @override

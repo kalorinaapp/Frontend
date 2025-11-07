@@ -12,7 +12,8 @@ import 'log_exercise_screen.dart';
 
 class LogScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
-  const LogScreen({super.key, required this.themeProvider});
+  final VoidCallback? onExerciseLogged;
+  const LogScreen({super.key, required this.themeProvider, this.onExerciseLogged});
 
   @override
   State<LogScreen> createState() => _LogScreenState();
@@ -37,7 +38,10 @@ class _LogScreenState extends State<LogScreen> {
   void _navigateToCardio() {
     Navigator.of(context).push(
       CupertinoPageRoute(
-        builder: (context) => LogExerciseScreen(themeProvider: widget.themeProvider),
+        builder: (context) => LogExerciseScreen(
+          themeProvider: widget.themeProvider,
+          onExerciseLogged: widget.onExerciseLogged,
+        ),
       ),
     );
   }
@@ -48,6 +52,7 @@ class _LogScreenState extends State<LogScreen> {
         builder: (context) => LogExerciseScreen(
           themeProvider: widget.themeProvider,
           initialTabIndex: 1,
+          onExerciseLogged: widget.onExerciseLogged,
         ),
       ),
     );
@@ -59,6 +64,7 @@ class _LogScreenState extends State<LogScreen> {
         builder: (context) => LogExerciseScreen(
           themeProvider: widget.themeProvider,
           initialTabIndex: 2,
+          onExerciseLogged: widget.onExerciseLogged,
         ),
       ),
     );
@@ -70,6 +76,7 @@ class _LogScreenState extends State<LogScreen> {
         builder: (context) => LogExerciseScreen(
           themeProvider: widget.themeProvider,
           initialTabIndex: 3,
+          onExerciseLogged: widget.onExerciseLogged,
         ),
       ),
     );

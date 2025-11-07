@@ -630,7 +630,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           ),
                         ),
                       ),
-                    ] else if ((widget.selectedImage == null || widget.isAnalyzing) && (widget.todayTotals == null) && ((widget.todayEntries == null) || widget.todayEntries!.isEmpty)) ...[
+                    ] else if ((widget.selectedImage == null || widget.isAnalyzing) && (widget.todayTotals == null) && ((widget.todayEntries == null) || widget.todayEntries!.isEmpty) && ((widget.todayExercises == null) || widget.todayExercises!.isEmpty)) ...[
                       Text(
                         l10n.noFoodLogged,
                         style: TextStyle(
