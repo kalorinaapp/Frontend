@@ -5,7 +5,6 @@ import 'dart:ui';
 import 'package:get/get.dart';
 import '../l10n/app_localizations.dart' show AppLocalizations;
 import '../onboarding/screens/stage4_personalization/settings_page.dart' show SettingsPage;
-import '../providers/health_provider.dart' show HealthProvider;
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
 import '../utils/theme_helper.dart' show ThemeHelper;
@@ -15,14 +14,7 @@ import 'progress_screen.dart';
 import '../camera/scan_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:convert';
-import '../constants/app_constants.dart';
-import '../network/http_helper.dart';
-import '../services/meals_service.dart';
-import '../services/progress_service.dart';
-import '../services/streak_service.dart';
-import '../utils/user.prefs.dart' show UserPrefs;
-import 'meal_details_screen.dart';
+import '../controllers/home_screen_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -39,233 +31,66 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final HealthProvider healthProvider = HealthProvider();
-  final List<Widget> _screens = [];
-  int _currentIndex = 0;
-  bool _showAddModal = false;
-  final ImagePicker _picker = ImagePicker();
-  File? _selectedImage;
-  bool _isAnalyzing = false;
-  bool _hasScanError = false;
-  bool _isLoadingInitialData = true;
-  Map<String, dynamic>? _scanResult;
-  Map<String, int>? _todayTotals; // calories, protein, fats, carbs
-  String? _todayCreatedAt;
-  List<Map<String, dynamic>> _todayEntries = const [];
-  List<Map<String, dynamic>> _todayMeals = const [];
-  List<Map<String, dynamic>> _todayExercises = const [];
-  Map<String, dynamic>? _dailyProgress;
-  Map<String, dynamic>? _dailySummary; // Combined summary with calories consumed/burned
-  bool _isWeighInDueToday = false;
+  late final HomeScreenController _controller;
 
   @override
   void initState() {
     super.initState();
-    // Initialize ProgressService as singleton
-    Get.put(ProgressService());
-    _updateScreens();
-    _loadInitialData();
-    _checkWeighInDue();
+    _controller = Get.put(HomeScreenController());
   }
 
-  // Helper method to check if weigh-in is due today
-  Future<void> _checkWeighInDue() async {
-    final DateTime? lastWeighIn = await UserPrefs.getLastWeighInDate();
-    if (lastWeighIn == null) {
-      // If no previous weigh-in, suggest weighing in
-      if (mounted) {
-        setState(() {
-          _isWeighInDueToday = true;
-        });
-      }
-      return;
-    }
-    
-    final DateTime now = DateTime.now();
-    final int daysSince = now.difference(lastWeighIn).inDays;
-    
-    // Dynamic cadence based on user's weigh-in pattern
-    int suggestedCadence;
-    if (daysSince <= 3) {
-      suggestedCadence = 3; // Frequent weighers
-    } else if (daysSince <= 7) {
-      suggestedCadence = 7; // Regular weighers
-    } else {
-      suggestedCadence = 14; // Less frequent weighers
-    }
-    
-    final int remaining = suggestedCadence - daysSince;
-    if (mounted) {
-      setState(() {
-        _isWeighInDueToday = remaining <= 0; // Due today or overdue
-      });
-    }
+  @override
+  void dispose() {
+    Get.delete<HomeScreenController>();
+    super.dispose();
   }
 
-  // Method to refresh weigh-in status (can be called when user logs new weight)
-  void refreshWeighInStatus() {
-    _checkWeighInDue();
+  Widget _buildDashboardScreen() {
+    return Obx(() => DashboardScreen(
+      themeProvider: widget.themeProvider,
+      selectedImage: _controller.selectedImage.value,
+      isAnalyzing: _controller.isAnalyzing.value,
+      hasScanError: _controller.hasScanError.value,
+      isLoadingInitialData: _controller.isLoadingInitialData.value,
+      scanResult: _controller.scanResult.value,
+      todayTotals: _controller.todayTotals.value,
+      todayCreatedAt: _controller.todayCreatedAt.value,
+      todayEntries: _controller.todayEntries.toList(),
+      todayMeals: _controller.todayMeals.toList(),
+      todayExercises: _controller.todayExercises.toList(),
+      dailyProgress: _controller.dailyProgress.value,
+      dailySummary: _controller.dailySummary.value,
+      onRetryScan: () => _controller.retryScan(context),
+      onCloseError: _controller.closeErrorCard,
+    ));
   }
 
-  void _updateScreens() {
-    _screens.clear();
-    _screens.addAll([
-      DashboardScreen(
-        themeProvider: widget.themeProvider,
-        selectedImage: _selectedImage,
-        isAnalyzing: _isAnalyzing,
-        hasScanError: _hasScanError,
-        isLoadingInitialData: _isLoadingInitialData,
-        scanResult: _scanResult,
-        todayTotals: _todayTotals,
-        todayCreatedAt: _todayCreatedAt,
-        todayEntries: _todayEntries,
-        todayMeals: _todayMeals,
-        todayExercises: _todayExercises,
-        dailyProgress: _dailyProgress,
-        dailySummary: _dailySummary,
-        onRetryScan: _retryScan,
-        onCloseError: _closeErrorCard,
-      ),
-      LogScreen(
-        themeProvider: widget.themeProvider,
-        onExerciseLogged: () {
-          // Refresh data when exercise is logged
-          _fetchTodayTotals();
-        },
-      ),
-      ProgressScreen(
-        themeProvider: widget.themeProvider, 
-        healthProvider: healthProvider,
-        onWeightLogged: refreshWeighInStatus,
-      ), // Analytics
-      SettingsPage(
-        themeProvider: widget.themeProvider,
-      ), // Settings
-    ]);
-  }
-
-  void _showAddOptions() {
-    setState(() {
-      _showAddModal = true;
-    });
-  }
-
-  void _hideAddOptions() {
-    setState(() {
-      _showAddModal = false;
-    });
-  }
-
-  void _navigateToScan() {
-    _hideAddOptions();
-    Navigator.of(context).push(
+  void _navigateToScan() async {
+    _controller.hideAddOptions();
+    final result = await Navigator.of(context).push<Map<String, dynamic>>(
       CupertinoPageRoute(
         builder: (context) => const ScanPage(),
       ),
     );
-  }
-
-  void _retryScan() {
-    if (_selectedImage != null) {
-      setState(() {
-        _hasScanError = false;
-        _isAnalyzing = true;
-      });
-      _updateScreens();
-      _analyzeImage(_selectedImage!.path);
+    
+    // Process the captured image like gallery upload
+    if (result != null && result['imagePath'] != null) {
+      final imagePath = result['imagePath'] as String;
+      _controller.setSelectedImage(File(imagePath));
+      _controller.setIsAnalyzing(true);
+      // Refresh today totals after logging from camera
+      _controller.fetchTodayTotals();
+      
+      // Send to backend for analysis
+      await _controller.analyzeImage(imagePath, context);
     }
   }
-
-  void _closeErrorCard() {
-    setState(() {
-      _hasScanError = false;
-      _selectedImage = null;
-      _scanResult = null;
-    });
-    _updateScreens();
-  }
-
-  Future<void> _loadInitialData() async {
-    try {
-      final now = DateTime.now().toLocal();
-      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      final userId = AppConstants.userId;
-      
-      // Get the singleton ProgressService instance
-      final progressService = Get.find<ProgressService>();
-      
-      // Initialize StreakService
-      final streakService = Get.put(StreakService());
-      
-      // Run all API calls in parallel for faster loading
-      final results = await Future.wait([
-        MealsService().fetchDailyMeals(userId: userId, dateYYYYMMDD: dateStr),
-        progressService.fetchDailyProgress(dateYYYYMMDD: dateStr),
-        streakService.getStreakHistory(),
-      ]);
-      
-      final mealsData = results[0];
-      final progressData = results[1];
-      // results[2] is streak history - no need to process as it's handled by StreakService
-      
-      // Process meals data
-      if (mealsData != null && mealsData['success'] == true) {
-        final data = mealsData['data'] as Map<String, dynamic>?;
-        if (data != null) {
-          final meals = ((data['meals'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
-          final exercises = ((data['exercises'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
-          final summary = data['summary'] as Map<String, dynamic>?;
-          
-          setState(() {
-            if (meals.isNotEmpty) {
-              final first = meals.first;
-              _todayTotals = {
-                'totalCalories': ((first['totalCalories'] ?? 0) as num).toInt(),
-                'totalProtein': ((first['totalProtein'] ?? 0) as num).toInt(),
-                'totalCarbs': ((first['totalCarbs'] ?? 0) as num).toInt(),
-                'totalFat': ((first['totalFat'] ?? 0) as num).toInt(),
-              };
-              _todayCreatedAt = first['createdAt'] as String?;
-              _todayEntries = ((first['entries'] as List?) ?? [])
-                  .whereType<Map<String, dynamic>>()
-                  .toList();
-              _todayMeals = meals;
-            } else {
-              _todayTotals = null;
-              _todayCreatedAt = null;
-              _todayEntries = const [];
-              _todayMeals = const [];
-            }
-            
-            _todayExercises = exercises;
-            _dailySummary = summary;
-          });
-        }
-      }
-      
-      // Process progress data
-      if (progressData != null) {
-        setState(() {
-          _dailyProgress = progressData['progress'] as Map<String, dynamic>?;
-        });
-      }
-      
-      _updateScreens();
-    } catch (e) {
-      debugPrint('Error loading initial data: $e');
-    } finally {
-      setState(() {
-        _isLoadingInitialData = false;
-      });
-      _updateScreens();
-    }
-  }
+  
 
   void _navigateToGallery() async {
-    _hideAddOptions();
+    _controller.hideAddOptions();
     try {
-      final XFile? image = await _picker.pickImage(
+      final XFile? image = await _controller.picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1920,
         maxHeight: 1080,
@@ -273,258 +98,29 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       
       if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-          _isAnalyzing = true;
-        });
-        _updateScreens();
+        _controller.setSelectedImage(File(image.path));
+        _controller.setIsAnalyzing(true);
         // Refresh today totals after logging from gallery
-        _fetchTodayTotals();
+        _controller.fetchTodayTotals();
         
         // Send to backend for analysis
-        await _analyzeImage(image.path);
+        await _controller.analyzeImage(image.path, context);
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
     }
   }
 
-  Future<void> _analyzeImage(String imagePath) async {
-    try {
-      final bytes = await File(imagePath).readAsBytes();
-      final base64Data = base64Encode(bytes);
-      final payload = {
-        'imageData': 'data:image/jpeg;base64,$base64Data',
-        'mealType': 'lunch',
-        'userId': AppConstants.userId,
-      };
-      
-      await multiPostAPINew(
-        methodName: 'api/scanning/scan-image',
-        param: payload,
-        callback: (resp) async {
-          Map<String, dynamic> result;
-          try {
-            result = jsonDecode(resp.response) as Map<String, dynamic>;
-
-            debugPrint('Scan result: $result');
-          } catch (_) {
-            result = {'message': resp.response, 'status': resp.code};
-          }
-          
-          if (!mounted) return;
-          
-          // Wait for percentage animation to complete (3 seconds)
-          await Future.delayed(const Duration(seconds: 3));
-          
-            // Stop analyzing animation and store result
-            setState(() {
-              _isAnalyzing = false;
-              _scanResult = result; // Store the scan result
-              // Check if scan failed
-              _hasScanError = result['scanResult'] == null;
-            });
-            _updateScreens();
-            // Refresh today totals after scanning
-            _fetchTodayTotals();
-          
-          // Navigate to meal details screen with scan result data
-          debugPrint('Message: ${result['message']}');
-          debugPrint('Scan result data: ${result['scanResult']}');
-          
-          if (result['scanResult'] != null) {
-            final scanData = result['scanResult'] as Map<String, dynamic>;
-            final items = (scanData['items'] as List?) ?? [];
-            debugPrint('Scan data: $scanData');
-            debugPrint('Items count: ${items.length}');
-            
-            // Calculate total macros from items
-            int totalProtein = 0;
-            int totalCarbs = 0;
-            int totalFat = 0;
-            
-            for (var item in items) {
-              final macros = item['macros'] as Map<String, dynamic>? ?? {};
-              totalProtein += ((macros['protein'] ?? 0) as num).toInt();
-              totalCarbs += ((macros['carbs'] ?? 0) as num).toInt();
-              totalFat += ((macros['fat'] ?? 0) as num).toInt();
-            }
-            
-            // Create meal data structure from scan result
-            final mealData = {
-              'id': null, // New meal, no ID yet
-              'userId': AppConstants.userId,
-              'date': DateTime.now().toIso8601String(),
-              'mealType': 'lunch',
-              'mealName': scanData['mealName'] ?? 'Scanned Meal',
-              'mealImage': imagePath, // Use local file path for base64 encoding
-              'totalCalories': scanData['totalCalories'] ?? 0,
-              'totalProtein': totalProtein,
-              'totalCarbs': totalCarbs,
-              'totalFat': totalFat,
-              'isScanned': true,
-              'entries': items.map((item) => {
-                'userId': AppConstants.userId,
-                'mealType': 'lunch',
-                'foodName': item['name'] ?? 'Unknown Food',
-                'quantity': 1,
-                'unit': 'g',
-                'calories': item['calories'] ?? 0,
-                'protein': item['macros']?['protein'] ?? 0,
-                'carbs': item['macros']?['carbs'] ?? 0,
-                'fat': item['macros']?['fat'] ?? 0,
-                'fiber': item['macros']?['fiber'] ?? 0,
-                'sugar': item['macros']?['sugar'] ?? 0,
-                'sodium': item['macros']?['sodium'] ?? 0,
-                'servingSize': 1,
-                'servingUnit': 'serving',
-                'imageUrl': imagePath, // Use local file path for base64 encoding
-                'notes': 'AI detected: ${item['name'] ?? 'Unknown'}',
-              }).toList(),
-              'createdAt': DateTime.now().toIso8601String(),
-              'updatedAt': DateTime.now().toIso8601String(),
-            };
-            
-            debugPrint('Created meal data: $mealData');
-            debugPrint('Navigating to MealDetailsScreen');
-
-            // Clear selected image before navigating so dashboard state remains unchanged unless saved
-            if (mounted) {
-              setState(() {
-                _selectedImage = null;
-              });
-              _updateScreens();
-            }
-            
-            final savedMeal = await Navigator.of(context).push<Map<String, dynamic>>(
-              CupertinoPageRoute(
-                builder: (_) => MealDetailsScreen(
-                  mealData: mealData,
-                ),
-              ),
-            );
-            
-            // If meal was saved, add it optimistically to the dashboard
-            if (savedMeal != null) {
-              setState(() {
-                _todayMeals = [..._todayMeals, savedMeal];
-              });
-              // Refresh today totals to get updated data
-              _fetchTodayTotals();
-            } else {
-              // User backed out without saving: revert transient scan state
-              if (!mounted) return;
-              setState(() {
-                _selectedImage = null;
-                _scanResult = null;
-                _hasScanError = false;
-                _isAnalyzing = false;
-              });
-              _updateScreens();
-            }
-          } else {
-            debugPrint('Scan failed or no scan result, taking fallback path');
-            debugPrint('Result message: ${result['message']}');
-            debugPrint('Scan result: ${result['scanResult']}');
-            // Fallback to scan result page if scan failed
-            // Navigator.of(context).push(
-            //   CupertinoPageRoute(
-            //     builder: (_) => ScanResultPage(
-            //       result: result,
-            //       imagePath: imagePath,
-            //       rawResponse: resp.response,
-            //       statusCode: resp.code,
-            //       requestInfo: reqInfo,
-            //     ),
-            //   ),
-            // );
-          }
-        },
-      );
-    } catch (e) {
-      debugPrint('Analysis error: $e');
-      setState(() {
-        _isAnalyzing = false;
-      });
-      _updateScreens();
-    }
-  }
-
-  Future<void> _fetchTodayTotals() async {
-    // Skip if already loading initial data to avoid duplicate calls
-    if (_isLoadingInitialData) return;
-    
-    try {
-      final now = DateTime.now();
-      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      final userId = AppConstants.userId;
-      final service = MealsService();
-      
-      // Use the new combined daily endpoint
-      final decoded = await service.fetchDailyMeals(userId: userId, dateYYYYMMDD: dateStr);
-      if (decoded != null && decoded['success'] == true) {
-        debugPrint('GET daily data response: $decoded');
-        final data = decoded['data'] as Map<String, dynamic>?;
-        
-        if (data != null) {
-          final meals = ((data['meals'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
-          final exercises = ((data['exercises'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
-          final summary = data['summary'] as Map<String, dynamic>?;
-          
-          setState(() {
-            if (meals.isNotEmpty) {
-              final first = meals.first;
-              _todayTotals = {
-                'totalCalories': ((first['totalCalories'] ?? 0) as num).toInt(),
-                'totalProtein': ((first['totalProtein'] ?? 0) as num).toInt(),
-                'totalCarbs': ((first['totalCarbs'] ?? 0) as num).toInt(),
-                'totalFat': ((first['totalFat'] ?? 0) as num).toInt(),
-              };
-              _todayCreatedAt = first['createdAt'] as String?;
-              _todayEntries = ((first['entries'] as List?) ?? [])
-                  .whereType<Map<String, dynamic>>()
-                  .toList();
-              _todayMeals = meals;
-            } else {
-              _todayTotals = null;
-              _todayCreatedAt = null;
-              _todayEntries = const [];
-              _todayMeals = const [];
-            }
-            
-            _todayExercises = exercises;
-            _dailySummary = summary;
-          });
-          _updateScreens();
-        } else {
-          setState(() {
-            _todayTotals = null;
-            _todayCreatedAt = null;
-            _todayEntries = const [];
-            _todayMeals = const [];
-            _todayExercises = const [];
-            _dailySummary = null;
-          });
-          _updateScreens();
-        }
-      }
-    } catch (e) {
-      debugPrint('Error fetching daily data: $e');
-    }
-  }
-
   void _onTabTapped(int index) {
     if (index == 2) {
       // Center button (Add)
-      _showAddOptions();
+      _controller.showAddOptions();
       return;
     }
     final int newIndex = index > 2 ? index - 1 : index;
-    if (newIndex != _currentIndex) {
+    if (newIndex != _controller.currentIndex.value) {
       HapticFeedback.lightImpact();
-      setState(() {
-        _currentIndex = newIndex; // Adjust for center button
-      });
+      _controller.setCurrentIndex(newIndex);
     }
   }
 
@@ -535,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return ListenableBuilder(
       listenable: widget.themeProvider,
       builder: (context, child) {
-        return Stack(
+        return Obx(() => Stack(
           children: [
             CupertinoPageScaffold(
               backgroundColor: ThemeHelper.background,
@@ -543,7 +139,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // Main content
                   Positioned.fill(
-                    child: _screens[_currentIndex],
+                    child: Obx(() {
+                      switch (_controller.currentIndex.value) {
+                        case 0:
+                          return _buildDashboardScreen();
+                        case 1:
+                          return LogScreen(
+                            themeProvider: widget.themeProvider,
+                            onExerciseLogged: () {
+                              _controller.fetchTodayTotals();
+                            },
+                          );
+                        case 2:
+                          return ProgressScreen(
+                            themeProvider: widget.themeProvider, 
+                            healthProvider: _controller.healthProvider,
+                            onWeightLogged: _controller.refreshWeighInStatus,
+                          );
+                        case 3:
+                          return SettingsPage(
+                            themeProvider: widget.themeProvider,
+                          );
+                        default:
+                          return _buildDashboardScreen();
+                      }
+                    }),
                   ),
                   // Custom Bottom Navigation Bar
                   Positioned(
@@ -569,16 +189,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _buildNavItem(
-                              iconAsset: 'assets/icons/home.png', // TODO: Replace with your asset name
+                              iconAsset: 'assets/icons/home.png',
                               label: l10n.home,
                               index: 0,
-                              isActive: _currentIndex == 0,
+                              isActive: _controller.currentIndex.value == 0,
                             ),
                             _buildNavItem(
-                              iconAsset: 'assets/icons/pencil.png', // TODO: Replace with your asset name
+                              iconAsset: 'assets/icons/pencil.png',
                               label: l10n.log,
                               index: 1,
-                              isActive: _currentIndex == 1,
+                              isActive: _controller.currentIndex.value == 1,
                             ),
                             // Center Add Button
                             GestureDetector(
@@ -600,17 +220,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             _buildNavItem(
-                              iconAsset: 'assets/icons/graph.png', // TODO: Replace with your asset name
+                              iconAsset: 'assets/icons/graph.png',
                               label: 'Progress',
                               index: 3,
-                              isActive: _currentIndex == 2,
-                              showDot: _isWeighInDueToday,
+                              isActive: _controller.currentIndex.value == 2,
+                              showDot: _controller.isWeighInDueToday.value,
                             ),
                             _buildNavItem(
-                              iconAsset: 'assets/icons/settings.png', // TODO: Replace with your asset name
+                              iconAsset: 'assets/icons/settings.png',
                               label: l10n.settings,
                               index: 4,
-                              isActive: _currentIndex == 3,
+                              isActive: _controller.currentIndex.value == 3,
                             ),
                           ],
                         ),
@@ -621,9 +241,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             // Add Options Modal
-            if (_showAddModal) _buildAddOptionsModal(),
+            if (_controller.showAddModal.value) _buildAddOptionsModal(),
           ],
-        );
+        ));
       },
     );
   }
@@ -632,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
     
     return GestureDetector(
-      onTap: _hideAddOptions,
+      onTap: _controller.hideAddOptions,
       child: Stack(
         children: [
           // Blurred background
@@ -654,60 +274,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                // 2x2 Grid of options
-                Row(
-                  children: [
-                    // Top Left - Database
-                    // Expanded(
-                    //   child: _buildOptionCard(
-                    //     imageAsset: "assets/icons/bookmark.png",
-                    //     title: l10n.database,
-                    //     onTap: _navigateToDatabase,
-                    //   ),
-                    // ),
-                    
-                    // Top Right - Gallery
-                    Expanded(
-                      child: _buildOptionCard(
-                        imageAsset: "assets/icons/gallery.png",
-                        title: l10n.gallery,
-                        onTap: _navigateToGallery,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildOptionCard(
+                            imageAsset: "assets/icons/gallery.png",
+                            title: l10n.gallery,
+                            onTap: _navigateToGallery,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildOptionCard(
+                            imageAsset: "assets/icons/camera.png",
+                            title: l10n.scanFood,
+                            onTap: _navigateToScan,
+                          ),
+                        ),
+                      ],
                     ),
-
-                    const SizedBox(width: 12),
-
-                    Expanded(
-                      child: _buildOptionCard(
-                        imageAsset: "assets/icons/camera.png",
-                        title: l10n.scanFood,
-                        onTap: _navigateToScan,
-                      ),
-                    ),
-                  ],
-                ),
-                // const SizedBox(height: 12),
-                // Row(
-                //   children: [
-                //     // Bottom Left - Health
-                //     Expanded(
-                //       child: _buildOptionCard(
-                //         imageAsset: "assets/icons/workout.png",
-                //         title: l10n.workout,
-                //         onTap: _navigateToHealth,
-                //       ),
-                //     ),
-                //     const SizedBox(width: 12),
-                //     // Bottom Right - Scan Food
-                //     Expanded(
-                //       child: _buildOptionCard(
-                //         imageAsset: "assets/icons/camera.png",
-                //         title: l10n.scanFood,
-                //         onTap: _navigateToScan,
-                //       ),
-                //     ),
-                //   ],
-                // ),
                   ],
                 ),
               ),

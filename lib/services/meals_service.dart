@@ -4,6 +4,7 @@ import 'package:calorie_ai_app/utils/network.dart';
 import 'package:flutter/foundation.dart';
 import '../network/http_helper.dart' hide multiPostAPINew;
 
+
 class MealsService {
   const MealsService();
   Future<Map<String, dynamic>?> fetchTodayMeals({
@@ -33,13 +34,21 @@ class MealsService {
   Future<Map<String, dynamic>?> fetchDailyMeals({
     required String userId,
     required String dateYYYYMMDD,
+    int? steps,
   }) async {
     Map<String, dynamic>? parsed;
+    final Map<String, String> queryParams = {
+      'date': dateYYYYMMDD,
+    };
+    
+    // Add steps to query if provided
+    if (steps != null) {
+      queryParams['steps'] = steps.toString();
+    }
+    
     await multiGetAPINew(
       methodName: 'api/meals/daily/$userId',
-      query: {
-        'date': dateYYYYMMDD,
-      },
+      query: queryParams,
       callback: (resp) async {
         try {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;

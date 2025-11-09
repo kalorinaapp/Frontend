@@ -51,13 +51,21 @@ class ProgressService extends GetxController {
   }
   Future<Map<String, dynamic>?> fetchDailyProgress({
     required String dateYYYYMMDD,
+    int? steps,
   }) async {
     Map<String, dynamic>? parsed;
+    final Map<String, String> queryParams = {
+      'date': dateYYYYMMDD,
+    };
+    
+    // Add steps to query if provided
+    if (steps != null) {
+      queryParams['steps'] = steps.toString();
+    }
+    
     await multiGetAPINew(
       methodName: 'api/progress/daily',
-      query: {
-        'date': dateYYYYMMDD,
-      },
+      query: queryParams,
       callback: (resp) async {
         print('date: $dateYYYYMMDD');
         try {

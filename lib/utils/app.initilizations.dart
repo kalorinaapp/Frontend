@@ -1,7 +1,11 @@
+// ignore_for_file: unused_element
+
 import 'dart:convert' show json;
 import 'dart:io' show Platform;
+import 'package:appsflyer_sdk/appsflyer_sdk.dart' show AppsFlyerOptions, DeepLinkResult, AppsflyerSdk;
 import 'package:calorie_ai_app/utils/network.dart' show multiPostAPINew;
 import 'package:calorie_ai_app/utils/store.config.dart' show EntitleMents, StoreConfig;
+import 'package:flutter/cupertino.dart' show WidgetsBinding, debugPrint;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
 import 'package:onesignal_flutter/onesignal_flutter.dart' show OneSignal, OSLogLevel;
 import 'package:purchases_flutter/models/customer_info_wrapper.dart' show CustomerInfo;
@@ -10,9 +14,11 @@ import 'package:purchases_flutter/models/store.dart' show Store;
 import 'package:purchases_flutter/purchases_flutter.dart' show Purchases, LogLevel, PurchasesConfiguration, PurchasesAreCompletedByRevenueCat, AmazonConfiguration;
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 import '../constants/app_constants.dart' show AppConstants;
+import '../services/influencer_service.dart' show InfluencerService;
 
 
 class AppInitializationMethods with RefreshToken {
+  static AppsflyerSdk? _appsFlyer;
   Future<void> initialize() async {
  
       if (Platform.isIOS || Platform.isMacOS) {
@@ -25,6 +31,8 @@ class AppInitializationMethods with RefreshToken {
           apiKey: useAmazon ? '' : EntitleMents.appleApiKey,
         );
       }
+
+      await _initAppsFlyer();
 
       // await initPlatformState();
 
@@ -248,6 +256,99 @@ class AppInitializationMethods with RefreshToken {
   /// Update iOS storage with new auth token
 
   }
+
+
+
+Future<void> _initAppsFlyer() async {
+  // Read credentials from --dart-define or leave empty to skip
+  const String devKey = "SrrV8hFkqMcvpmkcAXzCoT";
+  const String iosAppId = "6752225196";
+
+  // If not provided, don't initialize to avoid crashes in dev
+  if (devKey.isEmpty) {
+    return;
+  }
+
+  print('AppsFlyer Initializing with devKey: $devKey and iosAppId: $iosAppId');
+
+  final options = AppsFlyerOptions(
+    afDevKey: devKey,
+    appId: Platform.isIOS ? iosAppId : '',
+    showDebug: true,
+    timeToWaitForATTUserAuthorization: 50,
+  );
+
+  AppInitializationMethods._appsFlyer = AppsflyerSdk(options);
+
+  await AppInitializationMethods._appsFlyer?.initSdk(
+    registerConversionDataCallback: true,
+    registerOnAppOpenAttributionCallback: true,
+    registerOnDeepLinkingCallback: true,
+  );
+
+  // Deep link listener
+  AppInitializationMethods._appsFlyer?.onDeepLinking((DeepLinkResult dp) {
+    try {
+      final json = dp.toJson();
+      print('AppsFlyer Deep Link: $json');
+
+      // Extract core params safely
+      final dl = dp.deepLink;
+      final properties = <String, dynamic>{
+        'status': dp.status.name,
+        'is_deferred': dl?.isDeferred ?? false,
+        'media_source': dl?.getStringValue('media_source'),
+        'campaign': dl?.getStringValue('campaign'),
+        'pid': dl?.getStringValue('pid'),
+        'deep_link_value': dl?.deepLinkValue,
+        'deep_link_sub1': dl?.getStringValue('deep_link_sub1'),
+        'deep_link_sub2': dl?.getStringValue('deep_link_sub2'),
+        'deep_link_sub3': dl?.getStringValue('deep_link_sub3'),
+        'deep_link_sub4': dl?.getStringValue('deep_link_sub4'),
+        'deep_link_sub5': dl?.getStringValue('deep_link_sub5'),
+        'link': dl?.clickHttpReferrer ?? dl?.toString(),
+      }..removeWhere((k, v) => v == null);
+
+      // Update and hit API immediately (no deferral) so values are ready instantly
+      final String? referralCode = properties['deep_link_value'];
+      final String? influencerId = properties['deep_link_sub1'];
+
+      print('Referral Code: $referralCode');
+      print('Influencer ID: $influencerId');
+
+      AppConstants.referralCode = referralCode ?? '';
+      AppConstants.influencerId = influencerId ?? '';
+
+      // Track install if influencerId or referralCode is not empty (runs in background)
+      final String codeToUse = influencerId?.trim().isNotEmpty == true 
+          ? influencerId! 
+          : (referralCode?.trim().isNotEmpty == true ? referralCode! : '');
+      
+      if (codeToUse.isNotEmpty) {
+        _trackInstallInBackground(codeToUse);
+      } else {
+        AppConstants.updateInstallCount = true;
+      }
+
+      // Defer analytics logging only; do NOT navigate here
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // MixpanelService.instance.track('AF Deep Link Opened', properties: properties);
+      });
+    } catch (_) {}
+  });
+}
+
+/// Track install in background without blocking UI
+Future<void> _trackInstallInBackground(String influencerCode) async {
+  try {
+    final service = InfluencerService();
+    await service.trackInstall(influencerCode: influencerCode);
+  } catch (e) {
+    // Silently handle errors - don't block app initialization
+    debugPrint('Error tracking install in background: $e');
+  }
+}
+
 extension CustomerInfoAdditions on CustomerInfo {
   bool hasActiveEntitlementOrSubscription() {
     return (activeSubscriptions.isNotEmpty || entitlements.active.isNotEmpty);

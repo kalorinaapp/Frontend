@@ -1,6 +1,9 @@
 import 'dart:io';
 
 class AppConstants {
+  static String referralCode = '';
+  static String influencerId = '';
+  static bool updateInstallCount = false;
   static String authToken = '';
   static String userId = '';
   static String userEmail = '';
@@ -8,8 +11,8 @@ class AppConstants {
   static String refreshToken = '';
 
   static String get baseUrl {
-    if (Platform.isAndroid) return 'http://10.0.2.2:3000/';
-    return 'http://192.168.0.104:3000/';
+    if (Platform.isAndroid) return 'https://backend-production-72a2.up.railway.app/';
+    return 'https://backend-production-72a2.up.railway.app/';
   }
 
   static String revenueCatId = '';

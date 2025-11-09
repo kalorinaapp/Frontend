@@ -210,6 +210,39 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
               }
             },
           ),
+          onUnknownRoute: (RouteSettings settings) {
+            return CupertinoPageRoute(
+              settings: settings,
+              builder: (context) {
+                return FutureBuilder<Map<String, dynamic>>(
+                  future: getInitialScreenData(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const Center(child: CupertinoActivityIndicator());
+                    }
+                    
+                    final Map<String, dynamic> data = snapshot.data ?? const {};
+                    final String userId = (data['userId'] as String?) ?? '';
+                    final bool isAuthenticated = (data['isAuthenticated'] as bool?) ?? false;
+
+                    // Navigation logic based on authentication state
+                    if (isAuthenticated && userId.isNotEmpty) {
+                      // User is authenticated, go to main app
+                      return HomeScreen(
+                        themeProvider: themeProvider,
+                        languageProvider: languageProvider,
+                      );
+                    } else {
+                      // User is not authenticated, go to create account
+                      return OnboardingScreen(
+                        themeProvider: themeProvider,
+                      );
+                    }
+                  },
+                );
+              },
+            );
+          },
         );
       },
     );

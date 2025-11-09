@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -333,8 +331,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                         
                                         if (progressData != null && progressData['progress'] != null) {
                                           final progress = progressData['progress'] as Map<String, dynamic>;
-                                          consumed = progress['calories']?['consumed'] ?? 0;
-                                          goal = progress['calories']?['goal'] ?? 0;
+                                          consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
+                                          goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
                                         }
                                         
                                         double progressValue = goal > 0 ? consumed / goal : 0.0;
@@ -371,8 +369,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                   
                                   if (progressData != null && progressData['progress'] != null) {
                                     final progress = progressData['progress'] as Map<String, dynamic>;
-                                    consumed = progress['calories']?['consumed'] ?? 0;
-                                    goal = progress['calories']?['goal'] ?? 0;
+                                    consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
+                                    goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
                                   }
                                   
                                   return RichText(
@@ -411,7 +409,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                   
                                   if (progressData != null && progressData['progress'] != null) {
                                     final progress = progressData['progress'] as Map<String, dynamic>;
-                                    remaining = progress['calories']?['remaining'] ?? 0;
+                                    remaining = ((progress['calories']?['remaining'] ?? 0) as num).toInt();
                                   }
                                   
                                   return Row(
@@ -802,17 +800,18 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     }
   }
 
-  // Helper method to get icon for macro based on label
-  Widget _getIconForMacro(String label, AppLocalizations l10n) {
-    // Check against localized labels
-    if (label == l10n.carbs || label.toLowerCase().contains('carb')) {
-      return Image.asset('assets/icons/carbs.png', width: 16, height: 16);
-    } else if (label == l10n.protein || label.toLowerCase().contains('protein')) {
-      return Image.asset('assets/icons/drumstick.png', width: 16, height: 16);
-    } else if (label == l10n.fats || label.toLowerCase().contains('fat')) {
-      return Image.asset('assets/icons/fat.png', width: 16, height: 16);
-    } else {
-      return Icon(CupertinoIcons.circle_fill, size: 16, color: CupertinoColors.systemGrey);
+  // Helper method to get icon for macro based on dataKey
+  Widget _getIconForMacro(String dataKey) {
+    // Check against data key directly to avoid localization issues
+    switch (dataKey.toLowerCase()) {
+      case 'carbs':
+        return Image.asset('assets/icons/carbs.png', width: 16, height: 16);
+      case 'protein':
+        return Image.asset('assets/icons/drumstick.png', width: 16, height: 16);
+      case 'fat':
+        return Image.asset('assets/icons/fat.png', width: 16, height: 16);
+      default:
+        return Icon(CupertinoIcons.circle_fill, size: 16, color: CupertinoColors.systemGrey);
     }
   }
 
@@ -861,8 +860,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           final progress = progressData['progress'] as Map<String, dynamic>;
                           if (progress['macros'] != null) {
                             final macros = progress['macros'] as Map<String, dynamic>;
-                            consumed = macros[dataKey]?['consumed'] ?? 0;
-                            goal = macros[dataKey]?['goal'] ?? 0;
+                            consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
+                            goal = ((macros[dataKey]?['goal'] ?? 0) as num).toInt();
                           }
                         }
                         
@@ -878,8 +877,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         );
                       },
                     ),
-                    // Center icon based on label
-                    _getIconForMacro(label, l10n),
+                    // Center icon based on dataKey
+                    _getIconForMacro(dataKey),
                   ],
                 ),
               ),
@@ -950,8 +949,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                 final progress = progressData['progress'] as Map<String, dynamic>;
                                 if (progress['macros'] != null) {
                                   final macros = progress['macros'] as Map<String, dynamic>;
-                                  consumed = macros[dataKey]?['consumed'] ?? 0;
-                                  goal = macros[dataKey]?['goal'] ?? 0;
+                                  consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
+                                  goal = ((macros[dataKey]?['goal'] ?? 0) as num).toInt();
                                 }
                               }
                               

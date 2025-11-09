@@ -21,7 +21,7 @@ import '../utils/user.prefs.dart' show UserPrefs;
 import '../l10n/app_localizations.dart';
 import 'log_streak_screen.dart';
 
-class ProgressScreen extends StatelessWidget {
+class ProgressScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
   final HealthProvider healthProvider;
   final VoidCallback? onWeightLogged;
@@ -44,6 +44,14 @@ class ProgressScreen extends StatelessWidget {
     return s;
   }
 
+  @override
+  State<ProgressScreen> createState() => _ProgressScreenState();
+}
+
+class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   // Helper method to check if weigh-in is due today
   Future<bool> _isWeighInDueToday() async {
     final DateTime? lastWeighIn = await UserPrefs.getLastWeighInDate();
@@ -64,15 +72,16 @@ class ProgressScreen extends StatelessWidget {
     
     final int remaining = suggestedCadence - daysSince;
     return remaining <= 0; // Due today or overdue
-  }
+    }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     // Ensure UserController is available (will throw if not previously put)
     final UserController userController = Get.find<UserController>();
     final l10n = AppLocalizations.of(context)!;
     return ListenableBuilder(
-      listenable: Listenable.merge([themeProvider, healthProvider]),
+      listenable: Listenable.merge([widget.themeProvider, widget.healthProvider]),
       builder: (context, child) {
         return CupertinoPageScaffold(
           backgroundColor: ThemeHelper.background,
@@ -111,7 +120,7 @@ class ProgressScreen extends StatelessWidget {
                       // Last resort fallback if stored in constants
                       w ??= AppConstants.userId.isNotEmpty ? null : null;
                       final num? weightNum = w is num ? w : num.tryParse('${w ?? ''}');
-                      final String weightStr = _formatWeight2dp(weightNum);
+                      final String weightStr = ProgressScreen._formatWeight2dp(weightNum);
                       return _WeightTile(
                         title: l10n.myWeight,
                         value: '$weightStr kg',
@@ -119,7 +128,7 @@ class ProgressScreen extends StatelessWidget {
                         leadingIcon: 'assets/icons/export.png',
                         isUpdateTarget: false,
                         isWeighInDueToday: snapshot.data ?? false,
-                        onWeightLogged: onWeightLogged,
+                        onWeightLogged: widget.onWeightLogged,
                       );
                     });
                   },
@@ -134,7 +143,7 @@ class ProgressScreen extends StatelessWidget {
                       tw ??= (userController.userData['data'] is Map) ? userController.userData['data']['targetWeight'] : null;
                       tw ??= (userController.userData['user'] is Map) ? userController.userData['user']['targetWeight'] : null;
                       final num? targetNum = tw is num ? tw : num.tryParse('${tw ?? ''}');
-                      final String targetStr = _formatWeight2dp(targetNum);
+                      final String targetStr = ProgressScreen._formatWeight2dp(targetNum);
                       return _WeightTile(
                         title: l10n.targetWeight,
                         value: '$targetStr kg',
@@ -142,7 +151,7 @@ class ProgressScreen extends StatelessWidget {
                         leadingIcon: 'assets/icons/trophy.png',
                         isUpdateTarget: true,
                         isWeighInDueToday: snapshot.data ?? false,
-                        onWeightLogged: onWeightLogged,
+                        onWeightLogged: widget.onWeightLogged,
                       );
                     });
                   },
@@ -164,9 +173,9 @@ class ProgressScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 _StreakCard(),
                 const SizedBox(height: 12),
-                _StepsCard(healthProvider: healthProvider),
+                _StepsCard(healthProvider: widget.healthProvider),
                 const SizedBox(height: 12),
-                _AddBurnedToGoalCard(),
+                _AddBurnedToGoalCard(healthProvider: widget.healthProvider),
                 const SizedBox(height: 120),
               ],
             ),
@@ -285,14 +294,18 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
   double? _lastWeight;
   double? _prevWeight;
   bool _loading = false;
+  bool _hasLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    if (!_hasLoaded) {
+      _load();
+    }
   }
 
   Future<void> _load() async {
+    if (_hasLoaded || _loading) return;
     setState(() { _loading = true; });
     final res = await _service.fetchWeightHistory(page: 1, limit: 30);
     if (!mounted) return;
@@ -311,6 +324,7 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
           }
         }
       }
+      _hasLoaded = true;
     } finally {
       if (mounted) setState(() { _loading = false; });
     }
@@ -634,17 +648,20 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
   bool _loadingHistory = false;
   List<double> _series = const [];
   Map<String, dynamic>? _summary;
+  bool _hasLoadedHistory = false;
+  bool _hasLoadedSummary = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadHistory();
-      _loadSummary();
+      if (!_hasLoadedHistory) _loadHistory();
+      if (!_hasLoadedSummary) _loadSummary();
     });
   }
 
   Future<void> _loadHistory() async {
+    if (_hasLoadedHistory || _loadingHistory) return;
     setState(() { _loadingHistory = true; });
     final res = await _service.fetchWeightHistory(page: 1, limit: 30);
     if (!mounted) return;
@@ -670,12 +687,14 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
           _series = weights;
         }
       }
+      _hasLoadedHistory = true;
     } finally {
       if (mounted) setState(() { _loadingHistory = false; });
     }
   }
 
   Future<void> _loadSummary() async {
+    if (_hasLoadedSummary) return;
     final res = await _service.fetchWeightSummary();
     if (!mounted) return;
     if (res != null && res['success'] == true) {
@@ -683,6 +702,7 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
         _summary = Map<String, dynamic>.from(res['summary'] as Map);
         _series = _seriesForIndex(_selectedIndex);
       });
+      _hasLoadedSummary = true;
     }
   }
 
@@ -1058,14 +1078,18 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
   String _avgText = '- kg/day';
   String _toGoText = '- kg to go';
   bool _loading = false;
+  bool _hasLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_hasLoaded) _load();
+    });
   }
 
   Future<void> _load() async {
+    if (_hasLoaded || _loading) return;
     setState(() { _loading = true; });
     final res = await _service.fetchWeightHistory(page: 1, limit: 60);
     if (!mounted) return;
@@ -1135,6 +1159,7 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
             _avgText = avgText;
             _toGoText = '${toGo.abs().toStringAsFixed(1)} ${l10n.kgToGo}';
           });
+          _hasLoaded = true;
         }
       }
     } finally {
@@ -1803,6 +1828,12 @@ class _StepsCard extends StatelessWidget {
 }
 
 class _AddBurnedToGoalCard extends StatefulWidget {
+  final HealthProvider healthProvider;
+  
+  const _AddBurnedToGoalCard({
+    required this.healthProvider,
+  });
+  
   @override
   State<_AddBurnedToGoalCard> createState() => _AddBurnedToGoalCardState();
 }
@@ -1813,6 +1844,8 @@ class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
   
   Map<String, dynamic>? _progressData;
   bool _isLoadingProgress = false;
+  bool _hasLoaded = false;
+  String? _lastLoadedDate;
 
   bool get _includeStepCaloriesInGoal {
     return _userController.userData['includeStepCaloriesInGoal'] ?? false;
@@ -1821,19 +1854,37 @@ class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
   @override
   void initState() {
     super.initState();
-    _loadProgressData();
+    if (!_hasLoaded) {
+      _loadProgressData();
+    }
   }
 
   Future<void> _loadProgressData() async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    // Only reload if date changed or hasn't loaded yet
+    if (_hasLoaded && _lastLoadedDate == today && !_isLoadingProgress) return;
+    if (_isLoadingProgress) return;
+    
     setState(() { _isLoadingProgress = true; });
     
     try {
-      final today = DateTime.now().toIso8601String().substring(0, 10);
-      final progress = await _progressService.fetchDailyProgress(dateYYYYMMDD: today);
+      
+      // Get steps from Apple Health if includeStepCaloriesInGoal is true
+      int? steps;
+      if (_includeStepCaloriesInGoal && widget.healthProvider.hasPermissions) {
+        steps = widget.healthProvider.stepsToday;
+      }
+      
+      final progress = await _progressService.fetchDailyProgress(
+        dateYYYYMMDD: today,
+        steps: steps,
+      );
       
       if (mounted && progress != null && progress['success'] == true) {
         setState(() {
           _progressData = progress['progress'];
+          _hasLoaded = true;
+          _lastLoadedDate = today;
         });
       }
     } catch (e) {
@@ -1859,6 +1910,12 @@ class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
         Get.find<ThemeProvider>(),
         Get.find<LanguageProvider>(),
       );
+      
+      // Reload progress data with steps if toggled on (force reload by resetting flag)
+      if (newValue) {
+        _hasLoaded = false; // Reset flag to allow reload
+        _loadProgressData();
+      }
     } catch (e) {
       // Silently handle errors - user can try again
     }

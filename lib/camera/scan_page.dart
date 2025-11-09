@@ -1,12 +1,9 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors, Icons; // For overlay painting & icons
 import 'package:image_picker/image_picker.dart';
-import '../constants/app_constants.dart' show AppConstants;
-import '../network/http_helper.dart';
-import 'scan_result_page.dart';
+import '../l10n/app_localizations.dart' show AppLocalizations;
 import 'scan_tutorial_page.dart';
 
 class ScanPage extends StatefulWidget {
@@ -104,41 +101,6 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _sendToBackend(String path) async {
-    try {
-      final bytes = await File(path).readAsBytes();
-      final base64Data = base64Encode(bytes);
-      final payload = {
-        'imageData': 'data:image/jpeg;base64,$base64Data',
-        'mealType': 'lunch',
-      };
-      final imgPath = path;
-      final reqInfo = '${AppConstants.baseUrl}/api/scanning/scan-image';
-      // Deprecated debug screen navigation: handled upstream by dashboard
-      // Keeping request utility available if needed in future.
-      await multiPostAPINew(
-        methodName: '/api/scanning/scan-image',
-        param: payload,
-        callback: (_) {},
-      );
-    } catch (e) {
-      debugPrint('Scan send error: $e');
-      if (!mounted) return;
-      await showCupertinoDialog(
-        context: context,
-        builder: (_) => CupertinoAlertDialog(
-          title: const Text('Scan Error'),
-          content: Text('$e'),
-          actions: [
-            CupertinoDialogAction(
-              child: const Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      );
-    }
-  }
 
   @override
   void dispose() {
@@ -149,6 +111,7 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.black,
       navigationBar: null,
@@ -201,9 +164,9 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
                     ),
                     const Spacer(),
                     // Title
-                    const Text(
-                      'Scan Food',
-                      style: TextStyle(
+                    Text(
+                      l10n.scanFood,
+                      style: const TextStyle(
                         color: CupertinoColors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
