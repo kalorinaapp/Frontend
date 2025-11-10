@@ -20,7 +20,10 @@ class LogScreen extends StatefulWidget {
 }
 
 class _LogScreenState extends State<LogScreen> {
-  
+  bool _animationsEnabled = false;
+  final Set<int> _visibleCardOrders = <int>{};
+  final Set<int> _scheduledCardOrders = <int>{};
+
   // Helper method to determine meal type based on current time
   String _getCurrentMealType() {
     final hour = DateTime.now().hour;
@@ -95,8 +98,16 @@ class _LogScreenState extends State<LogScreen> {
     );
   }
 
-
-
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _animationsEnabled = true;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,36 +146,48 @@ class _LogScreenState extends State<LogScreen> {
               const SizedBox(height: 16),
               
               // Exercise Cards
-              _buildLogCard(
-                iconAsset: 'assets/icons/heartbeat.png',
-                // icon: CupertinoIcons.heart_fill,
-                title: l10n.cardio,
-                subtitle: l10n.cardioSubtitle,
-                onTap: _navigateToCardio,
+              _buildAnimatedCard(
+                order: 0,
+                child: _buildLogCard(
+                  iconAsset: 'assets/icons/heartbeat.png',
+                  // icon: CupertinoIcons.heart_fill,
+                  title: l10n.cardio,
+                  subtitle: l10n.cardioSubtitle,
+                  onTap: _navigateToCardio,
+                ),
               ),
               const SizedBox(height: 12),
               
-              _buildLogCard(
-                iconAsset: 'assets/icons/weights.png',
-                title: l10n.weightTraining,
-                subtitle: l10n.weightTrainingSubtitle,
-                onTap: _navigateToWeightTraining,
+              _buildAnimatedCard(
+                order: 1,
+                child: _buildLogCard(
+                  iconAsset: 'assets/icons/weights.png',
+                  title: l10n.weightTraining,
+                  subtitle: l10n.weightTrainingSubtitle,
+                  onTap: _navigateToWeightTraining,
+                ),
               ),
               const SizedBox(height: 12),
               
-              _buildLogCard(
-               iconAsset: 'assets/icons/stats.png',
-                title: l10n.describeExercise,
-                subtitle: l10n.describeExerciseSubtitle,
-                onTap: _navigateToDescribeExercise,
+              _buildAnimatedCard(
+                order: 2,
+                child: _buildLogCard(
+                 iconAsset: 'assets/icons/stats.png',
+                  title: l10n.describeExercise,
+                  subtitle: l10n.describeExerciseSubtitle,
+                  onTap: _navigateToDescribeExercise,
+                ),
               ),
               const SizedBox(height: 12),
               
-              _buildLogCard(
-                iconAsset: 'assets/icons/input.png',
-                title: l10n.directInput,
-                subtitle: l10n.directInputSubtitle,
-                onTap: _navigateToDirectInputExercise,
+              _buildAnimatedCard(
+                order: 3,
+                child: _buildLogCard(
+                  iconAsset: 'assets/icons/input.png',
+                  title: l10n.directInput,
+                  subtitle: l10n.directInputSubtitle,
+                  onTap: _navigateToDirectInputExercise,
+                ),
               ),
               const SizedBox(height: 30),
               
@@ -180,42 +203,86 @@ class _LogScreenState extends State<LogScreen> {
               const SizedBox(height: 16),
               
               // Food Cards
-              _buildLogCard(
-                iconAsset: 'assets/icons/meat.png',
-                title: l10n.myMeals,
-                subtitle: l10n.myMealsSubtitle,
-                onTap: () => _navigateToMyMeals(0),
+              _buildAnimatedCard(
+                order: 4,
+                child: _buildLogCard(
+                  iconAsset: 'assets/icons/meat.png',
+                  title: l10n.myMeals,
+                  subtitle: l10n.myMealsSubtitle,
+                  onTap: () => _navigateToMyMeals(0),
+                ),
               ),
       
               const SizedBox(height: 12),
               
-              _buildLogCard(
-                iconAsset: 'assets/icons/foods.png',
-                title: l10n.myFoods,
-                subtitle: l10n.myFoodsSubtitle,
-                onTap: () => _navigateToMyMeals(1),
+              _buildAnimatedCard(
+                order: 5,
+                child: _buildLogCard(
+                  iconAsset: 'assets/icons/foods.png',
+                  title: l10n.myFoods,
+                  subtitle: l10n.myFoodsSubtitle,
+                  onTap: () => _navigateToMyMeals(1),
+                ),
               ),
               const SizedBox(height: 12),
               
-              _buildLogCard(
-                iconAsset: 'assets/icons/bookmark.png',
-                title: l10n.savedScans,
-                subtitle: l10n.savedScansSubtitle,
-                onTap: () => _navigateToMyMeals(3),
+              _buildAnimatedCard(
+                order: 6,
+                child: _buildLogCard(
+                  iconAsset: 'assets/icons/bookmark.png',
+                  title: l10n.savedScans,
+                  subtitle: l10n.savedScansSubtitle,
+                  onTap: () => _navigateToMyMeals(3),
+                ),
               ),
               const SizedBox(height: 12),
               
-              _buildLogCard(
-                iconAsset: 'assets/icons/input.png',
-                title: l10n.directInputFood,
-                subtitle: l10n.directInputFoodSubtitle,
-                onTap: () => _navigateToMyMeals(4),
+              _buildAnimatedCard(
+                order: 7,
+                child: _buildLogCard(
+                  iconAsset: 'assets/icons/input.png',
+                  title: l10n.directInputFood,
+                  subtitle: l10n.directInputFoodSubtitle,
+                  onTap: () => _navigateToMyMeals(4),
+                ),
               ),
               const SizedBox(height: 80),
             ],
           ),
         ),
       ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedCard({
+    required int order,
+    required Widget child,
+    Duration duration = const Duration(milliseconds: 320),
+  }) {
+    if (_animationsEnabled &&
+        !_visibleCardOrders.contains(order) &&
+        !_scheduledCardOrders.contains(order)) {
+      _scheduledCardOrders.add(order);
+      Future<void>.delayed(Duration(milliseconds: 70 * order), () {
+        if (!mounted) return;
+        setState(() {
+          _visibleCardOrders.add(order);
+        });
+      });
+    }
+
+    final bool isVisible = _visibleCardOrders.contains(order);
+
+    return AnimatedOpacity(
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      opacity: isVisible ? 1.0 : 0.0,
+      child: AnimatedSlide(
+        duration: duration,
+        curve: Curves.easeOutCubic,
+        offset: isVisible ? Offset.zero : const Offset(0, 0.05),
+        child: child,
       ),
     );
   }

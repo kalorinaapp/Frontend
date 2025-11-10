@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../network/http_helper.dart';
+import '../utils/network.dart' show putAPI;
 
 class ExerciseService {
   const ExerciseService();
@@ -77,6 +78,50 @@ class ExerciseService {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
         } catch (e) {
           debugPrint('ExerciseService logDirectCalories parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> updateExercise({
+    required String exerciseId,
+    required Map<String, dynamic> payload,
+  }) async {
+    final Map<String, dynamic> body = <String, dynamic>{};
+
+    void addField(String key) {
+      if (payload.containsKey(key) && payload[key] != null) {
+        body[key] = payload[key];
+      }
+    }
+
+    addField('type');
+    addField('durationMinutes');
+    addField('intensity');
+    addField('notes');
+    addField('caloriesBurned');
+    addField('loggedAt');
+
+    if (body.isEmpty) {
+      return null;
+    }
+
+    Map<String, dynamic>? parsed;
+    await putAPI(
+      methodName: 'api/exercise/$exerciseId',
+      param: body,
+      callback: (resp) async {
+        debugPrint('ExerciseService updateExercise response: ${resp.response}');
+        try {
+          if (resp.response.isEmpty) {
+            parsed = const {};
+            return;
+          }
+          parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('ExerciseService updateExercise parse error: $e');
           parsed = null;
         }
       },

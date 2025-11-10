@@ -1,6 +1,7 @@
 
 import 'package:calorie_ai_app/screens/home_screen.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart' show OneSignal, OSLogLevel;
@@ -18,6 +19,7 @@ import 'constants/app_constants.dart' show AppConstants;
 import 'utils/user.prefs.dart' show UserPrefs;
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize( 
     url: 'https://yfhumomhyxutkofmlalo.supabase.co', 
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaHVtb21oeXh1dGtvZm1sYWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2OTc1MDQsImV4cCI6MjA2NzI3MzUwNH0.QtQkjJVrSnKm81Fv3SD6QVGPs_ZnRTfRB_F7yKoFQNg'
@@ -39,80 +41,85 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
   late ThemeProvider themeProvider;
   late LanguageProvider languageProvider;
   bool _isInitialized = false;
+  late final WidgetsBinding _binding;
+  Map<String, dynamic>? _initialScreenData;
 
   @override
   void initState() {
     super.initState();
+    _binding = WidgetsBinding.instance;
+    _binding.deferFirstFrame();
     _initializeProviders();
   }
 
   Future<void> _initializeProviders() async {
-    themeProvider = ThemeProvider();
-    languageProvider = LanguageProvider();
+    Map<String, dynamic> initialData = const {};
 
-
-
-     // iOS push notifications: initialize SDK before requesting permission
-     try {
-       if (Platform.isIOS) {
-         OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-
-    OneSignal.Debug.setAlertLevel(OSLogLevel.none);
-     OneSignal.consentRequired(true);
-         // Initialize OneSignal with your App ID (must be set for permissions prompt to show)
-         OneSignal.initialize('c5fb6b72-40ad-4062-82ec-c576bd7709c8'); // TODO: replace with your real OneSignal App ID
-             OneSignal.consentGiven(true);
-         await OneSignal.Notifications.requestPermission(true);
-         
-       }
-     } catch (e) {
-       debugPrint('OneSignal initialization/permission error: $e');
-     }
-
-
-
-    
-    // Wait for language to load from SharedPreferences
-    await languageProvider.initialize();
-
-    // Load persisted auth and user values and populate AppConstants
     try {
-      final token = await UserPrefs.getToken();
-      final refresh = await UserPrefs.getRefreshToken();
-      final userId = await UserPrefs.getId();
-      final email = await UserPrefs.getEmail();
-      final name = await UserPrefs.getName();
+      themeProvider = ThemeProvider();
+      languageProvider = LanguageProvider();
 
-      if (token != null && token.isNotEmpty) {
-        AppConstants.authToken = token;
+      // iOS push notifications: initialize SDK before requesting permission
+      try {
+        if (Platform.isIOS) {
+          OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+          OneSignal.Debug.setAlertLevel(OSLogLevel.none);
+          OneSignal.consentRequired(true);
+          // Initialize OneSignal with your App ID (must be set for permissions prompt to show)
+          OneSignal.initialize('c5fb6b72-40ad-4062-82ec-c576bd7709c8'); // TODO: replace with your real OneSignal App ID
+          OneSignal.consentGiven(true);
+          await OneSignal.Notifications.requestPermission(true);
+        }
+      } catch (e) {
+        debugPrint('OneSignal initialization/permission error: $e');
       }
-      if (userId != null && userId.isNotEmpty) {
-        AppConstants.userId = userId;
-        final userCtrl = Get.isRegistered<UserController>()
-            ? Get.find<UserController>()
-            : Get.put(UserController(), permanent: true);
-        await userCtrl.getUserData(AppConstants.userId);
+
+      // Wait for language to load from SharedPreferences
+      await languageProvider.initialize();
+
+      // Load persisted auth and user values and populate AppConstants
+      try {
+        final token = await UserPrefs.getToken();
+        final refresh = await UserPrefs.getRefreshToken();
+        final userId = await UserPrefs.getId();
+        final email = await UserPrefs.getEmail();
+        final name = await UserPrefs.getName();
+
+        if (token != null && token.isNotEmpty) {
+          AppConstants.authToken = token;
+        }
+        if (userId != null && userId.isNotEmpty) {
+          AppConstants.userId = userId;
+          final userCtrl = Get.isRegistered<UserController>()
+              ? Get.find<UserController>()
+              : Get.put(UserController(), permanent: true);
+          await userCtrl.getUserData(AppConstants.userId);
+        }
+        // Optionally persist extra metadata for diagnostics
+        if (email != null && email.isNotEmpty) {
+          AppConstants.userEmail = email;
+        }
+        if (name != null && name.isNotEmpty) {
+          AppConstants.userName = name;
+        }
+        if (refresh != null && refresh.isNotEmpty) {
+          AppConstants.refreshToken = refresh;
+        }
+      } catch (_) {}
+
+      // Register the same instances with GetX so both can use the same providers
+      Get.put(themeProvider, permanent: true);
+      Get.put(languageProvider, permanent: true);
+
+      initialData = await getInitialScreenData();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _initialScreenData = initialData;
+          _isInitialized = true;
+        });
       }
-      // Optionally persist extra metadata for diagnostics
-      if (email != null && email.isNotEmpty) {
-        AppConstants.userEmail = email;
-      }
-      if (name != null && name.isNotEmpty) {
-        AppConstants.userName = name;
-      }
-      if (refresh != null && refresh.isNotEmpty) {
-        AppConstants.refreshToken = refresh;
-      }
-    } catch (_) {}
-    
-    // Register the same instances with GetX so both can use the same providers
-    Get.put(themeProvider, permanent: true);
-    Get.put(languageProvider, permanent: true);
-    
-    if (mounted) {
-      setState(() {
-        _isInitialized = true;
-      });
+      _binding.allowFirstFrame();
     }
   }
 
@@ -146,14 +153,18 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Show loading indicator while providers are initializing
+    // Keep native launch screen visible while initialization runs
     if (!_isInitialized) {
       return const CupertinoApp(
         debugShowCheckedModeBanner: false,
-        home: Center(child: CupertinoActivityIndicator()),
+        home: SizedBox.shrink(),
       );
     }
-    
+
+    final Map<String, dynamic> data = _initialScreenData ?? const {};
+    final String userId = (data['userId'] as String?) ?? '';
+    final bool isAuthenticated = (data['isAuthenticated'] as bool?) ?? false;
+
     return ListenableBuilder(
       listenable: Listenable.merge([themeProvider, languageProvider]),
       builder: (context, child) {
@@ -178,68 +189,28 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
                 ? Brightness.light 
                 : Brightness.dark,
           ),
-          home: FutureBuilder<Map<String, dynamic>>(
-            future: getInitialScreenData(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CupertinoActivityIndicator());
-              }
-              
-              final Map<String, dynamic> data = snapshot.data ?? const {};
-              final String userId = (data['userId'] as String?) ?? '';
-              final bool isAuthenticated = (data['isAuthenticated'] as bool?) ?? false;
-
-              print('isAuthenticated: $isAuthenticated');
-              print('userId: $userId');
-
-              // Navigation logic based on authentication state
-              if (isAuthenticated && userId.isNotEmpty) {
-                // User is authenticated, go to main app
-                return HomeScreen(
-                  themeProvider: themeProvider, languageProvider: languageProvider,
-                  // isLogin: true,
-                  //languageProvider: languageProvider,
-                );
-              } else {
-                // User is not authenticated, go to create account
-                return OnboardingScreen(
+          home: isAuthenticated && userId.isNotEmpty
+              ? HomeScreen(
                   themeProvider: themeProvider,
-                  // languageProvider: languageProvider,
-                 // languageProvider: languageProvider,
-                );
-              }
-            },
-          ),
+                  languageProvider: languageProvider,
+                )
+              : OnboardingScreen(
+                  themeProvider: themeProvider,
+                ),
           onUnknownRoute: (RouteSettings settings) {
             return CupertinoPageRoute(
               settings: settings,
               builder: (context) {
-                return FutureBuilder<Map<String, dynamic>>(
-                  future: getInitialScreenData(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return const Center(child: CupertinoActivityIndicator());
-                    }
-                    
-                    final Map<String, dynamic> data = snapshot.data ?? const {};
-                    final String userId = (data['userId'] as String?) ?? '';
-                    final bool isAuthenticated = (data['isAuthenticated'] as bool?) ?? false;
-
-                    // Navigation logic based on authentication state
-                    if (isAuthenticated && userId.isNotEmpty) {
-                      // User is authenticated, go to main app
-                      return HomeScreen(
-                        themeProvider: themeProvider,
-                        languageProvider: languageProvider,
-                      );
-                    } else {
-                      // User is not authenticated, go to create account
-                      return OnboardingScreen(
-                        themeProvider: themeProvider,
-                      );
-                    }
-                  },
-                );
+                if (isAuthenticated && userId.isNotEmpty) {
+                  return HomeScreen(
+                    themeProvider: themeProvider,
+                    languageProvider: languageProvider,
+                  );
+                } else {
+                  return OnboardingScreen(
+                    themeProvider: themeProvider,
+                  );
+                }
               },
             );
           },

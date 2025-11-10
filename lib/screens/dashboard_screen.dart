@@ -12,7 +12,9 @@ import '../services/progress_service.dart';
 import '../utils/theme_helper.dart' show ThemeHelper;
 import 'log_streak_screen.dart' show LogStreakScreen;
 import 'set_goals_screen.dart' show SetGoalsScreen;
+import 'exercise_detail_screen.dart' show ExerciseDetailScreen;
 import 'meal_details_screen.dart' show MealDetailsScreen;
+import '../controllers/home_screen_controller.dart';
 
 enum StreakStatus {
   completed,
@@ -65,6 +67,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   bool _showStreakCard = false; // State for showing streak card
   late final StreakService streakService;
   List<DateTime> weekDates = [];
+
+  List<Map<String, dynamic>> _localTodayMeals = [];
+  Map<String, int>? _localTodayTotals;
+  List<Map<String, dynamic>> _localTodayExercises = [];
+  bool _cardAnimationsActivated = false;
+  final Set<String> _scheduledCardAnimations = <String>{};
+  final Set<String> _visibleAnimatedCards = <String>{};
   
   // Mock data - replace with real data from your backend
   final int dailyCalorieGoal = 2000;
@@ -74,13 +83,12 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   final int carbsLeft = 99;
   final int fatLeft = 25;
 
-  late AnimationController _percentageController;
-
   @override
   void initState() {
     super.initState();
     streakService = Get.put(StreakService());
     _initializeWeek();
+    _syncFromWidget();
     _loadStreaksForWeek();
     // Ensure progress data loads independently of meals fetch timing
     try {
@@ -92,12 +100,15 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       progressService.fetchDailyProgress(dateYYYYMMDD: dateStr);
     } catch (_) {}
     
-    _percentageController = AnimationController(
-      duration: const Duration(seconds: 3),
-      vsync: this,
-    );
     
     // Animation setup removed as it's no longer needed
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _cardAnimationsActivated = true;
+      });
+    });
   }
 
   void _initializeWeek() {
@@ -107,6 +118,185 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     final monday = today.subtract(Duration(days: today.weekday - 1));
     
     weekDates = List.generate(7, (index) => monday.add(Duration(days: index)));
+  }
+
+  void _syncFromWidget() {
+    _localTodayMeals = (widget.todayMeals ?? const [])
+        .map((meal) => Map<String, dynamic>.from(meal))
+        .toList();
+    _localTodayTotals = widget.todayTotals != null
+        ? Map<String, int>.from(widget.todayTotals!)
+        : null;
+    _localTodayExercises = (widget.todayExercises ?? const [])
+        .map((exercise) => Map<String, dynamic>.from(exercise))
+        .toList();
+    _recalculateLocalTotals(preferWidgetTotals: true);
+  }
+
+  void _applyLocalMealUpdate(Map<String, dynamic> updatedMeal) {
+    final Map<String, dynamic> copy = Map<String, dynamic>.from(updatedMeal);
+    final String? targetId = _extractMealId(copy);
+    if (targetId == null) {
+      _localTodayMeals.insert(0, copy);
+      widget.todayMeals?.insert(0, copy);
+      return;
+    }
+
+    final int existingIndex = _localTodayMeals.indexWhere((meal) {
+      final id = _extractMealId(meal);
+      return id != null && id == targetId;
+    });
+
+    if (existingIndex >= 0) {
+      _localTodayMeals[existingIndex] = copy;
+      if (widget.todayMeals != null && existingIndex < widget.todayMeals!.length) {
+        widget.todayMeals![existingIndex] = copy;
+      }
+    } else {
+      _localTodayMeals.insert(0, copy);
+      widget.todayMeals?.insert(0, copy);
+    }
+  }
+
+  void _applyLocalExerciseUpdate(Map<String, dynamic> updatedExercise) {
+    final Map<String, dynamic> copy = Map<String, dynamic>.from(updatedExercise);
+    final String? targetId = _extractExerciseId(copy);
+
+    if (targetId == null) {
+      _localTodayExercises.insert(0, copy);
+    } else {
+      final int existingIndex = _localTodayExercises.indexWhere((exercise) {
+        final id = _extractExerciseId(exercise);
+        return id != null && id == targetId;
+      });
+
+      if (existingIndex >= 0) {
+        _localTodayExercises[existingIndex] = copy;
+      } else {
+        _localTodayExercises.insert(0, copy);
+      }
+    }
+
+    if (widget.todayExercises != null) {
+      widget.todayExercises!
+        ..clear()
+        ..addAll(_localTodayExercises.map((exercise) => Map<String, dynamic>.from(exercise)));
+    }
+
+    if (Get.isRegistered<HomeScreenController>()) {
+      final controller = Get.find<HomeScreenController>();
+      controller.todayExercises.assignAll(
+        _localTodayExercises.map((exercise) => Map<String, dynamic>.from(exercise)).toList(),
+      );
+    }
+  }
+
+  void _recalculateLocalTotals({bool preferWidgetTotals = false}) {
+    if (preferWidgetTotals && widget.todayTotals != null) {
+      _localTodayTotals = Map<String, int>.from(widget.todayTotals!);
+      return;
+    }
+
+    int calories = 0;
+    int protein = 0;
+    int carbs = 0;
+    int fat = 0;
+
+    if (_localTodayMeals.isEmpty) {
+      _localTodayTotals = null;
+      return;
+    }
+
+    for (final meal in _localTodayMeals) {
+      calories += _intFrom(meal['totalCalories']);
+      protein += _intFrom(meal['totalProtein']);
+      carbs += _intFrom(meal['totalCarbs']);
+      fat += _intFrom(meal['totalFat']);
+    }
+
+    _localTodayTotals = {
+      'totalCalories': calories,
+      'totalProtein': protein,
+      'totalCarbs': carbs,
+      'totalFat': fat,
+    };
+
+    if (widget.todayTotals != null) {
+      widget.todayTotals!
+        ..update('totalCalories', (_) => calories, ifAbsent: () => calories)
+        ..update('totalProtein', (_) => protein, ifAbsent: () => protein)
+        ..update('totalCarbs', (_) => carbs, ifAbsent: () => carbs)
+        ..update('totalFat', (_) => fat, ifAbsent: () => fat);
+    }
+  }
+
+  int _intFrom(dynamic value) {
+    if (value is int) return value;
+    if (value is double) return value.round();
+    if (value is num) return value.toInt();
+    return 0;
+  }
+
+  String? _extractMealId(Map<String, dynamic> meal) {
+    final dynamic id = meal['id'] ?? meal['_id'] ?? meal['mealId'];
+    if (id == null) return null;
+    return id.toString();
+  }
+
+  String? _extractExerciseId(Map<String, dynamic> exercise) {
+    final dynamic id = exercise['id'] ?? exercise['_id'] ?? exercise['exerciseId'];
+    if (id == null) return null;
+    return id.toString();
+  }
+
+  int? _getLocalTotal(String key) => _localTodayTotals?[key];
+
+  int? _getLocalMacro(String dataKey) {
+    switch (dataKey.toLowerCase()) {
+      case 'carbs':
+        return _localTodayTotals?['totalCarbs'];
+      case 'protein':
+        return _localTodayTotals?['totalProtein'];
+      case 'fat':
+        return _localTodayTotals?['totalFat'];
+      default:
+        return null;
+    }
+  }
+
+  Widget _animateCard({
+    required String id,
+    required Widget child,
+    int order = 0,
+    Duration duration = const Duration(milliseconds: 320),
+  }) {
+    final bool isVisible = _visibleAnimatedCards.contains(id);
+
+    if (_cardAnimationsActivated && !isVisible && !_scheduledCardAnimations.contains(id)) {
+      _scheduledCardAnimations.add(id);
+      Future<void>.delayed(Duration(milliseconds: 70 * order), () {
+        if (!mounted) return;
+        if (_visibleAnimatedCards.contains(id)) return;
+        setState(() {
+          _visibleAnimatedCards.add(id);
+        });
+      });
+    }
+
+    final bool targetVisible = _visibleAnimatedCards.contains(id);
+
+    return AnimatedOpacity(
+      key: ValueKey<String>('card_anim_$id'),
+      opacity: targetVisible ? 1.0 : 0.0,
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      child: AnimatedSlide(
+        offset: targetVisible ? Offset.zero : const Offset(0, 0.06),
+        duration: duration,
+        curve: Curves.easeOutCubic,
+        child: child,
+      ),
+    );
   }
 
   Future<void> _loadStreaksForWeek() async {
@@ -124,7 +314,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
 
   @override
   void dispose() {
-    _percentageController.dispose();
     super.dispose();
   }
 
@@ -133,10 +322,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     super.didUpdateWidget(oldWidget);
     if (widget.isAnalyzing && !oldWidget.isAnalyzing) {
       // Start animation when analyzing begins
-      _percentageController.forward();
     } else if (!widget.isAnalyzing && oldWidget.isAnalyzing) {
       // Reset animation when analyzing stops
-      _percentageController.reset();
+    }
+    if (widget.todayMeals != oldWidget.todayMeals ||
+        widget.todayTotals != oldWidget.todayTotals ||
+        widget.todayExercises != oldWidget.todayExercises) {
+      _syncFromWidget();
     }
   }
 
@@ -182,7 +374,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 child: Row(
                   children: [
                     // App Title
-                    Image.asset('assets/icons/apple.png', width: 48, height: 48, color: ThemeHelper.textPrimary),
+                    Image.asset('assets/icons/app_logo.png', width: 48, height: 48, color: ThemeHelper.textPrimary),
                     Text(
                       l10n.appTitle,
                       style: TextStyle(
@@ -242,28 +434,32 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               ),
               
               // Day Selector
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: ThemeHelper.cardBackground,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: ThemeHelper.textPrimary.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+              _animateCard(
+                id: 'day_selector',
+                order: 0,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: ThemeHelper.cardBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: ThemeHelper.textPrimary.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Obx(() => Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: weekDates.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final date = entry.value;
+                          return _buildDaySelector(date, index, l10n);
+                        }).toList(),
+                      )),
                 ),
-                child: Obx(() => Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: weekDates.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final date = entry.value;
-                    return _buildDaySelector(date, index, l10n);
-                  }).toList(),
-                )),
               ),
               
               const SizedBox(height: 24),
@@ -277,197 +473,235 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     // Left side - Calories Card
                     Expanded(
                       flex: 2,
+                      child: _animateCard(
+                        id: 'calorie_card',
+                        order: 1,
                         child: GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => SetGoalsScreen(dailyProgress: widget.todayTotals),
+                                builder: (context) => SetGoalsScreen(dailyProgress: _localTodayTotals),
                               ),
                             );
                           },
                           child: Container(
-                        height: 264, // Match macro stack height (3×80 + 2×12)
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: ThemeHelper.cardBackground,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: ThemeHelper.textPrimary.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Title
-                            Text(
-                              l10n.calories,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: ThemeHelper.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            // Progress ring with apple icon
-                            Center(
-                              child: SizedBox(
-                                width: 80,
-                                height: 80,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    // Progress circle
-                                    GetBuilder<ProgressService>(
-                                      builder: (progressService) {
-                                        final progressData = progressService.dailyProgressData;
-                                        
-                                        int consumed = 0;
-                                        int goal = 0;
-                                        
-                                        if (progressData != null && progressData['progress'] != null) {
-                                          final progress = progressData['progress'] as Map<String, dynamic>;
-                                          consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
-                                          goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
-                                        }
-                                        
-                                        double progressValue = goal > 0 ? consumed / goal : 0.0;
-                                        
-                                        return SizedBox(
-                                          width: 80,
-                                          height: 80,
-                                          child: CircularProgressIndicator(
-                                            value: progressValue,
-                                            strokeWidth: 6,
-                                            backgroundColor: ThemeHelper.divider,
-                                            valueColor: AlwaysStoppedAnimation<Color>(
-                                              ThemeHelper.textPrimary,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    // Center apple icon
-                                    Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
-                                  ],
+                            height: 264, // Match macro stack height (3×80 + 2×12)
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: ThemeHelper.cardBackground,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: ThemeHelper.textPrimary.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(height: 16),
-                            // Calories numbers
-                            Center(
-                              child: GetBuilder<ProgressService>(
-                                builder: (progressService) {
-                                  final progressData = progressService.dailyProgressData;
-                                  
-                                  int consumed = 0;
-                                  int goal = 0;
-                                  
-                                  if (progressData != null && progressData['progress'] != null) {
-                                    final progress = progressData['progress'] as Map<String, dynamic>;
-                                    consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
-                                    goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
-                                  }
-                                  
-                                  return RichText(
-                                    text: TextSpan(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Title
+                                Text(
+                                  l10n.calories,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: ThemeHelper.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                // Progress ring with apple icon
+                                Center(
+                                  child: SizedBox(
+                                    width: 80,
+                                    height: 80,
+                                    child: Stack(
+                                      alignment: Alignment.center,
                                       children: [
-                                        TextSpan(
-                                          text: '$consumed',
-                                          style: TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                            color: ThemeHelper.textPrimary,
-                                          ),
+                                        // Progress circle
+                                        GetBuilder<ProgressService>(
+                                          builder: (progressService) {
+                                            final progressData = progressService.dailyProgressData;
+                                            
+                                            int consumed = _getLocalTotal('totalCalories') ?? 0;
+                                            int goal = 0;
+                                            
+                                            if (progressData != null && progressData['progress'] != null) {
+                                              final progress = progressData['progress'] as Map<String, dynamic>;
+                                              goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
+                                              if (consumed == 0) {
+                                                consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
+                                              }
+                                            }
+                                            
+                                            final double progressValue = goal > 0 ? consumed / goal : 0.0;
+                                            
+                                            return TweenAnimationBuilder<double>(
+                                              key: ValueKey<double>(consumed.toDouble()),
+                                              tween: Tween(
+                                                begin: 0,
+                                                end: progressValue.clamp(0.0, 1.0),
+                                              ),
+                                              duration: const Duration(milliseconds: 450),
+                                              curve: Curves.easeOut,
+                                              builder: (context, animatedValue, child) {
+                                                return SizedBox(
+                                                  width: 80,
+                                                  height: 80,
+                                                  child: CircularProgressIndicator(
+                                                    value: animatedValue,
+                                                    strokeWidth: 6,
+                                                    backgroundColor: ThemeHelper.divider,
+                                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                                      ThemeHelper.textPrimary,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
                                         ),
-                                        TextSpan(
-                                          text: '/$goal',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: ThemeHelper.textSecondary,
-                                          ),
-                                        ),
+                                        // Center apple icon
+                                        Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
                                       ],
                                     ),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            // Info message
-                            Center(
-                              child: GetBuilder<ProgressService>(
-                                builder: (progressService) {
-                                  final progressData = progressService.dailyProgressData;
-                                  
-                                  int remaining = 0;
-                                  
-                                  if (progressData != null && progressData['progress'] != null) {
-                                    final progress = progressData['progress'] as Map<String, dynamic>;
-                                    remaining = ((progress['calories']?['remaining'] ?? 0) as num).toInt();
-                                  }
-                                  
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        CupertinoIcons.info_circle,
-                                        size: 12,
-                                        color: ThemeHelper.textSecondary,
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Flexible(
-                                        child: Text(
-                                          '$remaining ${l10n.caloriesMoreToGo}',
-                                          style: TextStyle(
-                                            fontSize: 10,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                // Calories numbers
+                                Center(
+                                  child: GetBuilder<ProgressService>(
+                                    builder: (progressService) {
+                                      final progressData = progressService.dailyProgressData;
+                                      
+                                      final localConsumed = _getLocalTotal('totalCalories');
+                                      int consumed = localConsumed ?? 0;
+                                      int goal = 0;
+                                      
+                                      if (progressData != null && progressData['progress'] != null) {
+                                        final progress = progressData['progress'] as Map<String, dynamic>;
+                                        if (consumed == 0) {
+                                          consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
+                                        }
+                                        goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
+                                      }
+                                      
+                                      return RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: '$consumed',
+                                              style: TextStyle(
+                                                fontSize: 24,
+                                                fontWeight: FontWeight.bold,
+                                                color: ThemeHelper.textPrimary,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '/$goal',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: ThemeHelper.textSecondary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                // Info message
+                                Center(
+                                  child: GetBuilder<ProgressService>(
+                                    builder: (progressService) {
+                                      final progressData = progressService.dailyProgressData;
+                                      
+                                      final localConsumed = _getLocalTotal('totalCalories');
+                                      int consumed = localConsumed ?? 0;
+                                      int goal = 0;
+                                      int remaining;
+                                      
+                                      if (progressData != null && progressData['progress'] != null) {
+                                        final progress = progressData['progress'] as Map<String, dynamic>;
+                                        if (consumed == 0) {
+                                          consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
+                                        }
+                                        goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
+                                      }
+
+                                      remaining = goal > 0 ? (goal - consumed).clamp(0, goal) : 0;
+                                      
+                                      return Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.info_circle,
+                                            size: 12,
                                             color: ThemeHelper.textSecondary,
                                           ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
+                                          const SizedBox(width: 3),
+                                          Flexible(
+                                            child: Text(
+                                              '$remaining ${l10n.caloriesMoreToGo}',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: ThemeHelper.textSecondary,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                    ),
-
                     const SizedBox(width: 16),
-
                     // Right side - Macro Cards (stacked vertically)
                     Expanded(
                       flex: 3,
                       child: Column(
                         children: [
-                          _buildCompactMacroCard(
-                            l10n.fats,
-                            'fat',
-                            CupertinoColors.systemRed,
-                            l10n,
+                          _animateCard(
+                            id: 'macro_fat',
+                            order: 2,
+                            child: _buildCompactMacroCard(
+                              l10n.fats,
+                              'fat',
+                              CupertinoColors.systemRed,
+                              l10n,
+                            ),
                           ),
                           const SizedBox(height: 12),
-                          _buildCompactMacroCard(
-                            l10n.protein,
-                            'protein',
-                            CupertinoColors.systemBlue,
-                            l10n,
+                          _animateCard(
+                            id: 'macro_protein',
+                            order: 3,
+                            child: _buildCompactMacroCard(
+                              l10n.protein,
+                              'protein',
+                              CupertinoColors.systemBlue,
+                              l10n,
+                            ),
                           ),
                           const SizedBox(height: 12),
-                          _buildCompactMacroCard(
-                            l10n.carbs,
-                            'carbs',
-                            CupertinoColors.systemOrange,
-                            l10n,
+                          _animateCard(
+                            id: 'macro_carbs',
+                            order: 4,
+                            child: _buildCompactMacroCard(
+                              l10n.carbs,
+                              'carbs',
+                              CupertinoColors.systemOrange,
+                              l10n,
+                            ),
                           ),
                         ],
                       ),
@@ -480,27 +714,39 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               const SizedBox(height: 32),
 
                // Show exercise cards if available
-                      if ((widget.todayExercises ?? []).isNotEmpty) ...[
+                      if (_localTodayExercises.isNotEmpty) ...[
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: Column(
                             children: [
                               // Section title
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: Text(
-                                  l10n.recentlyUploaded,
-                                  style: TextStyle(
-                                    color: ThemeHelper.textPrimary,
-                                    fontSize: 20,
-                                    fontFamily: 'Instrument Sans',
-                                    fontWeight: FontWeight.w700,
+                              _animateCard(
+                                id: 'recent_exercises_title',
+                                order: 5,
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: Text(
+                                    l10n.recentlyUploaded,
+                                    style: TextStyle(
+                                      color: ThemeHelper.textPrimary,
+                                      fontSize: 20,
+                                      fontFamily: 'Instrument Sans',
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
                               ),
                               // Exercise cards
-                              ...widget.todayExercises!.map((exercise) => _buildExerciseCard(exercise, l10n)).toList(),
+                              ..._localTodayExercises.asMap().entries.map((entry) {
+                                final index = entry.key;
+                                final exercise = entry.value;
+                                return _animateCard(
+                                  id: 'exercise_$index',
+                                  order: 6 + index,
+                                  child: _buildExerciseCard(exercise, l10n),
+                                );
+                              }).toList(),
                             ],
                           ),
                         ),
@@ -628,7 +874,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           ),
                         ),
                       ),
-                    ] else if ((widget.selectedImage == null || widget.isAnalyzing) && (widget.todayTotals == null) && ((widget.todayEntries == null) || widget.todayEntries!.isEmpty) && ((widget.todayExercises == null) || widget.todayExercises!.isEmpty)) ...[
+                    ] else if ((widget.selectedImage == null || widget.isAnalyzing) &&
+                        (_localTodayTotals == null) &&
+                        ((widget.todayEntries == null) || widget.todayEntries!.isEmpty) &&
+                        _localTodayExercises.isEmpty) ...[
                       Text(
                         l10n.noFoodLogged,
                         style: TextStyle(
@@ -638,24 +887,51 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildRecentlyLoggedCard(),
+                      _animateCard(
+                        id: 'recently_logged',
+                        order: 3,
+                        child: _buildRecentlyLoggedCard(),
+                      ),
                       const SizedBox(height: 20),
                     ] else ...[
-                      if (widget.isAnalyzing) _buildRecentlyLoggedCard(),
-                      if (widget.hasScanError) _buildScanErrorCard(),
+                      if (widget.isAnalyzing)
+                        _animateCard(
+                          id: 'analyzing_card',
+                          order: 2,
+                          child: _buildRecentlyLoggedCard(),
+                        ),
+                      if (widget.hasScanError)
+                        _animateCard(
+                          id: 'scan_error_card',
+                          order: 2,
+                          child: _buildScanErrorCard(),
+                        ),
                       // Removed optimistic scanned food card - only show after meal is saved
-                      if ((widget.todayMeals ?? []).isNotEmpty) ...[
+                      if (_localTodayMeals.isNotEmpty) ...[
                         Column(
-                          children: widget.todayMeals!
-                              .map((meal) => GestureDetector(
+                          children: _localTodayMeals.asMap().entries
+                              .map((entry) {
+                                final index = entry.key;
+                                final meal = entry.value;
+                                final mealId = _extractMealId(meal) ?? 'idx_$index';
+                                return _animateCard(
+                                  id: 'meal_$mealId',
+                                  order: 4 + index,
+                                  child: GestureDetector(
                                     onTap: () => _openMealDetails(meal),
                                     child: _buildMealTotalsCard(meal, l10n),
-                                  ))
+                                  ),
+                                );
+                              })
                               .toList(),
                         ),
                         const SizedBox(height: 12),
-                      ] else if (widget.todayTotals != null) ...[
-                        _buildTodayTotalsCard(l10n),
+                      ] else if (_localTodayTotals != null) ...[
+                        _animateCard(
+                          id: 'today_totals_card',
+                          order: 4,
+                          child: _buildTodayTotalsCard(l10n, _localTodayTotals!),
+                        ),
                         const SizedBox(height: 12),
                       ],
                      
@@ -703,14 +979,46 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
   }
 
-  void _openMealDetails(Map<String, dynamic> meal) {
-    Navigator.of(context).push(
+  Future<void> _openMealDetails(Map<String, dynamic> meal) async {
+    final updatedMeal = await Navigator.of(context).push<Map<String, dynamic>>(
       CupertinoPageRoute(
         builder: (context) => MealDetailsScreen(
           mealData: meal,
         ),
       ),
     );
+
+    if (updatedMeal != null) {
+      setState(() {
+        _applyLocalMealUpdate(updatedMeal);
+        _recalculateLocalTotals();
+      });
+      if (Get.isRegistered<HomeScreenController>()) {
+        final controller = Get.find<HomeScreenController>();
+        // Refresh backend data to keep other observers in sync.
+        controller.fetchTodayTotals();
+      }
+    }
+  }
+
+  Future<void> _openExerciseDetails(Map<String, dynamic> exercise) async {
+    final updatedExercise = await Navigator.of(context).push<Map<String, dynamic>>(
+      CupertinoPageRoute(
+        builder: (context) => ExerciseDetailScreen(
+          exerciseData: Map<String, dynamic>.from(exercise),
+        ),
+      ),
+    );
+
+    if (updatedExercise != null) {
+      setState(() {
+        _applyLocalExerciseUpdate(updatedExercise);
+      });
+      if (Get.isRegistered<HomeScreenController>()) {
+        final controller = Get.find<HomeScreenController>();
+        controller.fetchTodayTotals();
+      }
+    }
   }
 
   Widget _buildDaySelector(DateTime date, int dayIndex, AppLocalizations l10n) {
@@ -753,10 +1061,25 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           ),
           const SizedBox(height: 8),
           // Status icon
-          Container(
+          SizedBox(
             width: 32,
             height: 32,
-            child: _buildDayIcon(streakStatus, isSelected),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 260),
+              switchInCurve: Curves.easeOutBack,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: (child, animation) {
+                final curved = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+                return FadeTransition(
+                  opacity: curved,
+                  child: ScaleTransition(
+                    scale: Tween<double>(begin: 0.85, end: 1.0).animate(curved),
+                    child: child,
+                  ),
+                );
+              },
+              child: _buildDayIcon(streakStatus, isSelected),
+            ),
           ),
         ],
       ),
@@ -784,16 +1107,24 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   Widget _buildDayIcon(StreakStatus status, bool isSelected) {
+    final key = ValueKey<String>('streak_${status.name}_${isSelected ? 'selected' : 'normal'}');
     switch (status) {
       case StreakStatus.completed:
-        return Image.asset('assets/icons/flame.png', width: 32, height: 32);
+        return Image.asset(
+          'assets/icons/flame.png',
+          key: key,
+          width: 32,
+          height: 32,
+        );
       case StreakStatus.missed:
         return Opacity(
+          key: key,
           opacity: 0.6,
           child: Image.asset('assets/icons/flame_missed.png', width: 32, height: 32),
         );
       case StreakStatus.neutral:
         return Opacity(
+          key: key,
           opacity: 0.3,
           child: Image.asset('assets/icons/flame.png', width: 32, height: 32),
         );
@@ -818,10 +1149,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   Widget _buildCompactMacroCard(String label, String dataKey, Color color, AppLocalizations l10n) {
     return GestureDetector(
       onTap: () {
-        print('widget.todayTotals: ${widget.todayTotals}');
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SetGoalsScreen(dailyProgress: widget.todayTotals)),
+          MaterialPageRoute(
+            builder: (context) => SetGoalsScreen(dailyProgress: _localTodayTotals),
+          ),
         );
       },
       child: Container(
@@ -853,28 +1185,42 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       builder: (progressService) {
                         final progressData = progressService.dailyProgressData;
                         
-                        int consumed = 0;
+                        final localConsumed = _getLocalMacro(dataKey);
+                        int consumed = localConsumed ?? 0;
                         int goal = 0;
                         
                         if (progressData != null && progressData['progress'] != null) {
                           final progress = progressData['progress'] as Map<String, dynamic>;
                           if (progress['macros'] != null) {
                             final macros = progress['macros'] as Map<String, dynamic>;
-                            consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
+                            if (consumed == 0) {
+                              consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
+                            }
                             goal = ((macros[dataKey]?['goal'] ?? 0) as num).toInt();
                           }
                         }
                         
                         double progressValue = goal > 0 ? consumed / goal : 0.0;
                         
-                        return CustomPaint(
-                          size: Size(48, 48),
-                          painter: CircleProgressPainter(
-                            progress: progressValue,
-                            color: color,
-                            strokeWidth: 4,
-                          ),
-                        );
+                                        return TweenAnimationBuilder<double>(
+                                          key: ValueKey<String>('${dataKey}_$consumed'),
+                                          tween: Tween(
+                                            begin: 0,
+                                            end: progressValue.clamp(0.0, 1.0),
+                                          ),
+                                          duration: const Duration(milliseconds: 450),
+                                          curve: Curves.easeOut,
+                                          builder: (context, animatedValue, child) {
+                                            return CustomPaint(
+                                              size: Size(48, 48),
+                                              painter: CircleProgressPainter(
+                                                progress: animatedValue,
+                                                color: color,
+                                                strokeWidth: 4,
+                                              ),
+                                            );
+                                          },
+                                        );
                       },
                     ),
                     // Center icon based on dataKey
@@ -942,14 +1288,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             builder: (progressService) {
                               final progressData = progressService.dailyProgressData;
                               
-                              int consumed = 0;
+                              final localConsumed = _getLocalMacro(dataKey);
+                              int consumed = localConsumed ?? 0;
                               int goal = 0;
                               
                               if (progressData != null && progressData['progress'] != null) {
                                 final progress = progressData['progress'] as Map<String, dynamic>;
                                 if (progress['macros'] != null) {
                                   final macros = progress['macros'] as Map<String, dynamic>;
-                                  consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
+                                  if (consumed == 0) {
+                                    consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
+                                  }
                                   goal = ((macros[dataKey]?['goal'] ?? 0) as num).toInt();
                                 }
                               }
@@ -1032,7 +1381,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   ),
                 )
               else
-                Image.asset('assets/images/AI_Slides_Image.png'),
+                Image.asset(ThemeHelper.isLightMode ? 'assets/images/AI_Slides_Image.png' : 'assets/images/AI_Slides_Image_Dark.png'),
             ],
           ),
         ),
@@ -1401,8 +1750,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
 
   // Removed per-entry card rendering per requirement (overall meal only)
 
-  Widget _buildTodayTotalsCard(AppLocalizations l10n) {
-    final totals = widget.todayTotals!;
+  Widget _buildTodayTotalsCard(AppLocalizations l10n, Map<String, int> totals) {
     final calories = totals['totalCalories'] ?? 0;
     final protein = totals['totalProtein'] ?? 0;
     final fat = totals['totalFat'] ?? 0;
@@ -1702,209 +2050,191 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   Widget _buildExerciseCard(Map<String, dynamic> exercise, AppLocalizations l10n) {
-    // Extract exercise data
     final caloriesBurned = ((exercise['caloriesBurned'] ?? 0) as num).toInt();
     final exerciseType = exercise['type'] as String? ?? 'Exercise';
     final loggedAt = exercise['loggedAt'] as String?;
     final notes = exercise['notes'] as String?;
-    
-    // Format time from loggedAt using app's locale
+
     String timeString = '';
     if (loggedAt != null) {
       try {
-        final loggedDateTime = DateTime.parse(loggedAt).toLocal();
-        // Use the app's locale for time formatting
+        final loggedDateTime = DateTime.parse(loggedAt);
         timeString = DateFormat('HH:mm', Localizations.localeOf(context).toString()).format(loggedDateTime);
       } catch (_) {}
     }
-    
-    // Get exercise name from type or notes
+
     String exerciseName = exerciseType;
     if (notes != null && notes.isNotEmpty) {
       exerciseName = notes;
     }
-    
-    // Get appropriate icon based on exercise type
-    String iconPath = _getExerciseIcon(exerciseType);
-    
-    return Container(
-      width: double.infinity,
-      height: 106,
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: ShapeDecoration(
-        color: ThemeHelper.cardBackground,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(15)),
+
+    final String iconPath = _getExerciseIcon(exerciseType);
+
+    return GestureDetector(
+      onTap: () => _openExerciseDetails(exercise),
+      child: Container(
+        width: double.infinity,
+        height: 106,
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: ShapeDecoration(
+          color: ThemeHelper.cardBackground,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+          ),
+          shadows: [
+            BoxShadow(
+              color: ThemeHelper.textPrimary.withOpacity(0.1),
+              blurRadius: 3,
+              offset: const Offset(0, 0),
+              spreadRadius: 0,
+            )
+          ],
         ),
-        shadows: [
-          BoxShadow(
-            color: ThemeHelper.textPrimary.withOpacity(0.1),
-            blurRadius: 3,
-            offset: Offset(0, 0),
-            spreadRadius: 0,
-          )
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // Exercise icon
-            Container(
-              width: 50,
-              height: 50,
-              decoration: ShapeDecoration(
-                color: widget.themeProvider.isLightMode 
-                    ? Colors.white 
-                    : const Color(0xFF1A1A1A),
-                shape: OvalBorder(),
-              ),
-              child: Center(
-                child: Image.asset(
-                  iconPath,
-                  width: 24,
-                  height: 24,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: ShapeDecoration(
+                  color: widget.themeProvider.isLightMode ? Colors.white : const Color(0xFF1A1A1A),
+                  shape: const OvalBorder(),
+                ),
+                child: Center(
+                  child: Image.asset(
+                    iconPath,
+                    width: 24,
+                    height: 24,
+                  ),
                 ),
               ),
-            ),
-            
-            const SizedBox(width: 12),
-            
-            // Exercise details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Exercise name and time
-                  Row(
-                    children: [
-                      Expanded(
-                        child:                         Text(
-                          exerciseName,
-                          style: TextStyle(
-                            color: ThemeHelper.textPrimary,
-                            fontSize: 12,
-                            fontFamily: 'Instrument Sans',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      if (timeString.isNotEmpty)
-                        Container(
-                          width: 24,
-                          height: 12,
-                          decoration: ShapeDecoration(
-                            color: widget.themeProvider.isLightMode 
-                                ? Colors.white 
-                                : const Color(0xFF1A1A1A),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(15)),
-                            ),
-                            shadows: [
-                              BoxShadow(
-                                color: ThemeHelper.textPrimary.withOpacity(0.2),
-                                blurRadius: 3,
-                                offset: Offset(0, 0),
-                                spreadRadius: 0,
-                              )
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              timeString,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: ThemeHelper.textPrimary,
-                                fontSize: 6,
-                                fontFamily: 'Instrument Sans',
-                                fontWeight: FontWeight.w400,
-                              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            exerciseName,
+                            style: TextStyle(
+                              color: ThemeHelper.textPrimary,
+                              fontSize: 12,
+                              fontFamily: 'Instrument Sans',
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  // Calories badge
-                  Container(
-                    width: 70,
-                    height: 24,
-                    decoration: ShapeDecoration(
-                      color: widget.themeProvider.isLightMode 
-                          ? Colors.white 
-                          : const Color(0xFF1A1A1A),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(6)),
-                      ),
-                      shadows: [
-                        BoxShadow(
-                          color: Color(0x3F000000),
-                          blurRadius: 5,
-                          offset: Offset(0, 0),
-                          spreadRadius: 1,
-                        )
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Image.asset(
-                            'assets/icons/apple.png',
-                            color: ThemeHelper.textPrimary,
-                            width: 12,
+                        if (timeString.isNotEmpty)
+                          Container(
+                            width: 24,
                             height: 12,
-                          ),
-                          const SizedBox(width: 4),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                caloriesBurned.toString(),
+                            decoration: ShapeDecoration(
+                              color: widget.themeProvider.isLightMode ? Colors.white : const Color(0xFF1A1A1A),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(15)),
+                              ),
+                              shadows: [
+                                BoxShadow(
+                                  color: ThemeHelper.textPrimary.withOpacity(0.2),
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 0),
+                                  spreadRadius: 0,
+                                )
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                timeString,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: ThemeHelper.textPrimary,
-                                  fontSize: 7,
-                                  fontFamily: 'Instrument Sans',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                l10n.calories,
-                                style: TextStyle(
-                                  color: ThemeHelper.textSecondary,
                                   fontSize: 6,
                                   fontFamily: 'Instrument Sans',
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                            ],
+                            ),
                           ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: 70,
+                      height: 24,
+                      decoration: ShapeDecoration(
+                        color: widget.themeProvider.isLightMode ? Colors.white : const Color(0xFF1A1A1A),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(6)),
+                        ),
+                        shadows: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 5,
+                            offset: Offset(0, 0),
+                            spreadRadius: 1,
+                          )
                         ],
                       ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Image.asset(
+                              'assets/icons/apple.png',
+                              color: ThemeHelper.textPrimary,
+                              width: 12,
+                              height: 12,
+                            ),
+                            const SizedBox(width: 4),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  caloriesBurned.toString(),
+                                  style: TextStyle(
+                                    color: ThemeHelper.textPrimary,
+                                    fontSize: 7,
+                                    fontFamily: 'Instrument Sans',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  l10n.calories,
+                                  style: TextStyle(
+                                    color: ThemeHelper.textSecondary,
+                                    fontSize: 6,
+                                    fontFamily: 'Instrument Sans',
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Chevron icon
-            Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: Container(
-                width: 24,
-                height: 24,
-                child: Icon(
-                  CupertinoIcons.chevron_right,
-                  size: 24,
-                  color: ThemeHelper.textSecondary,
+                  ],
                 ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Icon(
+                    CupertinoIcons.chevron_right,
+                    size: 24,
+                    color: ThemeHelper.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1961,7 +2291,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               // App icon and name
               Row(
                 children: [
-                  Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
+                  Image.asset('assets/icons/app_logo.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
                   const SizedBox(width: 6),
                   Text(
                     l10n.kalorina,

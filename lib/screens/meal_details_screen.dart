@@ -26,6 +26,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
   late Map<String, dynamic> _currentMealData;
   int _servingAmount = 1;
   bool _isSaving = false;
+  static const String _manualAdjustmentLabel = 'Manual Adjustment';
 
   @override
   void initState() {
@@ -74,6 +75,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       debugPrint('MealDetailsScreen: entries count=${entries.length}');
       debugPrint('MealDetailsScreen: entries=$entries');
       
+      final totals = _calculateTotalsFromEntries(entries);
+
       final response = await _mealsService.saveCompleteMeal(
         userId: userId,
         date: date,
@@ -82,6 +85,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
         entries: entries,
         notes: _currentMealData['notes'] ?? '',
         mealImage: _currentMealData['mealImage'],
+        totalCalories: totals['calories'],
+        totalProtein: totals['protein'],
+        totalCarbs: totals['carbs'],
+        totalFat: totals['fat'],
       );
       
       if (response != null && response['success'] == true) {
@@ -147,6 +154,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
         };
       }).toList();
 
+      final totals = _calculateTotalsFromEntries(entries);
+
       Map<String, dynamic>? response;
       
       if (mealId == null) {
@@ -164,6 +173,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           mealName: mealName,
           entries: entries,
           notes: _currentMealData['notes'] ?? '',
+          totalCalories: totals['calories'],
+          totalProtein: totals['protein'],
+          totalCarbs: totals['carbs'],
+          totalFat: totals['fat'],
         );
         
         if (response != null && response['success'] == true) {
@@ -195,6 +208,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           entries: entries,
           notes: _currentMealData['notes'] ?? '',
           isScanned: isScanned,
+          totalCalories: totals['calories'],
+          totalProtein: totals['protein'],
+          totalCarbs: totals['carbs'],
+          totalFat: totals['fat'],
         );
 
         if (response != null && response['success'] == true) {
@@ -203,7 +220,13 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           // Update local meal data with the response from server to stay in sync
           if (response['meal'] != null) {
             setState(() {
-              _currentMealData = Map<String, dynamic>.from(response!['meal'] as Map<String, dynamic>);
+              final updated = Map<String, dynamic>.from(response!['meal'] as Map<String, dynamic>);
+              _currentMealData.addAll(updated);
+              _currentMealData['entries'] = entries;
+              _currentMealData['totalCalories'] = totals['calories'];
+              _currentMealData['totalProtein'] = totals['protein'];
+              _currentMealData['totalCarbs'] = totals['carbs'];
+              _currentMealData['totalFat'] = totals['fat'];
             });
           }
         } else {
@@ -213,6 +236,170 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     } catch (e) {
       debugPrint('MealDetailsScreen: Error updating meal: $e');
     }
+  }
+
+  int _intFrom(dynamic value) {
+    if (value is int) return value;
+    if (value is double) return value.round();
+    if (value is num) return value.toInt();
+    return 0;
+  }
+
+  List<Map<String, dynamic>> _cloneEntries() {
+    final rawEntries = (_currentMealData['entries'] as List<dynamic>?) ?? const [];
+    return rawEntries
+        .whereType<Map>()
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  }
+
+  int _sumMacro(List<Map<String, dynamic>> entries, String macroKey) {
+    return entries.fold<int>(0, (total, entry) => total + _intFrom(entry[macroKey]));
+  }
+
+  Map<String, int> _calculateTotalsFromEntries(List<Map<String, dynamic>> entries) {
+    int totalCalories = 0;
+    int totalProtein = 0;
+    int totalCarbs = 0;
+    int totalFat = 0;
+
+    for (final entry in entries) {
+      totalCalories += _intFrom(entry['calories']);
+      totalProtein += _intFrom(entry['protein']);
+      totalCarbs += _intFrom(entry['carbs']);
+      totalFat += _intFrom(entry['fat']);
+    }
+
+    return {
+      'calories': totalCalories,
+      'protein': totalProtein,
+      'carbs': totalCarbs,
+      'fat': totalFat,
+    };
+  }
+
+  Map<String, dynamic> _createManualEntry() {
+    return {
+      'userId': _currentMealData['userId'] ?? AppConstants.userId,
+      'mealType': _currentMealData['mealType'] ?? '',
+      'foodName': _manualAdjustmentLabel,
+      'quantity': 1,
+      'unit': 'serving',
+      'calories': 0,
+      'protein': 0,
+      'carbs': 0,
+      'fat': 0,
+      'fiber': 0,
+      'sugar': 0,
+      'sodium': 0,
+      'servingSize': 1,
+      'servingUnit': 'serving',
+    };
+  }
+
+  void _applyEntriesUpdate(List<Map<String, dynamic>> updatedEntries) {
+    _currentMealData['entries'] = updatedEntries;
+    final totals = _calculateTotalsFromEntries(updatedEntries);
+    _currentMealData['totalCalories'] = totals['calories'];
+    _currentMealData['totalProtein'] = totals['protein'];
+    _currentMealData['totalCarbs'] = totals['carbs'];
+    _currentMealData['totalFat'] = totals['fat'];
+  }
+
+  List<Map<String, dynamic>> _applyMacroDeltaToEntries(String macroKey, int newTotal) {
+    final targetTotal = newTotal < 0 ? 0 : newTotal;
+    final entries = _cloneEntries();
+
+    if (entries.isEmpty) {
+      final manualEntry = _createManualEntry();
+      manualEntry[macroKey] = targetTotal;
+      entries.add(manualEntry);
+      return entries;
+    }
+
+    final currentTotal = _sumMacro(entries, macroKey);
+    int diff = targetTotal - currentTotal;
+
+    if (diff > 0) {
+      final first = Map<String, dynamic>.from(entries.first);
+      first[macroKey] = _intFrom(first[macroKey]) + diff;
+      entries[0] = first;
+    } else if (diff < 0) {
+      int remainingReduction = -diff;
+      for (int i = entries.length - 1; i >= 0 && remainingReduction > 0; i--) {
+        final entry = Map<String, dynamic>.from(entries[i]);
+        final current = _intFrom(entry[macroKey]);
+        if (current <= 0) continue;
+        final reduction = current >= remainingReduction ? remainingReduction : current;
+        entry[macroKey] = current - reduction;
+        remainingReduction -= reduction;
+        entries[i] = entry;
+      }
+    }
+
+    final adjustedTotal = _sumMacro(entries, macroKey);
+    if (entries.isNotEmpty && adjustedTotal != targetTotal) {
+      final first = Map<String, dynamic>.from(entries.first);
+      final current = _intFrom(first[macroKey]);
+      final diffRemaining = targetTotal - adjustedTotal;
+      final updated = (current + diffRemaining).clamp(0, 1 << 31);
+      first[macroKey] = updated;
+      entries[0] = first;
+    }
+
+    return entries;
+  }
+
+  List<Map<String, dynamic>> _applyCaloriesDeltaToEntries(int newTotal) {
+    final targetTotal = newTotal < 0 ? 0 : newTotal;
+    final entries = _cloneEntries();
+
+    if (entries.isEmpty) {
+      final manualEntry = _createManualEntry();
+      manualEntry['calories'] = targetTotal;
+      entries.add(manualEntry);
+      return entries;
+    }
+
+    final currentTotal = _sumMacro(entries, 'calories');
+    int diff = targetTotal - currentTotal;
+
+    if (diff > 0) {
+      final first = Map<String, dynamic>.from(entries.first);
+      first['calories'] = _intFrom(first['calories']) + diff;
+      entries[0] = first;
+    } else if (diff < 0) {
+      int remainingReduction = -diff;
+      for (int i = entries.length - 1; i >= 0 && remainingReduction > 0; i--) {
+        final entry = Map<String, dynamic>.from(entries[i]);
+        final current = _intFrom(entry['calories']);
+        if (current <= 0) continue;
+        final reduction = current >= remainingReduction ? remainingReduction : current;
+        entry['calories'] = current - reduction;
+        remainingReduction -= reduction;
+        entries[i] = entry;
+      }
+    }
+
+    final adjustedTotal = _sumMacro(entries, 'calories');
+    if (entries.isNotEmpty && adjustedTotal != targetTotal) {
+      final first = Map<String, dynamic>.from(entries.first);
+      final current = _intFrom(first['calories']);
+      final diffRemaining = targetTotal - adjustedTotal;
+      final updated = (current + diffRemaining).clamp(0, 1 << 31);
+      first['calories'] = updated;
+      entries[0] = first;
+    }
+
+    return entries;
+  }
+
+  String _macroLabelToKey(String label) {
+    final lower = label.toLowerCase();
+    if (lower.startsWith('carb')) return 'carbs';
+    if (lower.startsWith('protein')) return 'protein';
+    if (lower.startsWith('fat')) return 'fat';
+    return lower;
   }
 
   @override
@@ -496,44 +683,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                             Row(
                               children: [
                                 // Fix Issue button
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: ThemeHelper.background,
-                                    borderRadius: BorderRadius.circular(13),
-                        boxShadow: isDark
-                            ? []
-                            : [
-                                BoxShadow(
-                                  color: ThemeHelper.textPrimary.withOpacity(0.25),
-                                  blurRadius: 5,
-                                  offset: Offset(0, 0),
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      SvgPicture.asset(
-                      'assets/icons/Spark.svg',
-                      width: 16,
-                      height: 16,
-                      color: ThemeHelper.textPrimary,
-                    ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'Fix Issue',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                          color: ThemeHelper.textPrimary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 0),
                                 // Add More button
                                 GestureDetector(
                                   onTap: () => _showAddIngredientSheet(context),
@@ -659,7 +809,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                   }
                 }
                 
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(Map<String, dynamic>.from(_currentMealData));
               },
               child: Container(
                 width: 250,
@@ -904,26 +1054,9 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       
       if (index != -1) {
         setState(() {
-          entries[index] = updatedIngredient;
-          _currentMealData['entries'] = entries;
-          
-          // Recalculate totals
-          int totalCalories = 0;
-          int totalProtein = 0;
-          int totalCarbs = 0;
-          int totalFat = 0;
-          
-          for (var entry in entries) {
-            totalCalories += (entry['calories'] as num?)?.toInt() ?? 0;
-            totalProtein += (entry['protein'] as num?)?.toInt() ?? 0;
-            totalCarbs += (entry['carbs'] as num?)?.toInt() ?? 0;
-            totalFat += (entry['fat'] as num?)?.toInt() ?? 0;
-          }
-          
-          _currentMealData['totalCalories'] = totalCalories;
-          _currentMealData['totalProtein'] = totalProtein;
-          _currentMealData['totalCarbs'] = totalCarbs;
-          _currentMealData['totalFat'] = totalFat;
+          final updatedEntries = List<Map<String, dynamic>>.from(entries);
+          updatedEntries[index] = Map<String, dynamic>.from(updatedIngredient);
+          _applyEntriesUpdate(updatedEntries);
         });
         
         // Update meal on server (skip for scanned meals)
@@ -995,12 +1128,38 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                 Expanded(
                   child: CupertinoButton(
                     color: ThemeHelper.textPrimary,
-                    onPressed: () {
+                    onPressed: () async {
                       final newAmount = int.tryParse(controller.text) ?? 1;
                       setState(() {
                         _servingAmount = newAmount;
+
+                        final entries = (_currentMealData['entries'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+                        if (entries.isNotEmpty) {
+                          final scaledEntries = entries
+                              .map((entry) => Map<String, dynamic>.from(entry))
+                              .toList();
+
+                          for (final entry in scaledEntries) {
+                            final qty = (_intFrom(entry['quantity']) == 0 ? 1 : _intFrom(entry['quantity']));
+                            final ratio = newAmount / qty;
+
+                            entry['quantity'] = newAmount;
+                            entry['calories'] = (_intFrom(entry['calories']) * ratio).round();
+                            entry['protein'] = (_intFrom(entry['protein']) * ratio).round();
+                            entry['carbs'] = (_intFrom(entry['carbs']) * ratio).round();
+                            entry['fat'] = (_intFrom(entry['fat']) * ratio).round();
+                          }
+
+                          _applyEntriesUpdate(scaledEntries);
+                        }
                       });
                       Navigator.of(context).pop();
+
+                      final isScanned = _currentMealData['isScanned'] ?? false;
+                      final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+                      if (!isScanned || mealId != null) {
+                        await _updateMeal();
+                      }
                     },
                     child: Text(
                       'Save',
@@ -1079,7 +1238,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                     onPressed: () async {
                       final newCalories = int.tryParse(controller.text) ?? 0;
                       setState(() {
-                        _currentMealData['totalCalories'] = newCalories;
+                        final updatedEntries = _applyCaloriesDeltaToEntries(newCalories);
+                        _applyEntriesUpdate(updatedEntries);
                       });
                       Navigator.of(context).pop();
                       // Skip auto-save for scanned meals
@@ -1126,14 +1286,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           color: color,
           initialValue: initialValue,
           onValueChanged: (newValue) async {
+            final macroKey = _macroLabelToKey(label);
             setState(() {
-              if (label == 'Carbs') {
-                _currentMealData['totalCarbs'] = newValue;
-              } else if (label == 'Protein') {
-                _currentMealData['totalProtein'] = newValue;
-              } else if (label == 'Fats') {
-                _currentMealData['totalFat'] = newValue;
-              }
+              final updatedEntries = _applyMacroDeltaToEntries(macroKey, newValue);
+              _applyEntriesUpdate(updatedEntries);
             });
             // Skip auto-save for scanned meals
             final isScanned = _currentMealData['isScanned'] ?? false;
@@ -1256,14 +1412,11 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                       
                       // Add to entries list
                       final currentEntries = (_currentMealData['entries'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
-                      currentEntries.add(newEntry);
-                      
-                      // Update total calories
-                      final currentCalories = (_currentMealData['totalCalories'] as num?)?.toInt() ?? 0;
+                      final updatedEntries = List<Map<String, dynamic>>.from(currentEntries)
+                        ..add(Map<String, dynamic>.from(newEntry));
                       
                       setState(() {
-                        _currentMealData['entries'] = currentEntries;
-                        _currentMealData['totalCalories'] = currentCalories + calories;
+                        _applyEntriesUpdate(updatedEntries);
                       });
                       
                       Navigator.of(context).pop();

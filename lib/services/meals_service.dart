@@ -70,6 +70,10 @@ class MealsService {
     required List<Map<String, dynamic>> entries,
     String? notes,
     String? mealImage,
+    int? totalCalories,
+    int? totalProtein,
+    int? totalCarbs,
+    int? totalFat,
   }) async {
     Map<String, dynamic>? parsed;
     
@@ -82,6 +86,19 @@ class MealsService {
       'notes': notes ?? '',
       'isCompleted': true,
     };
+
+    if (totalCalories != null) {
+      body['totalCalories'] = totalCalories;
+    }
+    if (totalProtein != null) {
+      body['totalProtein'] = totalProtein;
+    }
+    if (totalCarbs != null) {
+      body['totalCarbs'] = totalCarbs;
+    }
+    if (totalFat != null) {
+      body['totalFat'] = totalFat;
+    }
     
     // Add base64 image if provided
     if (mealImage != null && mealImage.isNotEmpty) {
@@ -187,6 +204,10 @@ class MealsService {
     required List<Map<String, dynamic>> entries,
     String? notes,
     bool? isScanned,
+    int? totalCalories,
+    int? totalProtein,
+    int? totalCarbs,
+    int? totalFat,
   }) async {
     Map<String, dynamic>? parsed;
     
@@ -199,6 +220,10 @@ class MealsService {
       'notes': notes ?? '',
       'isCompleted': true,
       if (isScanned != null) 'isScanned': isScanned,
+      if (totalCalories != null) 'totalCalories': totalCalories,
+      if (totalProtein != null) 'totalProtein': totalProtein,
+      if (totalCarbs != null) 'totalCarbs': totalCarbs,
+      if (totalFat != null) 'totalFat': totalFat,
     };
 
     await putAPI(

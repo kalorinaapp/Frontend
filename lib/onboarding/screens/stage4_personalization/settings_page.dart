@@ -878,6 +878,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                 CupertinoSwitch(
                   value: rolloverCalories,
                   activeColor: ThemeHelper.textPrimary,
+                  thumbColor: ThemeHelper.isLightMode ? null : CupertinoColors.black,
                   onChanged: (v) => _updateUserField('rolloverCalories', v),
                 ),
               ],
@@ -897,6 +898,7 @@ class _PersonalDetailsCard extends StatelessWidget {
                 CupertinoSwitch(
                   value: addBurnedCalories,
                   activeColor: ThemeHelper.textPrimary,
+                  thumbColor: ThemeHelper.isLightMode ? null : CupertinoColors.black,
                   onChanged: (v) => _updateUserField('includeStepCaloriesInGoal', v),
                 ),
               ],
