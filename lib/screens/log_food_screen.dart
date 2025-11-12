@@ -1776,12 +1776,30 @@ class _LogFoodView extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
+      onTap: () async {
+        final result = await Navigator.of(context).push(
           CupertinoPageRoute(
             builder: (context) => MealDetailsScreen(mealData: meal),
           ),
         );
+        
+        // Optimistically update the scanned meal if result contains updated meal data
+        if (result != null && result is Map<String, dynamic>) {
+          controller.addOrUpdateScannedMeal({
+            'id': result['id'] ?? result['_id'] ?? meal['id'] ?? meal['_id'],
+            'mealName': result['mealName'] ?? meal['mealName'],
+            'mealImage': result['mealImage'] ?? meal['mealImage'],
+            'totalCalories': result['totalCalories'] ?? meal['totalCalories'],
+            'totalProtein': result['totalProtein'] ?? meal['totalProtein'],
+            'totalCarbs': result['totalCarbs'] ?? meal['totalCarbs'],
+            'totalFat': result['totalFat'] ?? meal['totalFat'],
+            'entriesCount': result['entriesCount'] ?? meal['entriesCount'],
+            'mealType': result['mealType'] ?? meal['mealType'],
+            'date': result['date'] ?? meal['date'],
+            'createdAt': result['createdAt'] ?? meal['createdAt'],
+            'entries': result['entries'] ?? meal['entries'],
+          });
+        }
       },
       child: Container(
       width: double.infinity,

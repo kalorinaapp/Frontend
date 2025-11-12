@@ -89,6 +89,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
         totalProtein: totals['protein'],
         totalCarbs: totals['carbs'],
         totalFat: totals['fat'],
+        isScanned: (_currentMealData['isScanned'] as bool?) ?? true,
       );
       
       if (response != null && response['success'] == true) {
@@ -177,6 +178,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           totalProtein: totals['protein'],
           totalCarbs: totals['carbs'],
           totalFat: totals['fat'],
+          isScanned: isScanned,
         );
         
         if (response != null && response['success'] == true) {
@@ -445,26 +447,30 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                   // const SizedBox(height: 16),
                   GestureDetector(
                     onTap: () => _navigateToEditMealName(context),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          mealName,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: ThemeHelper.textPrimary,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              mealName,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: ThemeHelper.textPrimary,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(width: 8.0),
-                        Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
-                      ],
+                          const SizedBox(width: 8.0),
+                          Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
+                        ],
+                      ),
                     ),
-                  ),
-                const SizedBox(width: 60), 
+                  ), 
                   
                   // Meal Image with Amount Badge
                   if (imageUrl != null && imageUrl.isNotEmpty)
@@ -995,25 +1001,23 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       onTap: () => _navigateToIngredientDetails(ingredient),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              SizedBox(
-                width: 180,
-                child: Text(
-                  foodName,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: ThemeHelper.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+          Expanded(
+            child: Text(
+              foodName,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: ThemeHelper.textPrimary,
               ),
-            ],
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
+          const SizedBox(width: 12),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 '$calories cal',

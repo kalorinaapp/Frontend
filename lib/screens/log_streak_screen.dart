@@ -712,18 +712,26 @@ class _DayTile extends StatelessWidget {
   void _handleStreakAction(String action, BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final previousSummary = streakService.snapshotStreakSummary();
     
     switch (action) {
       case 'Successful':
         // Optimistically update UI
-        final previousData = streakService.streaksMap[dateKey];
-        final existing = streakService.streaksMap[dateKey] ?? <String, dynamic>{};
+        Map<String, dynamic>? previousData;
+        final currentEntry = streakService.streaksMap[dateKey];
+        if (currentEntry != null) {
+          previousData = Map<String, dynamic>.from(currentEntry);
+        }
+        final Map<String, dynamic> existing = currentEntry != null
+            ? Map<String, dynamic>.from(currentEntry)
+            : <String, dynamic>{};
         // Preserve existing id and other fields; only change type/date
         streakService.streaksMap[dateKey] = {
           ...existing,
           'streakType': 'Successful',
           'date': dateKey,
         };
+        streakService.applyLocalStreakSummary();
         
         final result = await streakService.upsertStreak(
           streakType: 'Successful',
@@ -737,6 +745,7 @@ class _DayTile extends StatelessWidget {
           } else {
             streakService.streaksMap.remove(dateKey);
           }
+          streakService.restoreStreakSummary(previousSummary);
           Get.snackbar(
             l10n.error,
             streakService.errorMessage.value.isNotEmpty 
@@ -754,14 +763,21 @@ class _DayTile extends StatelessWidget {
         
       case 'Failed':
         // Optimistically update UI
-        final previousData = streakService.streaksMap[dateKey];
-        final existing = streakService.streaksMap[dateKey] ?? <String, dynamic>{};
+        Map<String, dynamic>? previousData;
+        final currentEntry = streakService.streaksMap[dateKey];
+        if (currentEntry != null) {
+          previousData = Map<String, dynamic>.from(currentEntry);
+        }
+        final Map<String, dynamic> existing = currentEntry != null
+            ? Map<String, dynamic>.from(currentEntry)
+            : <String, dynamic>{};
         // Preserve existing id and other fields; only change type/date
         streakService.streaksMap[dateKey] = {
           ...existing,
           'streakType': 'Failed',
           'date': dateKey,
         };
+        streakService.applyLocalStreakSummary();
         
         final result = await streakService.upsertStreak(
           streakType: 'Failed',
@@ -775,6 +791,7 @@ class _DayTile extends StatelessWidget {
           } else {
             streakService.streaksMap.remove(dateKey);
           }
+          streakService.restoreStreakSummary(previousSummary);
           Get.snackbar(
             l10n.error,
             streakService.errorMessage.value.isNotEmpty 
@@ -795,8 +812,13 @@ class _DayTile extends StatelessWidget {
         final streakDateId = streakService.getStreakId(date);
         if (streakDateId != null) {
           // Optimistically remove from UI
-          final previousData = streakService.streaksMap[dateKey];
+          Map<String, dynamic>? previousData;
+          final currentEntry = streakService.streaksMap[dateKey];
+          if (currentEntry != null) {
+            previousData = Map<String, dynamic>.from(currentEntry);
+          }
           streakService.streaksMap.remove(dateKey);
+          streakService.applyLocalStreakSummary();
           
           final success = await streakService.deleteStreakDate(
             streakDateId: streakDateId,
@@ -817,7 +839,10 @@ class _DayTile extends StatelessWidget {
             // Revert if failed
             if (previousData != null) {
               streakService.streaksMap[dateKey] = previousData;
+            } else {
+              streakService.streaksMap.remove(dateKey);
             }
+            streakService.restoreStreakSummary(previousSummary);
             Get.snackbar(
               l10n.error,
               streakService.errorMessage.value,

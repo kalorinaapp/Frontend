@@ -53,6 +53,7 @@ class ProgressService extends GetxController {
     required String dateYYYYMMDD,
     int? steps,
   }) async {
+    final startTime = DateTime.now();
     Map<String, dynamic>? parsed;
     final Map<String, String> queryParams = {
       'date': dateYYYYMMDD,
@@ -67,7 +68,10 @@ class ProgressService extends GetxController {
       methodName: 'api/progress/daily',
       query: queryParams,
       callback: (resp) async {
+        final endTime = DateTime.now();
+        final duration = endTime.difference(startTime);
         print('date: $dateYYYYMMDD');
+        print('ProgressService fetchDailyProgress response time: ${duration.inMilliseconds}ms');
         try {
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
           

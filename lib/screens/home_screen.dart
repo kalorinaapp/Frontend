@@ -52,6 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
       isAnalyzing: _controller.isAnalyzing.value,
       hasScanError: _controller.hasScanError.value,
       isLoadingInitialData: _controller.isLoadingInitialData.value,
+      isLoadingMeals: _controller.isLoadingMeals.value,
+      isLoadingProgress: _controller.isLoadingProgress.value,
       scanResult: _controller.scanResult.value,
       todayTotals: _controller.todayTotals.value,
       todayCreatedAt: _controller.todayCreatedAt.value,

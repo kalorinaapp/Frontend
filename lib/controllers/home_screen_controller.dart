@@ -28,6 +28,8 @@ class HomeScreenController extends GetxController {
   final isAnalyzing = false.obs;
   final hasScanError = false.obs;
   final isLoadingInitialData = false.obs;
+  final isLoadingMeals = false.obs;
+  final isLoadingProgress = false.obs;
   final hasLoadedInitialData = false.obs;
   final lastLoadedDate = Rxn<String>();
   final scanResult = Rxn<Map<String, dynamic>>();
@@ -119,6 +121,8 @@ class HomeScreenController extends GetxController {
     if (isLoadingInitialData.value) return;
     
     isLoadingInitialData.value = true;
+    isLoadingMeals.value = true;
+    isLoadingProgress.value = true;
     
     try {
       final userId = AppConstants.userId;
@@ -135,59 +139,93 @@ class HomeScreenController extends GetxController {
         // Silently handle if UserController not available
       }
       
-      // Run all API calls in parallel for faster loading
-      final results = await Future.wait([
-        MealsService().fetchDailyMeals(userId: userId, dateYYYYMMDD: dateStr, steps: steps),
-        progressService.fetchDailyProgress(dateYYYYMMDD: dateStr, steps: steps),
-        streakService!.getStreakHistory(),
-      ]);
+      // Start streak history in background (doesn't block UI)
+      streakService!.getStreakHistory().catchError((e) {
+        debugPrint('Error loading streak history: $e');
+        return null;
+      });
       
-      final mealsData = results[0];
-      final progressData = results[1];
-      
-      // Process meals data
-      if (mealsData != null && mealsData['success'] == true) {
-        final data = mealsData['data'] as Map<String, dynamic>?;
-        if (data != null) {
-          final meals = ((data['meals'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
-          final exercises = ((data['exercises'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
-          final summary = data['summary'] as Map<String, dynamic>?;
+      // Process meals data as soon as it's available
+      MealsService().fetchDailyMeals(userId: userId, dateYYYYMMDD: dateStr, steps: steps)
+        .then((mealsData) {
+          isLoadingMeals.value = false;
           
-          if (meals.isNotEmpty) {
-            final first = meals.first;
-            todayTotals.value = {
-              'totalCalories': ((first['totalCalories'] ?? 0) as num).toInt(),
-              'totalProtein': ((first['totalProtein'] ?? 0) as num).toInt(),
-              'totalCarbs': ((first['totalCarbs'] ?? 0) as num).toInt(),
-              'totalFat': ((first['totalFat'] ?? 0) as num).toInt(),
-            };
-            todayCreatedAt.value = first['createdAt'] as String?;
-            todayEntries.value = ((first['entries'] as List?) ?? [])
-                .whereType<Map<String, dynamic>>()
-                .toList();
-            todayMeals.value = meals;
-          } else {
-            todayTotals.value = null;
-            todayCreatedAt.value = null;
-            todayEntries.value = [];
-            todayMeals.value = [];
+          // Process meals data immediately when available
+          if (mealsData != null && mealsData['success'] == true) {
+            final data = mealsData['data'] as Map<String, dynamic>?;
+            if (data != null) {
+              final meals = ((data['meals'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
+              final exercises = ((data['exercises'] as List?) ?? []).whereType<Map<String, dynamic>>().toList();
+              final summary = data['summary'] as Map<String, dynamic>?;
+              
+              if (meals.isNotEmpty) {
+                final first = meals.first;
+                todayTotals.value = {
+                  'totalCalories': ((first['totalCalories'] ?? 0) as num).toInt(),
+                  'totalProtein': ((first['totalProtein'] ?? 0) as num).toInt(),
+                  'totalCarbs': ((first['totalCarbs'] ?? 0) as num).toInt(),
+                  'totalFat': ((first['totalFat'] ?? 0) as num).toInt(),
+                };
+                todayCreatedAt.value = first['createdAt'] as String?;
+                todayEntries.value = ((first['entries'] as List?) ?? [])
+                    .whereType<Map<String, dynamic>>()
+                    .toList();
+                todayMeals.value = meals;
+              } else {
+                todayTotals.value = null;
+                todayCreatedAt.value = null;
+                todayEntries.value = [];
+                todayMeals.value = [];
+              }
+              
+              todayExercises.value = exercises;
+              dailySummary.value = summary;
+            }
           }
           
-          todayExercises.value = exercises;
-          dailySummary.value = summary;
-        }
-      }
+          // Check if both are done
+          _checkIfInitialDataLoaded();
+        })
+        .catchError((e) {
+          isLoadingMeals.value = false;
+          debugPrint('Error loading meals data: $e');
+          _checkIfInitialDataLoaded();
+        });
       
-      // Process progress data
-      if (progressData != null) {
-        dailyProgress.value = progressData['progress'] as Map<String, dynamic>?;
-      }
+      // Process progress data as soon as it's available
+      progressService.fetchDailyProgress(dateYYYYMMDD: dateStr, steps: steps)
+        .then((progressData) {
+          isLoadingProgress.value = false;
+          
+          // Process progress data immediately when available
+          if (progressData != null) {
+            dailyProgress.value = progressData['progress'] as Map<String, dynamic>?;
+          }
+          
+          // Check if both are done
+          _checkIfInitialDataLoaded();
+        })
+        .catchError((e) {
+          isLoadingProgress.value = false;
+          debugPrint('Error loading progress data: $e');
+          _checkIfInitialDataLoaded();
+        });
       
-      hasLoadedInitialData.value = true;
-      lastLoadedDate.value = dateStr;
     } catch (e) {
       debugPrint('Error loading initial data: $e');
-    } finally {
+      isLoadingMeals.value = false;
+      isLoadingProgress.value = false;
+      isLoadingInitialData.value = false;
+    }
+  }
+  
+  void _checkIfInitialDataLoaded() {
+    // Only mark as fully loaded when both API calls are complete
+    if (!isLoadingMeals.value && !isLoadingProgress.value) {
+      final now = DateTime.now().toLocal();
+      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      hasLoadedInitialData.value = true;
+      lastLoadedDate.value = dateStr;
       isLoadingInitialData.value = false;
     }
   }

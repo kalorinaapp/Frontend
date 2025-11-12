@@ -209,7 +209,7 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/meat.png',
                   title: l10n.myMeals,
                   subtitle: l10n.myMealsSubtitle,
-                  onTap: () => _navigateToMyMeals(0),
+                  onTap: () => _navigateToMyMeals(1),
                 ),
               ),
       
@@ -221,7 +221,7 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/foods.png',
                   title: l10n.myFoods,
                   subtitle: l10n.myFoodsSubtitle,
-                  onTap: () => _navigateToMyMeals(1),
+                  onTap: () => _navigateToMyMeals(2),
                 ),
               ),
               const SizedBox(height: 12),

@@ -511,4 +511,93 @@ class StreakService extends GetxController {
   int getHighestStreak() {
     return streakHistory['streak']?['highestStreak'] ?? 0;
   }
+
+  Map<String, dynamic>? snapshotStreakSummary() {
+    final current = streakHistory['streak'];
+    if (current is Map<String, dynamic>) {
+      return Map<String, dynamic>.from(current);
+    }
+    return null;
+  }
+
+  void restoreStreakSummary(Map<String, dynamic>? snapshot) {
+    if (snapshot == null) {
+      if (streakHistory.containsKey('streak')) {
+        streakHistory.remove('streak');
+      }
+    } else {
+      streakHistory['streak'] = Map<String, dynamic>.from(snapshot);
+    }
+    streakHistory.refresh();
+  }
+
+  Map<String, int> computeLocalStreakSummary({DateTime? referenceDate}) {
+    final DateTime now = referenceDate ?? DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+
+    bool isSuccessfulEntry(Map<String, dynamic>? entry) {
+      if (entry == null) return false;
+      final rawType = entry['streakType'];
+      if (rawType is! String) return false;
+      final lowered = rawType.toLowerCase();
+      return lowered.startsWith('succ');
+    }
+
+    int currentCount = 0;
+    DateTime cursor = today;
+    while (true) {
+      final key = _formatDate(cursor);
+      if (cursor.isAfter(today)) {
+        break;
+      }
+      if (isSuccessfulEntry(streaksMap[key])) {
+        currentCount += 1;
+        cursor = cursor.subtract(const Duration(days: 1));
+      } else {
+        break;
+      }
+    }
+
+    final List<DateTime> successfulDates = <DateTime>[];
+    streaksMap.forEach((key, value) {
+      if (!isSuccessfulEntry(value)) return;
+      final parsed = DateTime.tryParse(key);
+      if (parsed == null) return;
+      final normalized = DateTime(parsed.year, parsed.month, parsed.day);
+      if (normalized.isAfter(today)) return;
+      successfulDates.add(normalized);
+    });
+    successfulDates.sort();
+
+    int longest = 0;
+    int running = 0;
+    DateTime? previous;
+    for (final date in successfulDates) {
+      if (previous != null && date.difference(previous).inDays == 1) {
+        running += 1;
+      } else {
+        running = 1;
+      }
+      if (running > longest) {
+        longest = running;
+      }
+      previous = date;
+    }
+
+    return <String, int>{
+      'current': currentCount,
+      'longest': longest,
+    };
+  }
+
+  void applyLocalStreakSummary({DateTime? referenceDate}) {
+    final summary = computeLocalStreakSummary(referenceDate: referenceDate);
+    final Map<String, dynamic> streak = streakHistory['streak'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(streakHistory['streak'] as Map<String, dynamic>)
+        : <String, dynamic>{};
+    streak['currentStreak'] = summary['current'];
+    streak['highestStreak'] = summary['longest'];
+    streakHistory['streak'] = streak;
+    streakHistory.refresh();
+  }
 }

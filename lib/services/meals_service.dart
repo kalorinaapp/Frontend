@@ -74,6 +74,7 @@ class MealsService {
     int? totalProtein,
     int? totalCarbs,
     int? totalFat,
+    bool? isScanned,
   }) async {
     Map<String, dynamic>? parsed;
     
@@ -98,6 +99,9 @@ class MealsService {
     }
     if (totalFat != null) {
       body['totalFat'] = totalFat;
+    }
+    if (isScanned != null) {
+      body['isScanned'] = isScanned;
     }
     
     // Add base64 image if provided
@@ -179,6 +183,7 @@ class MealsService {
         'limit': limit.toString(),
       },
       callback: (resp) async {
+        debugPrint('MealsService fetchScannedMeals response: ${resp.response}');
         try {
           if (resp.isError == true) {
             debugPrint('MealsService fetchScannedMeals error: ${resp.response}');

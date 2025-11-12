@@ -65,9 +65,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   _InviteCard(inviteAsset: 'assets/icons/friends.png'),
                   const SizedBox(height: 16),
-                  const _PersonalDetailsCard(),
+                  _PersonalDetailsCard(),
                   const SizedBox(height: 16),
-                  const _SettingsListCard(),
+                  _SettingsListCard(),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -92,16 +92,16 @@ class _CardShell extends StatelessWidget {
         color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ThemeHelper.divider, width: 1),
-        boxShadow: CupertinoTheme.of(context).brightness == Brightness.dark
-            ? []
-            : [
+        boxShadow: ThemeHelper.isLightMode
+            ? [
                 BoxShadow(
                   color: CupertinoColors.black.withOpacity(0.2),
                   blurRadius: 8.0,
                   offset: const Offset(0, 4),
                   spreadRadius: 2,
                 ),
-              ],
+              ]
+            : [],
       ),
       child: child,
     );
@@ -814,16 +814,16 @@ class _PersonalDetailsCard extends StatelessWidget {
         color: ThemeHelper.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ThemeHelper.divider, width: 1),
-        boxShadow: CupertinoTheme.of(context).brightness == Brightness.dark
-            ? []
-            : [
+        boxShadow: ThemeHelper.isLightMode
+            ? [
                 BoxShadow(
                   color: CupertinoColors.black.withOpacity(0.2),
                   blurRadius: 8.0,
                   offset: const Offset(0, 4),
                   spreadRadius: 2,
                 ),
-              ],
+              ]
+            : [],
       ),
       child: Obx(() {
         final weight = (userController.userData['weight'] as num?)?.toDouble() ?? 70.0;

@@ -145,16 +145,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (loggedAtLabel.isNotEmpty) ...[
-                    Text(
-                      loggedAtLabel,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: ThemeHelper.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                  ],
+                 
                   if (intensity != null && intensity.isNotEmpty) ...[
                     Text(
                       '${l10n.intensity}: $intensity',

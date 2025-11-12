@@ -29,6 +29,14 @@ class LogFoodController extends GetxController {
   Timer? _foodsDebounceTimer;
   Timer? _scannedMealsDebounceTimer;
 
+  // Flag to prevent search triggers during initialization
+  bool _isInitializing = true;
+  
+  // Track previous search terms to avoid unnecessary refreshes
+  String _previousMealsSearch = '';
+  String _previousFoodsSearch = '';
+  String _previousScannedMealsSearch = '';
+
   // Observable state
   final selectedTabIndex = 0.obs;
   final carbsValue = 10.obs;
@@ -57,15 +65,22 @@ class LogFoodController extends GetxController {
   void onInit() {
     super.onInit();
     selectedTabIndex.value = initialTabIndex;
+    _isInitializing = true;
+    
+    // Fetch initial data first
     fetchFoodSuggestions();
     fetchMyMeals();
     fetchMyFoods();
     fetchScannedMeals();
     
-    // Setup search listeners with debouncing
-    mealsSearchController.addListener(_onMealsSearchChanged);
-    foodsSearchController.addListener(_onFoodsSearchChanged);
-    scannedMealsSearchController.addListener(_onScannedMealsSearchChanged);
+    // Setup search listeners with debouncing after initial fetch
+    // Use a small delay to ensure initial fetches complete before listeners are active
+    Future.microtask(() {
+      _isInitializing = false;
+      mealsSearchController.addListener(_onMealsSearchChanged);
+      foodsSearchController.addListener(_onFoodsSearchChanged);
+      scannedMealsSearchController.addListener(_onScannedMealsSearchChanged);
+    });
   }
 
   @override
@@ -83,12 +98,23 @@ class LogFoodController extends GetxController {
   }
 
   void _onMealsSearchChanged() {
+    // Skip if still initializing
+    if (_isInitializing) return;
+    
+    final currentSearch = mealsSearchController.text.trim();
+    
+    // Skip if search term hasn't actually changed
+    if (currentSearch == _previousMealsSearch) return;
+    
     // Cancel previous timer
     _mealsDebounceTimer?.cancel();
     
     // Create new timer
     _mealsDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       final searchTerm = mealsSearchController.text.trim();
+      // Update previous search term
+      _previousMealsSearch = searchTerm;
+      
       if (searchTerm.isEmpty) {
         // If search is empty, fetch all meals
         fetchMyMeals();
@@ -100,12 +126,23 @@ class LogFoodController extends GetxController {
   }
 
   void _onFoodsSearchChanged() {
+    // Skip if still initializing
+    if (_isInitializing) return;
+    
+    final currentSearch = foodsSearchController.text.trim();
+    
+    // Skip if search term hasn't actually changed
+    if (currentSearch == _previousFoodsSearch) return;
+    
     // Cancel previous timer
     _foodsDebounceTimer?.cancel();
     
     // Create new timer
     _foodsDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       final searchTerm = foodsSearchController.text.trim();
+      // Update previous search term
+      _previousFoodsSearch = searchTerm;
+      
       if (searchTerm.isEmpty) {
         // If search is empty, fetch all foods
         fetchMyFoods();
@@ -117,12 +154,23 @@ class LogFoodController extends GetxController {
   }
 
   void _onScannedMealsSearchChanged() {
+    // Skip if still initializing
+    if (_isInitializing) return;
+    
+    final currentSearch = scannedMealsSearchController.text.trim();
+    
+    // Skip if search term hasn't actually changed
+    if (currentSearch == _previousScannedMealsSearch) return;
+    
     // Cancel previous timer
     _scannedMealsDebounceTimer?.cancel();
     
     // Create new timer
     _scannedMealsDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       final searchTerm = scannedMealsSearchController.text.trim();
+      // Update previous search term
+      _previousScannedMealsSearch = searchTerm;
+      
       if (searchTerm.isEmpty) {
         // If search is empty, fetch all scanned meals
         fetchScannedMeals();
@@ -539,6 +587,51 @@ class LogFoodController extends GetxController {
 
   void removeFood(String foodId) {
     myFoods.removeWhere((f) => f['_id'] == foodId);
+  }
+
+  void addOrUpdateScannedMeal(Map<String, dynamic> mealData) {
+    final mealId = mealData['id'] ?? mealData['_id'];
+    if (mealId == null || mealId.toString().isEmpty) return;
+    
+    final index = scannedMeals.indexWhere((m) {
+      final mId = m['id'] ?? m['_id'];
+      return mId != null && mId.toString() == mealId.toString();
+    });
+    
+    if (index != -1) {
+      // Update existing scanned meal with new data, preserving existing values as fallback
+      final existingMeal = scannedMeals[index];
+      scannedMeals[index] = {
+        'id': mealData['id'] ?? mealData['_id'] ?? existingMeal['id'] ?? existingMeal['_id'],
+        'mealName': mealData['mealName'] ?? existingMeal['mealName'] ?? '',
+        'mealImage': mealData['mealImage'] ?? existingMeal['mealImage'] ?? '',
+        'totalCalories': mealData['totalCalories'] ?? existingMeal['totalCalories'] ?? 0,
+        'totalProtein': mealData['totalProtein'] ?? existingMeal['totalProtein'] ?? 0,
+        'totalCarbs': mealData['totalCarbs'] ?? existingMeal['totalCarbs'] ?? 0,
+        'totalFat': mealData['totalFat'] ?? existingMeal['totalFat'] ?? 0,
+        'entriesCount': mealData['entriesCount'] ?? existingMeal['entriesCount'] ?? 0,
+        'mealType': mealData['mealType'] ?? existingMeal['mealType'] ?? '',
+        'date': mealData['date'] ?? existingMeal['date'] ?? '',
+        'createdAt': mealData['createdAt'] ?? existingMeal['createdAt'] ?? '',
+        'entries': mealData['entries'] ?? existingMeal['entries'] ?? [],
+      };
+    } else {
+      // Add new scanned meal (shouldn't happen often, but handle it)
+      scannedMeals.insert(0, {
+        'id': mealData['id'] ?? mealData['_id'] ?? '',
+        'mealName': mealData['mealName'] ?? '',
+        'mealImage': mealData['mealImage'] ?? '',
+        'totalCalories': mealData['totalCalories'] ?? 0,
+        'totalProtein': mealData['totalProtein'] ?? 0,
+        'totalCarbs': mealData['totalCarbs'] ?? 0,
+        'totalFat': mealData['totalFat'] ?? 0,
+        'entriesCount': mealData['entriesCount'] ?? 0,
+        'mealType': mealData['mealType'] ?? '',
+        'date': mealData['date'] ?? '',
+        'createdAt': mealData['createdAt'] ?? '',
+        'entries': mealData['entries'] ?? [],
+      });
+    }
   }
 
   void addDirectInputIngredient(Map<String, dynamic> ingredient) {

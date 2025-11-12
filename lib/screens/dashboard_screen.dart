@@ -36,6 +36,8 @@ class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic>? dailySummary;
   final bool hasScanError;
   final bool isLoadingInitialData;
+  final bool isLoadingMeals;
+  final bool isLoadingProgress;
   final VoidCallback? onRetryScan;
   final VoidCallback? onCloseError;
 
@@ -54,6 +56,8 @@ class DashboardScreen extends StatefulWidget {
     this.dailySummary,
     this.hasScanError = false,
     this.isLoadingInitialData = false,
+    this.isLoadingMeals = false,
+    this.isLoadingProgress = false,
     this.onRetryScan,
     this.onCloseError,
   });
@@ -268,13 +272,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     required String id,
     required Widget child,
     int order = 0,
-    Duration duration = const Duration(milliseconds: 320),
+    Duration duration = const Duration(milliseconds: 600),
   }) {
     final bool isVisible = _visibleAnimatedCards.contains(id);
 
     if (_cardAnimationsActivated && !isVisible && !_scheduledCardAnimations.contains(id)) {
       _scheduledCardAnimations.add(id);
-      Future<void>.delayed(Duration(milliseconds: 70 * order), () {
+      Future<void>.delayed(Duration(milliseconds: 150 * order), () {
         if (!mounted) return;
         if (_visibleAnimatedCards.contains(id)) return;
         setState(() {
@@ -289,11 +293,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       key: ValueKey<String>('card_anim_$id'),
       opacity: targetVisible ? 1.0 : 0.0,
       duration: duration,
-      curve: Curves.easeOutCubic,
+      curve: Curves.easeOut,
       child: AnimatedSlide(
-        offset: targetVisible ? Offset.zero : const Offset(0, 0.06),
+        offset: targetVisible ? Offset.zero : const Offset(0, 0.15),
         duration: duration,
-        curve: Curves.easeOutCubic,
+        curve: Curves.easeOut,
         child: child,
       ),
     );
@@ -759,7 +763,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    if (widget.isLoadingInitialData) ...[
+                    // Show shimmer only if both are loading AND no data is available yet
+                    if (widget.isLoadingMeals && widget.isLoadingProgress && 
+                        (widget.todayMeals == null || widget.todayMeals!.isEmpty) &&
+                        widget.dailyProgress == null) ...[
                       // Show shimmer loading effect while fetching initial data
                       Shimmer.fromColors(
                         baseColor: ThemeHelper.divider,
@@ -2058,7 +2065,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     String timeString = '';
     if (loggedAt != null) {
       try {
-        final loggedDateTime = DateTime.parse(loggedAt);
+        final loggedDateTime = DateTime.parse(loggedAt).toLocal();
         timeString = DateFormat('HH:mm', Localizations.localeOf(context).toString()).format(loggedDateTime);
       } catch (_) {}
     }
