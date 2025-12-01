@@ -58,6 +58,18 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage>
     super.dispose();
   }
   
+  String _getIconPath(String baseIconPath, bool isSelected) {
+    // In light mode, when selected, the background is black, so use white icons
+    // In dark mode, when selected, the background is white, so use regular icons
+    if (isSelected && ThemeHelper.isLightMode) {
+      // Replace the icon name with its white version
+      final baseName = baseIconPath.split('/').last.replaceAll('.png', '');
+      return baseIconPath.replaceAll('$baseName.png', '${baseName}_white.png');
+    }
+    // Otherwise use regular icons
+    return baseIconPath;
+  }
+  
   Widget _buildAnimatedOption({
     required int index,
     required String value,
@@ -68,6 +80,8 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage>
       animation: _optionAnimations[index],
       child: Obx(() {
         final isSelected = _controller.getStringData('personal_goal') == value;
+        final currentIconPath = _getIconPath(iconPath, isSelected);
+        final iconSize = iconPath.contains('flex') ? 40.0 : 30.0;
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           child: PageAnimations.animatedSelectionCard(
@@ -85,7 +99,11 @@ class _PersonalGoalsPageState extends State<PersonalGoalsPage>
               child: Row(
                 children: [
                   const SizedBox(width: 8.0),
-                  Image.asset(iconPath, width: 48, height: 48),
+                  Image.asset(
+                    currentIconPath, 
+                    width: iconSize, 
+                    height: iconSize,
+                  ),
                   const SizedBox(width: 12.0),
                   Expanded(
                     child: Text(

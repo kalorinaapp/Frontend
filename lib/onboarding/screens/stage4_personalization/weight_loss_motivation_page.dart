@@ -229,7 +229,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
                         text: '$weightSign${weightChangeGoal.toStringAsFixed(1)}',
                         style: ThemeHelper.title1.copyWith(
                           color: ThemeHelper.textPrimary,
-                          fontSize: 32,
+                          fontSize: 22.4,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -237,7 +237,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
                         text: weightUnit,
                         style: ThemeHelper.title1.copyWith(
                           color: ThemeHelper.textPrimary,
-                          fontSize: 24,
+                          fontSize: 16.8,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

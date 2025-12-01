@@ -181,7 +181,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                     child: Column(
                       children: [
                         _ProgressRow(
-                          leadingImagePath: 'assets/icons/apple.png', // replace with your PNG
+                          leadingImagePath: 'assets/icons/app_logo.png', // replace with your PNG
                           title: localizations.withKalorina,
                           progress: _withKalorinaAnim.value,
                           gradientColors: const [Color(0xFFEE2E5A), Color(0xFFF29F05)],
@@ -189,7 +189,7 @@ class _CongratulationsPageState extends State<CongratulationsPage> with TickerPr
                           trailing: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset('assets/icons/check.png', width: 24, height: 24, errorBuilder: (_, __, ___) => const Icon(CupertinoIcons.check_mark_circled_solid, size: 20)),
+                              Image.asset('assets/icons/check.png', width: 24, height: 24, errorBuilder: (_, ___, __) => Icon(CupertinoIcons.check_mark_circled_solid, size: 20, color: ThemeHelper.textPrimary)),
                               const SizedBox(height: 6),
                               Text(
                                 localizations.twiceMultiplier,
@@ -252,18 +252,33 @@ class _ProgressRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Leading icon/image
+        // Leading icon/image (fixed width so text/progress don't shift when asset size changes)
         Padding(
           padding: const EdgeInsets.only(left: 0.0, right: 10.0),
-          child: leadingImagePath != null
-              ? Image.asset(
-                  leadingImagePath!,
-                  width: leadingImagePath!.contains('apple.png') ? 28 : 22,
-                  height: leadingImagePath!.contains('apple.png') ? 28 : 22,
-                  color: ThemeHelper.isLightMode ? null : ThemeHelper.textPrimary,
-                  errorBuilder: (_, __, ___) => Icon(leadingFallbackIcon ?? CupertinoIcons.circle, size: 22, color: ThemeHelper.textPrimary),
-                )
-              : Icon(leadingFallbackIcon ?? CupertinoIcons.circle, size: 24, color: ThemeHelper.textPrimary),
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Center(
+              child: leadingImagePath != null
+                  ? Image.asset(
+                      leadingImagePath!,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.contain,
+                      color: ThemeHelper.isLightMode ? null : ThemeHelper.textPrimary,
+                      errorBuilder: (_, __, ___) => Icon(
+                        leadingFallbackIcon ?? CupertinoIcons.circle,
+                        size: 22,
+                        color: ThemeHelper.textPrimary,
+                      ),
+                    )
+                  : Icon(
+                      leadingFallbackIcon ?? CupertinoIcons.circle,
+                      size: 24,
+                      color: ThemeHelper.textPrimary,
+                    ),
+            ),
+          ),
         ),
 
         // Title and bar

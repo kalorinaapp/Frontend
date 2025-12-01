@@ -20,7 +20,6 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage>
   late OnboardingController _controller;
   late AnimationController _animationController;
   late Animation<double> _titleAnimation;
-  late Animation<double> _infoAnimation;
   late List<Animation<double>> _optionAnimations;
 
   @override
@@ -35,13 +34,6 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage>
     );
     
     _titleAnimation = PageAnimations.createTitleAnimation(_animationController);
-    
-    _infoAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.2, 0.5, curve: Curves.easeOut),
-      ),
-    );
     
     // Staggered option animations
     _optionAnimations = List.generate(5, (index) {
@@ -66,6 +58,18 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage>
     super.dispose();
   }
   
+  String _getIconPath(String baseIconPath, bool isSelected) {
+    // In light mode, when selected, the background is black, so use white icons
+    // In dark mode, when selected, the background is white, so use regular icons
+    if (isSelected && ThemeHelper.isLightMode) {
+      // Replace the icon name with its white version
+      final baseName = baseIconPath.split('/').last.replaceAll('.png', '');
+      return baseIconPath.replaceAll('$baseName.png', '${baseName}_white.png');
+    }
+    // Otherwise use regular icons
+    return baseIconPath;
+  }
+
   Widget _buildAnimatedOption({
     required int index,
     required String value,
@@ -76,6 +80,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage>
       animation: _optionAnimations[index],
       child: Obx(() {
         final isSelected = _controller.getStringData('dietary_preference') == value;
+        final currentIconPath = _getIconPath(iconPath, isSelected);
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           child: PageAnimations.animatedSelectionCard(
@@ -93,7 +98,7 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage>
               child: Row(
                 children: [
                   const SizedBox(width: 16),
-                  Image.asset(iconPath, width: 48, height: 48),
+                  Image.asset(currentIconPath, width: 32, height: 32),
                   const SizedBox(width: 12),
                   Text(
                     label,
@@ -139,37 +144,37 @@ class _DietaryPreferencePageState extends State<DietaryPreferencePage>
               ),
             ),
             
-            const SizedBox(height: 16),
+            // const SizedBox(height: 16),
             
-            // Informational banner with carrot icon
-            PageAnimations.animatedContent(
-              animation: _infoAnimation,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: ThemeHelper.cardBackground,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    // Carrot icon
-                    const Text('🥕', style: TextStyle(fontSize: 24)),
-                    const SizedBox(width: 12),
-                    // Informational text
-                    Expanded(
-                      child: Text(
-                        localizations.helpTrackCaloriesDiet,
-                        style: ThemeHelper.caption1.copyWith(
-                          fontSize: 13,
-                          color: ThemeHelper.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // // Informational banner with carrot icon
+            // PageAnimations.animatedContent(
+            //   animation: _infoAnimation,
+            //   child: Container(
+            //     width: double.infinity,
+            //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            //     decoration: BoxDecoration(
+            //       color: ThemeHelper.cardBackground,
+            //       borderRadius: BorderRadius.circular(12),
+            //     ),
+            //     child: Row(
+            //       children: [
+            //         // Carrot icon
+            //         const Text('🥕', style: TextStyle(fontSize: 24)),
+            //         const SizedBox(width: 12),
+            //         // Informational text
+            //         Expanded(
+            //           child: Text(
+            //             localizations.helpTrackCaloriesDiet,
+            //             style: ThemeHelper.caption1.copyWith(
+            //               fontSize: 13,
+            //               color: ThemeHelper.textSecondary,
+            //             ),
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
             
             const SizedBox(height: 60),
             

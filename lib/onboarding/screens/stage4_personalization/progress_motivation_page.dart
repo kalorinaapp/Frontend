@@ -109,28 +109,28 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
       return [
         {'icon': 'assets/icons/track.png', 'text': l10n.trackYourFoodAndExercise},
         {'icon': 'assets/icons/cutlery.png', 'text': l10n.focusOnNutrientDenseFoods},
-        {'icon': 'assets/icons/apple.png', 'text': l10n.maintainYourHealthyHabits},
+        {'icon': 'assets/icons/app_logo.png', 'text': l10n.maintainYourHealthyHabits},
         {'icon': 'assets/icons/up.png', 'text': l10n.stayConsistentSeeRealResults},
       ];
     } else if (currentWeight < 80) {
       return [
         {'icon': 'assets/icons/track.png', 'text': l10n.trackYourFoodAndExercise},
         {'icon': 'assets/icons/cutlery.png', 'text': l10n.balanceCarbsProteinAndFats},
-        {'icon': 'assets/icons/apple.png', 'text': l10n.stickToYourPersonalizedPlan},
+        {'icon': 'assets/icons/app_logo.png', 'text': l10n.stickToYourPersonalizedPlan},
         {'icon': 'assets/icons/up.png', 'text': l10n.stayConsistentSeeRealResults},
       ];
     } else if (currentWeight < 100) {
       return [
         {'icon': 'assets/icons/track.png', 'text': l10n.trackYourFoodAndExercise},
         {'icon': 'assets/icons/cutlery.png', 'text': l10n.focusOnWholeUnprocessedFoods},
-        {'icon': 'assets/icons/apple.png', 'text': l10n.followYourPersonalizedMealPlan},
+        {'icon': 'assets/icons/app_logo.png', 'text': l10n.followYourPersonalizedMealPlan},
         {'icon': 'assets/icons/up.png', 'text': l10n.stayConsistentSeeRealResults},
       ];
     } else {
       return [
         {'icon': 'assets/icons/track.png', 'text': l10n.trackYourFoodAndExercise},
         {'icon': 'assets/icons/cutlery.png', 'text': l10n.focusOnPortionControlAndNutrition},
-        {'icon': 'assets/icons/apple.png', 'text': l10n.followYourPersonalizedPlan},
+        {'icon': 'assets/icons/app_logo.png', 'text': l10n.followYourPersonalizedPlan},
         {'icon': 'assets/icons/up.png', 'text': l10n.stayConsistentSeeRealResults},
       ];
     }
@@ -141,6 +141,7 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
   Widget build(BuildContext context) {
     super.build(context);
     final l10n = AppLocalizations.of(context)!;
+    final bool isCroatianLocale = Localizations.localeOf(context).languageCode == 'hr';
 
     return SingleChildScrollView(
       child: Container(
@@ -188,7 +189,11 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
             // Progress section
             PageAnimations.animatedContent(
               animation: _imageAnimation,
-              child: Image.asset('assets/images/progress.png'),
+              child: Image.asset(
+                isCroatianLocale
+                    ? 'assets/images/progress_croatian.png'
+                    : 'assets/images/progress.png',
+              ),
             ),
          
             
@@ -204,7 +209,7 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
     required String text,
   }) {
     // Check if this is the apple icon to make it bigger
-    final bool isAppleIcon = icon.contains('apple.png');
+    final bool isAppleIcon = icon.contains('app_logo.png');
     
     return Container(
       width: 250,
@@ -212,18 +217,18 @@ class _ProgressMotivationPageState extends State<ProgressMotivationPage>
       decoration: ShapeDecoration(
         color: ThemeHelper.cardBackground,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(2)),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
       child: Row(
         children: [
           // Icon
           Padding(
-            padding: const EdgeInsets.only(left: 8),
+            padding:  EdgeInsets.only(left: isAppleIcon ? 2 : 8),
             child: Image.asset(
               icon,
-              width: isAppleIcon ? 20 : 16, // Apple icon is bigger
-              height: isAppleIcon ? 20 : 16, // Apple icon is bigger
+              width: isAppleIcon ? 28 : 16, // Apple icon is bigger
+              height: isAppleIcon ? 28 : 16, // Apple icon is bigger
               color: ThemeHelper.textPrimary,
             ),
           ),

@@ -125,6 +125,27 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
       return localizations.pickWeightLossSpeed;
     }
   }
+  
+  // Determine which speed range the current value falls into
+  bool _isSlowSpeed() {
+    return _currentSpeed <= _slowSpeed + 0.25; // <= 0.45
+  }
+  
+  bool _isMediumSpeed() {
+    return _currentSpeed > _slowSpeed + 0.25 && _currentSpeed <= _mediumSpeed + 0.35; // 0.45 < x <= 1.05
+  }
+  
+  bool _isFastSpeed() {
+    return _currentSpeed > _mediumSpeed + 0.35; // > 1.05
+  }
+  
+  // Get icon color based on whether it's active
+  Color _getIconColor(bool isActive) {
+    if (isActive) {
+      return const Color(0xFFE53E3E); // Red color matching the icon
+    }
+    return ThemeHelper.textPrimary; // Default black/white based on theme
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +215,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                             'assets/icons/slow.png',
                             width: 36,
                             height: 36,
-                            color: ThemeHelper.textPrimary,
+                            color: _getIconColor(_isSlowSpeed()),
                           ),
                         ],
                       ),
@@ -211,7 +232,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                             'assets/icons/fast.png',
                             width: 36,
                             height: 36,
-                            color: ThemeHelper.textPrimary,
+                            color: _getIconColor(_isMediumSpeed()),
                           ),
                         ],
                       ),
@@ -228,7 +249,7 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                             'assets/icons/swift.png',
                             width: 36,
                             height: 36,
-                            color: ThemeHelper.textPrimary,
+                            color: _getIconColor(_isFastSpeed()),
                           ),
                         ],
                       ),
@@ -352,9 +373,9 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
                 debugPrint('Speed Level: ${_getSpeedLevel(localizations)}');
                 debugPrint('All Data: ${_controller.getAllData()}');
                 debugPrint('==========================================');
-                _controller.goToNextPage();
+                // _controller.goToNextPage();
               },
-              color: ThemeHelper.cardBackground,
+              // color: ThemeHelper.cardBackground,
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 decoration: BoxDecoration(

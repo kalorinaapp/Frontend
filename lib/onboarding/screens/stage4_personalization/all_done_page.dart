@@ -495,29 +495,29 @@ class _AllDonePageState extends State<AllDonePage>
                       ),
                       const SizedBox(height: 8),
                       // Info message
-                      Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              CupertinoIcons.info_circle,
-                              size: 12,
-                              color: ThemeHelper.textSecondary,
-                            ),
-                            const SizedBox(width: 3),
-                            Flexible(
-                              child: Text(
-                                '$dailyCalories Calories more to go!',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: ThemeHelper.textSecondary,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Center(
+                      //   child: Row(
+                      //     mainAxisSize: MainAxisSize.min,
+                      //     children: [
+                      //       Icon(
+                      //         CupertinoIcons.info_circle,
+                      //         size: 12,
+                      //         color: ThemeHelper.textSecondary,
+                      //       ),
+                      //       const SizedBox(width: 3),
+                      //       Flexible(
+                      //         child: Text(
+                      //           '$dailyCalories Calories more to go!',
+                      //           style: TextStyle(
+                      //             fontSize: 10,
+                      //             color: ThemeHelper.textSecondary,
+                      //           ),
+                      //           overflow: TextOverflow.ellipsis,
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),

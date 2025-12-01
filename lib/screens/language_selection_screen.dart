@@ -16,15 +16,9 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   // Language mapping with codes and flags - names will come from localizations
   final List<Map<String, String>> languages = [
     {'code': 'en', 'flag': '🇬🇧'},
+    {'code': 'bs', 'flag': '🇧🇦'},
     {'code': 'hr', 'flag': '🇭🇷'},
     {'code': 'sr', 'flag': '🇷🇸'},
-    {'code': 'bs', 'flag': '🇧🇦'},
-    {'code': 'sl', 'flag': '🇸🇮'},
-    {'code': 'cg', 'flag': '🇲🇪', 'name': 'Crnogorski'}, // Montenegrin
-    {'code': 'mk', 'flag': '🇲🇰', 'name': 'Македонски'}, // Macedonian
-    {'code': 'bg', 'flag': '🇧🇬'},
-    {'code': 'ro', 'flag': '🇷🇴'},
-    {'code': 'hu', 'flag': '🇭🇺'},
   ];
 
   // Method to get localized language name

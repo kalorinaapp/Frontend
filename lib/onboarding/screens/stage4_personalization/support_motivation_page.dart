@@ -98,7 +98,7 @@ class _SupportMotivationPageState extends State<SupportMotivationPage>
             // Central illustration (finger heart gesture)
             PageAnimations.animatedContent(
               animation: _imageAnimation,
-              child: Image.asset('assets/images/hands.png', width: 200, height: 200, color: ThemeHelper.textPrimary,),
+              child: Image.asset('assets/images/hands.png', width: 200, height: 200,),
             ),
             
             const SizedBox(height: 60),

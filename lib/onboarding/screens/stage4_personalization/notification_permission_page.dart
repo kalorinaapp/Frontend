@@ -1,6 +1,9 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart'
+    show OneSignal, OSLogLevel;
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../../utils/page_animations.dart';
@@ -25,8 +28,6 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
   late Animation<double> _titleAnimation;
   late Animation<double> _cardAnimation;
   late Animation<double> _buttonsAnimation;
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
@@ -77,9 +78,6 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
     // Start the animations
     _startFingerAnimation();
     _pageAnimationController.forward();
-    
-    // Request notification permission on initialization
-    _requestNotificationPermission();
   }
 
   void _startFingerAnimation() {
@@ -88,44 +86,19 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
 
   Future<void> _requestNotificationPermission() async {
     try {
-      // Initialize notifications
-      const AndroidInitializationSettings initializationSettingsAndroid =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
-      
-      const DarwinInitializationSettings initializationSettingsIOS =
-          DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-      );
-      
-      const InitializationSettings initializationSettings =
-          InitializationSettings(
-        android: initializationSettingsAndroid,
-        iOS: initializationSettingsIOS,
-      );
-      
-      await flutterLocalNotificationsPlugin.initialize(
-        initializationSettings,
-        onDidReceiveNotificationResponse: (NotificationResponse response) {
-          // Handle notification tap
-          print('Notification tapped: ${response.payload}');
-        },
-      );
-      
-      // Request permission on iOS
-      final bool? result = await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-      
-      print('Notification permission result: $result');
+      // iOS push notifications: initialize OneSignal before requesting permission
+      if (Platform.isIOS) {
+        OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+        OneSignal.Debug.setAlertLevel(OSLogLevel.none);
+        OneSignal.consentRequired(true);
+        // Initialize OneSignal with your App ID (must be set for permissions prompt to show)
+        OneSignal.initialize(
+            'c5fb6b72-40ad-4062-82ec-c576bd7709c8'); // TODO: replace with your real OneSignal App ID
+        OneSignal.consentGiven(true);
+        await OneSignal.Notifications.requestPermission(true);
+      }
     } catch (e) {
-      print('Error requesting notification permission: $e');
+      debugPrint('OneSignal initialization/permission error: $e');
     }
   }
 

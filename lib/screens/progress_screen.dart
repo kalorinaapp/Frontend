@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:shimmer/shimmer.dart';
 import 'confirm_weight_screen.dart' show ConfirmWeightScreen;
 import 'progress_photos_screen.dart' show ProgressPhotosScreen, ProgressPhotoItem;
 import 'progress_photo_detail_screen.dart' show ProgressPhotoDetailScreen;
@@ -105,77 +106,92 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                   ],
                 ),
                 const SizedBox(height: 30),
-                _WeightOverviewCard(),
+                _FadeSlideIn(child: _WeightOverviewCard()),
                 const SizedBox(height: 12),
                  Transform.scale(scaleX: 1.5, child: Divider(color: ThemeHelper.divider)),
                  const SizedBox(height: 12),
-                FutureBuilder<bool>(
-                  future: _isWeighInDueToday(),
-                  builder: (context, snapshot) {
-                    return Obx(() {
-                      dynamic w = userController.userData['weight'];
-                      // Fallbacks if API nests data differently
-                      w ??= (userController.userData['data'] is Map) ? userController.userData['data']['weight'] : null;
-                      w ??= (userController.userData['user'] is Map) ? userController.userData['user']['weight'] : null;
-                      // Last resort fallback if stored in constants
-                      w ??= AppConstants.userId.isNotEmpty ? null : null;
-                      final num? weightNum = w is num ? w : num.tryParse('${w ?? ''}');
-                      final String weightStr = ProgressScreen._formatWeight2dp(weightNum);
-                      return _WeightTile(
-                        title: l10n.myWeight,
-                        value: '$weightStr kg',
-                        trailingLabel: l10n.logWeight,
-                        leadingIcon: 'assets/icons/export.png',
-                        isUpdateTarget: false,
-                        isWeighInDueToday: snapshot.data ?? false,
-                        onWeightLogged: widget.onWeightLogged,
-                      );
-                    });
-                  },
+                _FadeSlideIn(
+                  duration: const Duration(milliseconds: 500),
+                  child: FutureBuilder<bool>(
+                    future: _isWeighInDueToday(),
+                    builder: (context, snapshot) {
+                      return Obx(() {
+                        dynamic w = userController.userData['weight'];
+                        // Fallbacks if API nests data differently
+                        w ??= (userController.userData['data'] is Map) ? userController.userData['data']['weight'] : null;
+                        w ??= (userController.userData['user'] is Map) ? userController.userData['user']['weight'] : null;
+                        // Last resort fallback if stored in constants
+                        w ??= AppConstants.userId.isNotEmpty ? null : null;
+                        final num? weightNum = w is num ? w : num.tryParse('${w ?? ''}');
+                        final String weightStr = ProgressScreen._formatWeight2dp(weightNum);
+                        return _WeightTile(
+                          title: l10n.myWeight,
+                          value: '$weightStr kg',
+                          trailingLabel: l10n.logWeight,
+                          leadingIcon: 'assets/icons/export.png',
+                          isUpdateTarget: false,
+                          isWeighInDueToday: snapshot.data ?? false,
+                          onWeightLogged: widget.onWeightLogged,
+                        );
+                      });
+                    },
+                  ),
                 ),
                 const SizedBox(height: 10),
-                FutureBuilder<bool>(
-                  future: _isWeighInDueToday(),
-                  builder: (context, snapshot) {
-                    return Obx(() {
-                      dynamic tw = userController.userData['targetWeight'];
-                      // Fallbacks if API nests data differently
-                      tw ??= (userController.userData['data'] is Map) ? userController.userData['data']['targetWeight'] : null;
-                      tw ??= (userController.userData['user'] is Map) ? userController.userData['user']['targetWeight'] : null;
-                      final num? targetNum = tw is num ? tw : num.tryParse('${tw ?? ''}');
-                      final String targetStr = ProgressScreen._formatWeight2dp(targetNum);
-                      return _WeightTile(
-                        title: l10n.targetWeight,
-                        value: '$targetStr kg',
-                        trailingLabel: l10n.update,
-                        leadingIcon: 'assets/icons/trophy.png',
-                        isUpdateTarget: true,
-                        isWeighInDueToday: snapshot.data ?? false,
-                        onWeightLogged: widget.onWeightLogged,
-                      );
-                    });
-                  },
+                _FadeSlideIn(
+                  duration: const Duration(milliseconds: 550),
+                  child: FutureBuilder<bool>(
+                    future: _isWeighInDueToday(),
+                    builder: (context, snapshot) {
+                      return Obx(() {
+                        dynamic tw = userController.userData['targetWeight'];
+                        // Fallbacks if API nests data differently
+                        tw ??= (userController.userData['data'] is Map) ? userController.userData['data']['targetWeight'] : null;
+                        tw ??= (userController.userData['user'] is Map) ? userController.userData['user']['targetWeight'] : null;
+                        final num? targetNum = tw is num ? tw : num.tryParse('${tw ?? ''}');
+                        final String targetStr = ProgressScreen._formatWeight2dp(targetNum);
+                        return _WeightTile(
+                          title: l10n.targetWeight,
+                          value: '$targetStr kg',
+                          trailingLabel: l10n.update,
+                          leadingIcon: 'assets/icons/trophy.png',
+                          isUpdateTarget: true,
+                          isWeighInDueToday: snapshot.data ?? false,
+                          onWeightLogged: widget.onWeightLogged,
+                        );
+                      });
+                    },
+                  ),
                 ),
                 const SizedBox(height: 30),
                
-                _GoalProgressCard(),
+                _FadeSlideIn(child: _GoalProgressCard()),
                 const SizedBox(height: 12),
-                _WeeklySummaryStrip(),
+                _FadeSlideIn(child: _WeeklySummaryStrip()),
                 const SizedBox(height: 12),
-                FutureBuilder<bool>(
-                  future: _isWeighInDueToday(),
-                  builder: (context, snapshot) {
-                    return _ProgressPhotosCard(
-                      isWeighInDueToday: snapshot.data ?? false,
-                    );
-                  },
+                _FadeSlideIn(
+                  duration: const Duration(milliseconds: 550),
+                  child: FutureBuilder<bool>(
+                    future: _isWeighInDueToday(),
+                    builder: (context, snapshot) {
+                      return _ProgressPhotosCard(
+                        isWeighInDueToday: snapshot.data ?? false,
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(height: 12),
-                _StreakCard(),
+                _FadeSlideIn(child: _StreakCard()),
                 const SizedBox(height: 12),
-                _StepsCard(healthProvider: widget.healthProvider),
+                _FadeSlideIn(
+                  duration: const Duration(milliseconds: 500),
+                  child: _StepsCard(healthProvider: widget.healthProvider),
+                ),
                 const SizedBox(height: 12),
-                _AddBurnedToGoalCard(healthProvider: widget.healthProvider),
+                _FadeSlideIn(
+                  duration: const Duration(milliseconds: 550),
+                  child: _AddBurnedToGoalCard(healthProvider: widget.healthProvider),
+                ),
                 const SizedBox(height: 120),
               ],
             ),
@@ -284,6 +300,36 @@ class _HeaderBadgeState extends State<_HeaderBadge> {
   }
 }
 
+/// Simple reusable fade + slide-in animation for cards/rows.
+class _FadeSlideIn extends StatelessWidget {
+  final Widget child;
+  final Duration duration;
+
+  const _FadeSlideIn({
+    required this.child,
+    this.duration = const Duration(milliseconds: 450),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, (1 - value) * 16),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
 class _WeightOverviewCard extends StatefulWidget {
   @override
   State<_WeightOverviewCard> createState() => _WeightOverviewCardState();
@@ -313,14 +359,30 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
       if (res != null && res['success'] == true) {
         final List<dynamic> logs = (res['logs'] as List<dynamic>? ?? <dynamic>[]);
         if (logs.isNotEmpty) {
-          logs.sort((a, b) {
-            final da = DateTime.tryParse((a['loggedAt'] ?? '') as String)?.millisecondsSinceEpoch ?? 0;
-            final db = DateTime.tryParse((b['loggedAt'] ?? '') as String)?.millisecondsSinceEpoch ?? 0;
-            return db.compareTo(da);
+          // Parse and sort logs by date (newest first)
+          final List<Map<String, dynamic>> parsedLogs = logs.map((e) {
+            final loggedAt = DateTime.tryParse((e['loggedAt'] ?? '') as String);
+            final weight = (e['weight'] as num?)?.toDouble();
+            return {
+              'loggedAt': loggedAt,
+              'weight': weight,
+              'dateOnly': loggedAt != null ? DateTime(loggedAt.year, loggedAt.month, loggedAt.day) : null,
+            };
+          }).where((m) => m['loggedAt'] != null && m['weight'] != null).toList();
+
+          parsedLogs.sort((a, b) {
+            final da = (a['loggedAt'] as DateTime?)?.millisecondsSinceEpoch ?? 0;
+            final db = (b['loggedAt'] as DateTime?)?.millisecondsSinceEpoch ?? 0;
+            return db.compareTo(da); // newest first
           });
-          _lastWeight = (logs.first['weight'] as num?)?.toDouble();
-          if (logs.length > 1) {
-            _prevWeight = (logs[1]['weight'] as num?)?.toDouble();
+
+          if (parsedLogs.isNotEmpty) {
+            _lastWeight = parsedLogs.first['weight'] as double?;
+            
+            // Use the immediately previous entry (second most recent) for "since last weigh-in"
+            if (parsedLogs.length > 1) {
+              _prevWeight = parsedLogs[1]['weight'] as double?;
+            }
           }
         }
       }
@@ -401,7 +463,18 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
             }),
             const SizedBox(height: 4),
             if (_loading)
-              const SizedBox(height: 16, child: Center(child: CupertinoActivityIndicator()))
+              Shimmer.fromColors(
+                baseColor: ThemeHelper.divider,
+                highlightColor: ThemeHelper.cardBackground,
+                child: Container(
+                  height: 16,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: ThemeHelper.background,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              )
             else
               Text(
                 _deltaText(),
@@ -416,11 +489,18 @@ class _WeightOverviewCardState extends State<_WeightOverviewCard> {
   String _deltaText() {
     if (_lastWeight != null && _prevWeight != null) {
       final d = _lastWeight! - _prevWeight!;
-      if (d != 0) {
-        final sign = d > 0 ? '+' : '';
-        return '$sign${d.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
+      if (d.abs() < 0.01) {
+        // If difference is essentially zero, show 0.0
+        return '0.0 ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
       }
+      final sign = d > 0 ? '+' : '';
+      return '$sign${d.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
     }
+    // If only one weight entry or no previous weight, show the current weight if available
+    if (_lastWeight != null) {
+      return '${_lastWeight!.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg} (first weigh-in)';
+    }
+    // If no weight data at all
     return '- ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
   }
 }
@@ -636,6 +716,12 @@ class _GoalProgressCard extends StatefulWidget {
   State<_GoalProgressCard> createState() => _GoalProgressCardState();
 }
 
+class _ChartSample {
+  final DateTime date;
+  final double weight;
+  const _ChartSample({required this.date, required this.weight});
+}
+
 class _GoalProgressCardState extends State<_GoalProgressCard> {
   List<String> _getRanges(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -646,7 +732,7 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
   double? _lastWeight;
   double? _prevWeight;
   bool _loadingHistory = false;
-  List<double> _series = const [];
+  List<_ChartSample> _series = const [];
   Map<String, dynamic>? _summary;
   bool _hasLoadedHistory = false;
   bool _hasLoadedSummary = false;
@@ -669,22 +755,42 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
       if (res != null && res['success'] == true) {
         final List<dynamic> logs = (res['logs'] as List<dynamic>? ?? <dynamic>[]);
         if (logs.isNotEmpty) {
-          // assume logs are sorted desc by createdAt; if not, sort by loggedAt desc
-          logs.sort((a, b) {
-            final da = DateTime.tryParse((a['loggedAt'] ?? '') as String)?.millisecondsSinceEpoch ?? 0;
-            final db = DateTime.tryParse((b['loggedAt'] ?? '') as String)?.millisecondsSinceEpoch ?? 0;
-            return db.compareTo(da);
+          // Parse and sort logs by date (newest first)
+          final List<Map<String, dynamic>> parsedLogs = logs.map((e) {
+            final loggedAt = DateTime.tryParse((e['loggedAt'] ?? '') as String);
+            final weight = (e['weight'] as num?)?.toDouble();
+            return {
+              'loggedAt': loggedAt,
+              'weight': weight,
+              'dateOnly': loggedAt != null ? DateTime(loggedAt.year, loggedAt.month, loggedAt.day) : null,
+            };
+          }).where((m) => m['loggedAt'] != null && m['weight'] != null).toList();
+
+          parsedLogs.sort((a, b) {
+            final da = (a['loggedAt'] as DateTime?)?.millisecondsSinceEpoch ?? 0;
+            final db = (b['loggedAt'] as DateTime?)?.millisecondsSinceEpoch ?? 0;
+            return db.compareTo(da); // newest first
           });
-          _lastWeight = (logs.first['weight'] as num?)?.toDouble();
-          if (logs.length > 1) {
-            _prevWeight = (logs[1]['weight'] as num?)?.toDouble();
-          }
+
+          if (parsedLogs.isNotEmpty) {
+            _lastWeight = parsedLogs.first['weight'] as double?;
+            
+            // Use the immediately previous entry (second most recent) for "since last weigh-in"
+            if (parsedLogs.length > 1) {
+              _prevWeight = parsedLogs[1]['weight'] as double?;
+            }
           
-          final weights = logs.reversed
-              .map((e) => (e['weight'] as num?)?.toDouble())
-              .whereType<double>()
-              .toList();
-          _series = weights;
+            final samples = parsedLogs.reversed
+                .map((e) {
+                  final d = e['loggedAt'] as DateTime?;
+                  final w = e['weight'] as double?;
+                  if (d == null || w == null) return null;
+                  return _ChartSample(date: d, weight: w);
+                })
+                .whereType<_ChartSample>()
+                .toList();
+            _series = samples;
+          }
         }
       }
       _hasLoadedHistory = true;
@@ -706,7 +812,7 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
     }
   }
 
-  List<double> _seriesForIndex(int idx) {
+  List<_ChartSample> _seriesForIndex(int idx) {
     if (_summary == null) return _series;
     String key;
     switch (idx) {
@@ -724,14 +830,19 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
       final db = DateTime.tryParse((b['loggedAt'] ?? '') as String)?.millisecondsSinceEpoch ?? 0;
       return da.compareTo(db);
     });
-    final List<double> weights = points
-        .map((e) => (e['weight'] as num?)?.toDouble())
-        .whereType<double>()
-        .toList();
-    if (weights.isEmpty) return const [];
-    
-    // Return raw weight values, not normalized - the chart painter will handle normalization
-    return weights;
+
+    final List<_ChartSample> samples = [];
+    for (final e in points) {
+      final loggedAtStr = (e['loggedAt'] ?? '') as String;
+      final d = DateTime.tryParse(loggedAtStr);
+      final w = (e['weight'] as num?)?.toDouble();
+      if (d != null && w != null) {
+        samples.add(_ChartSample(date: d, weight: w));
+      }
+    }
+    if (samples.isEmpty) return const [];
+
+    return samples;
   }
 
   @override
@@ -763,23 +874,77 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
             ),
           ),
           const SizedBox(height: 24),
-          _ChartPlaceholder(
-            leftLabel: _startLabelForRange(_selectedIndex, context),
-            rightLabel: _endLabelForRange(_selectedIndex, context),
-            dataPoints: List<double>.from(_series),
+          Builder(
+            builder: (context) {
+              final now = DateTime.now();
+              late DateTime rangeStart;
+              final DateTime rangeEnd = now;
+              switch (_selectedIndex) {
+                case 0:
+                  rangeStart = now.subtract(const Duration(days: 30));
+                  break;
+                case 1:
+                  rangeStart = now.subtract(const Duration(days: 90));
+                  break;
+                case 2:
+                  rangeStart = DateTime(now.year, now.month - 6, now.day);
+                  break;
+                case 3:
+                  rangeStart = DateTime(now.year - 1, now.month, now.day);
+                  break;
+                case 4:
+                  if (_series.isNotEmpty) {
+                    // All time: start from first sample date
+                    rangeStart = _series.first.date;
+                  } else {
+                    rangeStart = now.subtract(const Duration(days: 30));
+                  }
+                  break;
+                default:
+                  rangeStart = now.subtract(const Duration(days: 30));
+              }
+
+              return _ChartPlaceholder(
+                leftLabel: _startLabelForRange(_selectedIndex, context),
+                rightLabel: _endLabelForRange(_selectedIndex, context),
+                samples: List<_ChartSample>.from(_series),
+                rangeStart: rangeStart,
+                rangeEnd: rangeEnd,
+              );
+            },
           ),
           const SizedBox(height: 8),
           Builder(builder: (context) {
             if (_loadingHistory) {
-              return const SizedBox(height: 16, child: Center(child: CupertinoActivityIndicator()));
+              return Shimmer.fromColors(
+                baseColor: ThemeHelper.divider,
+                highlightColor: ThemeHelper.cardBackground,
+                child: Container(
+                  height: 16,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: ThemeHelper.background,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              );
             }
             double? delta;
             if (_lastWeight != null && _prevWeight != null) {
               delta = _lastWeight! - _prevWeight!;
             }
-            final String subtitle = (delta != null && delta != 0)
-                ? '${delta > 0 ? '+' : ''}${delta.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}'
-                : '- ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
+            final String subtitle;
+            if (delta != null) {
+              if (delta.abs() < 0.01) {
+                subtitle = '0.0 ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
+              } else {
+                subtitle = '${delta > 0 ? '+' : ''}${delta.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
+              }
+            } else if (_lastWeight != null) {
+              subtitle = '${_lastWeight!.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg} (first weigh-in)';
+            } else {
+              subtitle = '- ${AppLocalizations.of(context)!.kg} ${AppLocalizations.of(context)!.sinceLastWeighIn}';
+            }
             return Text(
               subtitle,
               style: ThemeHelper.textStyleWithColor(ThemeHelper.footnote, ThemeHelper.textSecondary),
@@ -851,15 +1016,23 @@ class _GoalProgressCardState extends State<_GoalProgressCard> {
 class _ChartPlaceholder extends StatefulWidget {
   final String leftLabel;
   final String rightLabel;
-  final List<double> dataPoints; // weights raw
-  const _ChartPlaceholder({required this.leftLabel, required this.rightLabel, this.dataPoints = const []});
+  final List<_ChartSample> samples; // date + weight
+  final DateTime rangeStart;
+  final DateTime rangeEnd;
+
+  const _ChartPlaceholder({
+    required this.leftLabel,
+    required this.rightLabel,
+    this.samples = const [],
+    required this.rangeStart,
+    required this.rangeEnd,
+  });
   
   @override
   State<_ChartPlaceholder> createState() => _ChartPlaceholderState();
 }
 
 class _ChartPlaceholderState extends State<_ChartPlaceholder> {
-  
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -935,11 +1108,13 @@ class _ChartPlaceholderState extends State<_ChartPlaceholder> {
                     CustomPaint(
                       size: Size.infinite,
                       painter: _SimpleChartPainter(
-                        data: widget.dataPoints,
+                        samples: widget.samples,
+                        rangeStart: widget.rangeStart,
+                        rangeEnd: widget.rangeEnd,
                       ),
                     ),
                     // Weight bubble image at the last point
-                    if (widget.dataPoints.isNotEmpty)
+                    if (widget.samples.isNotEmpty)
                       _buildWeightBubble(),
                   ],
                 ),
@@ -952,7 +1127,7 @@ class _ChartPlaceholderState extends State<_ChartPlaceholder> {
   }
   
   Widget _buildWeightBubble() {
-    if (widget.dataPoints.isEmpty) return const SizedBox.shrink();
+    if (widget.samples.isEmpty) return const SizedBox.shrink();
     
     // Simple positioning - just place at the end of the chart area
     return Positioned(
@@ -973,7 +1148,7 @@ class _ChartPlaceholderState extends State<_ChartPlaceholder> {
             left: 15,
             top: 4,
             child: Text(
-              '${widget.dataPoints.last.toStringAsFixed(0)} kg',
+              '${ProgressScreen._formatWeight2dp(widget.samples.last.weight)} kg',
               style: TextStyle(
                 color: ThemeHelper.isLightMode ? Colors.white : Colors.black,
                 fontSize: 8,
@@ -991,36 +1166,49 @@ class _ChartPlaceholderState extends State<_ChartPlaceholder> {
 // Removed _DashedLinePainter class since we now draw dotted lines directly in _LineAreaPainter
 
 class _SimpleChartPainter extends CustomPainter {
-  final List<double> data;
+  final List<_ChartSample> samples;
+  final DateTime rangeStart;
+  final DateTime rangeEnd;
   
   _SimpleChartPainter({
-    required this.data,
+    required this.samples,
+    required this.rangeStart,
+    required this.rangeEnd,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (data.isEmpty) return;
+    if (samples.isEmpty) return;
     final double chartHeight = size.height;
     final double width = size.width;
-    final int n = data.length;
+    final int n = samples.length;
     if (n < 1) return;
 
     // Normalize raw weights
-    double minW = data.reduce((a, b) => a < b ? a : b);
-    double maxW = data.reduce((a, b) => a > b ? a : b);
+    double minW = samples.first.weight;
+    double maxW = samples.first.weight;
+    for (final s in samples) {
+      if (s.weight < minW) minW = s.weight;
+      if (s.weight > maxW) maxW = s.weight;
+    }
     if ((maxW - minW).abs() < 0.001) {
       maxW = minW + 1.0;
     }
     
-    List<double> norm = data
-        .map((w) => ((w - minW) / (maxW - minW)).clamp(0.0, 1.0))
+    final List<double> norm = samples
+        .map((s) => ((s.weight - minW) / (maxW - minW)).clamp(0.0, 1.0))
         .map((v) => 1.0 - v)
         .toList();
 
+    final double rangeMs = (rangeEnd.millisecondsSinceEpoch - rangeStart.millisecondsSinceEpoch).toDouble();
+    if (rangeMs <= 0) return;
+
     // Build points
-    final double dx = width / (n - 1);
     final List<Offset> pts = List.generate(n, (i) {
-      final double x = i * dx;
+      final sample = samples[i];
+      final double t = ((sample.date.millisecondsSinceEpoch - rangeStart.millisecondsSinceEpoch) / rangeMs)
+          .clamp(0.0, 1.0);
+      final double x = t * width;
       final double y = (1.0 - norm[i]) * chartHeight;
       return Offset(x, y);
     });
@@ -1059,7 +1247,9 @@ class _SimpleChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SimpleChartPainter oldDelegate) {
-    return oldDelegate.data != data;
+    return oldDelegate.samples != samples ||
+        oldDelegate.rangeStart != rangeStart ||
+        oldDelegate.rangeEnd != rangeEnd;
   }
 }
 
@@ -1097,66 +1287,124 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
       if (res != null && res['success'] == true) {
         final List<dynamic> logs = (res['logs'] as List<dynamic>? ?? <dynamic>[]);
         if (logs.isNotEmpty) {
-          // sort asc by loggedAt
-          logs.sort((a, b) {
-            final da = DateTime.tryParse((a['loggedAt'] ?? '') as String)?.millisecondsSinceEpoch ?? 0;
-            final db = DateTime.tryParse((b['loggedAt'] ?? '') as String)?.millisecondsSinceEpoch ?? 0;
-            return da.compareTo(db);
-          });
-          final DateTime now = DateTime.now();
-          final DateTime sevenDaysAgo = now.subtract(const Duration(days: 7));
-          final List<Map<String, dynamic>> recent = logs
-              .map((e) => Map<String, dynamic>.from(e as Map))
-              .where((m) => DateTime.tryParse((m['loggedAt'] ?? '') as String)?.isAfter(sevenDaysAgo) == true)
-              .toList();
-
-          double? earliest;
-          double? latest;
-          if (recent.isNotEmpty) {
-            earliest = (recent.first['weight'] as num?)?.toDouble();
-            latest = (recent.last['weight'] as num?)?.toDouble();
-          } else {
-            earliest = (logs.first['weight'] as num?)?.toDouble();
-            latest = (logs.last['weight'] as num?)?.toDouble();
-          }
-
-          final double delta = ((latest ?? 0) - (earliest ?? 0));
-          // Use a stable denominator: days spanned, clamped to at least 1 day and at most 7 days
-          double spannedDays;
-          if ((recent.isNotEmpty ? recent.last : logs.last)['loggedAt'] != null && (recent.isNotEmpty ? recent.first : logs.first)['loggedAt'] != null) {
-            final DateTime end = DateTime.tryParse(((recent.isNotEmpty ? recent.last : logs.last)['loggedAt']) as String) ?? now;
-            final DateTime start = DateTime.tryParse(((recent.isNotEmpty ? recent.first : logs.first)['loggedAt']) as String) ?? sevenDaysAgo;
-            spannedDays = (end.difference(start).inHours / 24.0).abs();
-          } else {
-            spannedDays = 7.0;
-          }
-          spannedDays = spannedDays.clamp(1.0, 7.0);
-
-          // Compute progress TOWARD target per day
+          // Get user controller and target weight
           final UserController uc = Get.find<UserController>();
           final double? target = (uc.userData['targetWeight'] as num?)?.toDouble() ??
               (uc.userData['data'] is Map ? (uc.userData['data']['targetWeight'] as num?)?.toDouble() : null) ??
               (uc.userData['user'] is Map ? (uc.userData['user']['targetWeight'] as num?)?.toDouble() : null);
-          final double t = target ?? (latest ?? earliest ?? 0);
-          final double startDist = (earliest ?? t) - t;
-          final double endDist = (latest ?? t) - t;
-          final double progressTowardGoal = startDist.abs() - endDist.abs(); // positive means moved closer
-          final double avgProgress = progressTowardGoal / spannedDays;
 
-          final bool lost = delta < 0;
-          final String deltaText = '${lost ? (-delta).toStringAsFixed(1) : delta.toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg}';
+          // Parse all logs with their dates and weights
+          final List<Map<String, dynamic>> parsedLogs = logs.map((e) {
+            final loggedAt = DateTime.tryParse((e['loggedAt'] ?? '') as String);
+            final weight = (e['weight'] as num?)?.toDouble();
+            return {
+              'loggedAt': loggedAt,
+              'weight': weight,
+              'timestamp': loggedAt?.millisecondsSinceEpoch ?? 0,
+            };
+          }).where((m) => m['loggedAt'] != null && m['weight'] != null).toList();
+
+          if (parsedLogs.isEmpty) {
+            if (mounted) setState(() { _loading = false; });
+            return;
+          }
+
+          // Sort by date (ascending - oldest first)
+          parsedLogs.sort((a, b) => (a['timestamp'] as int).compareTo(b['timestamp'] as int));
+
+          // Get the most recent weight (last entry)
+          final Map<String, dynamic> latestEntry = parsedLogs.last;
+          final double? latestWeight = latestEntry['weight'] as double?;
+          final DateTime? latestDate = latestEntry['loggedAt'] as DateTime?;
+
+          if (latestWeight == null || latestDate == null) {
+            if (mounted) setState(() { _loading = false; });
+            return;
+          }
+
+          // Find weight entry closest to exactly 7 days ago
+          final DateTime now = DateTime.now();
+          final DateTime sevenDaysAgo = now.subtract(const Duration(days: 7));
+          
+          Map<String, dynamic>? weekAgoEntry;
+          double minDaysDiff = double.infinity;
+
+          for (final entry in parsedLogs) {
+            final DateTime? entryDate = entry['loggedAt'] as DateTime?;
+            if (entryDate == null) continue;
+            
+            // Find entry closest to 7 days ago (can be before or after)
+            final double daysDiff = (entryDate.difference(sevenDaysAgo).inHours / 24.0).abs();
+            if (daysDiff < minDaysDiff && entryDate.isBefore(now)) {
+              minDaysDiff = daysDiff;
+              weekAgoEntry = entry;
+            }
+          }
+
+          // If no entry found close to 7 days ago, use the oldest entry
+          if (weekAgoEntry == null && parsedLogs.isNotEmpty) {
+            weekAgoEntry = parsedLogs.first;
+          }
+
+          final double? weekAgoWeight = weekAgoEntry?['weight'] as double?;
+          final DateTime? weekAgoDate = weekAgoEntry?['loggedAt'] as DateTime?;
+
+          if (weekAgoWeight == null || weekAgoDate == null) {
+            if (mounted) setState(() { _loading = false; });
+            return;
+          }
+
+          // Calculate delta and days spanned
+          final double delta = latestWeight - weekAgoWeight;
+          final double spannedDays = (latestDate.difference(weekAgoDate).inHours / 24.0).abs().clamp(1.0, 7.0);
+
+          // Determine status: lost, gained, or maintained
+          const double maintainThreshold = 0.2; // Consider changes < 0.2kg as maintained
+          final bool isMaintained = delta.abs() < maintainThreshold;
+          final bool lost = delta < -maintainThreshold;
+
+          // Calculate average daily progress toward goal
+          double avgProgress = 0.0;
+          if (target != null && target > 0) {
+            final double weekAgoDistToGoal = (weekAgoWeight - target).abs();
+            final double latestDistToGoal = (latestWeight - target).abs();
+            final double progressTowardGoal = weekAgoDistToGoal - latestDistToGoal; // positive = closer
+            avgProgress = progressTowardGoal / spannedDays;
+          }
+
+          final String deltaText = delta.abs() < maintainThreshold 
+              ? '0.0 ${AppLocalizations.of(context)!.kg}'
+              : '${delta.abs().toStringAsFixed(1)} ${AppLocalizations.of(context)!.kg}';
           final String avgText = '${avgProgress >= 0 ? '+' : ''}${avgProgress.toStringAsFixed(2)} ${AppLocalizations.of(context)!.kgPerDay}';
 
-          // target vs latest for "to go"
-          final double latestWeight = (latest ?? (uc.userData['weight'] as num?)?.toDouble() ?? 0);
-          final double toGo = (target != null && target > 0) ? (latestWeight - target) : 0;
+          // Calculate "to go" - use current weight from userData for consistency with other UI elements
+          final double? currentWeight = (uc.userData['weight'] as num?)?.toDouble() ??
+              (uc.userData['data'] is Map ? (uc.userData['data']['weight'] as num?)?.toDouble() : null) ??
+              (uc.userData['user'] is Map ? (uc.userData['user']['weight'] as num?)?.toDouble() : null);
+          final double weightForToGo = currentWeight ?? latestWeight;
+          final double toGo = (target != null && target > 0) ? (weightForToGo - target) : 0;
 
           final l10n = AppLocalizations.of(context)!;
           setState(() {
-            _headline = lost ? '${l10n.greatJob} You lost ' : '${l10n.greatJob} ${l10n.youGained} ';
-            _headlineDeltaText = '$deltaText this week';
-            _avgLabel = lost ? l10n.avgDailyLost : l10n.avgDailyGained;
-            _avgText = avgText;
+            if (isMaintained) {
+              _headline = '${l10n.greatJob} You maintained your weight';
+              _headlineDeltaText = '';
+            } else if (lost) {
+              _headline = '${l10n.greatJob} You lost ';
+              _headlineDeltaText = '$deltaText this week';
+            } else {
+              _headline = '${l10n.greatJob} ${l10n.youGained} ';
+              _headlineDeltaText = '$deltaText this week';
+            }
+            
+            if (isMaintained) {
+              _avgLabel = 'Avg daily maintained';
+              _avgText = '0.00 ${l10n.kgPerDay}';
+            } else {
+              _avgLabel = lost ? l10n.avgDailyLost : l10n.avgDailyGained;
+              _avgText = avgText;
+            }
+            
             _toGoText = '${toGo.abs().toStringAsFixed(1)} ${l10n.kgToGo}';
           });
           _hasLoaded = true;
@@ -1183,7 +1431,18 @@ class _WeeklySummaryStripState extends State<_WeeklySummaryStrip> {
         children: [
           Center(
             child: _loading
-                ? const CupertinoActivityIndicator()
+                ? Shimmer.fromColors(
+                    baseColor: ThemeHelper.divider,
+                    highlightColor: ThemeHelper.cardBackground,
+                    child: Container(
+                      height: 20,
+                      width: 200,
+                      decoration: BoxDecoration(
+                        color: ThemeHelper.background,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  )
                 : Text.rich(
                     TextSpan(children: [
                       TextSpan(text: '$_headline ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: ThemeHelper.textPrimary)),
@@ -1730,13 +1989,36 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerPro
   }
 }
 
-class _StepsCard extends StatelessWidget {
+class _StepsCard extends StatefulWidget {
   final HealthProvider healthProvider;
   
   const _StepsCard({required this.healthProvider});
 
   @override
+  State<_StepsCard> createState() => _StepsCardState();
+}
+
+class _StepsCardState extends State<_StepsCard> with SingleTickerProviderStateMixin {
+  late final AnimationController _rotationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final healthProvider = widget.healthProvider;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1764,7 +2046,7 @@ class _StepsCard extends StatelessWidget {
                     child: Text(
                       AppLocalizations.of(context)!.tapToEnableHealthPermissions,
                       style: TextStyle(
-                        color: Color(0xFFFE9D15),
+                        color: const Color(0xFFFE9D15),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         decoration: TextDecoration.underline,
@@ -1812,14 +2094,19 @@ class _StepsCard extends StatelessWidget {
           ),
           if (healthProvider.hasPermissions)
             GestureDetector(
-              onTap: () async { await healthProvider.refreshSteps(); },
-              child: healthProvider.isLoading
-                  ? const SizedBox(width: 16, height: 16, child: CupertinoActivityIndicator(radius: 7))
-                  : Icon(
-                      CupertinoIcons.refresh,
-                      color: ThemeHelper.textSecondary,
-                      size: 16,
-                    ),
+              onTap: () async {
+                // Trigger a single rotation animation regardless of how fast the refresh completes
+                _rotationController.forward(from: 0);
+                await healthProvider.refreshSteps();
+              },
+              child: RotationTransition(
+                turns: _rotationController.drive(Tween<double>(begin: 0, end: 1)),
+                child: Icon(
+                  CupertinoIcons.refresh,
+                  color: ThemeHelper.textSecondary,
+                  size: 16,
+                ),
+              ),
             ),
         ],
       ),
@@ -1846,6 +2133,7 @@ class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
   bool _isLoadingProgress = false;
   bool _hasLoaded = false;
   String? _lastLoadedDate;
+  int? _lastStepsFromHealth;
 
   bool get _includeStepCaloriesInGoal {
     return _userController.userData['includeStepCaloriesInGoal'] ?? false;
@@ -1854,9 +2142,33 @@ class _AddBurnedToGoalCardState extends State<_AddBurnedToGoalCard> {
   @override
   void initState() {
     super.initState();
+    // Listen for step changes so we can refresh calories/steps in this card
+    widget.healthProvider.addListener(_onHealthChanged);
     if (!_hasLoaded) {
       _loadProgressData();
     }
+  }
+
+  @override
+  void dispose() {
+    widget.healthProvider.removeListener(_onHealthChanged);
+    super.dispose();
+  }
+
+  void _onHealthChanged() {
+    if (!_includeStepCaloriesInGoal) return;
+    if (!widget.healthProvider.hasPermissions) return;
+    if (widget.healthProvider.isLoading) return;
+
+    final int currentSteps = widget.healthProvider.stepsToday;
+    if (_lastStepsFromHealth != null && _lastStepsFromHealth == currentSteps) {
+      return; // No step change
+    }
+    _lastStepsFromHealth = currentSteps;
+
+    // Force a reload so burned calories and steps reflect latest health data
+    _hasLoaded = false;
+    _loadProgressData();
   }
 
   Future<void> _loadProgressData() async {

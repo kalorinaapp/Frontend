@@ -213,10 +213,11 @@ class _CreateAccountPageState extends State<CreateAccountPage>
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        width: 64,
+        height: 32,
         decoration: BoxDecoration(
           color: ThemeHelper.cardBackground,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: ThemeHelper.divider,
             width: 1,
@@ -226,26 +227,26 @@ class _CreateAccountPageState extends State<CreateAccountPage>
               color: ThemeHelper.isLightMode 
                   ? CupertinoColors.black.withOpacity(0.1)
                   : CupertinoColors.black.withOpacity(0.3),
-              blurRadius: 8,
+              blurRadius: 6,
               offset: const Offset(0, 2),
             ),
           ],
         ),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
-          mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               _currentLanguageFlag,
               style: const TextStyle(fontSize: 16),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             Text(
               _currentLanguageCode.toUpperCase(),
               style: ThemeHelper.textStyleWithColorAndSize(
                 ThemeHelper.caption1,
                 ThemeHelper.textPrimary,
-                12,
+                10,
               ).copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -526,6 +527,7 @@ class _CreateAccountPageState extends State<CreateAccountPage>
           : widget.themeProvider,
       builder: (context, child) {
         return CupertinoPageScaffold(
+          navigationBar: null,
           
           backgroundColor: ThemeHelper.background,
           child: FadeTransition(
@@ -537,47 +539,7 @@ class _CreateAccountPageState extends State<CreateAccountPage>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                  // const Spacer(),
-              
-                  // App logo
-                  // Image.asset(
-                  //   "assets/images/travy_logo.png",
-                  //   width: 150,
-                  //   height: 150,
-                  // ),
-              
-                  // const SizedBox(height: 0),
-              
-                  // Title
-                  // Text(
-                  //   widget.isLogin ? "Welcome Back" : "Create Your Account",
-                  //   style: ThemeHelper.textStyleWithColorAndSize(
-                  //     ThemeHelper.headline,
-                  //     ThemeHelper.textPrimary,
-                  //     32,
-                  //   )
-                  //   //.copyWith(fontWeight: FontWeight.w800),
-                  //   // textAlign: TextAlign.center,
-                  // ),
-              
-                  // const SizedBox(height: 12),
-              
-                  // Subtitle
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 32),
-                  //   child: Text(
-                  //     "Join thousands of smart travelers who use Travy to plan their perfect trips",
-                  //     style: ThemeHelper.textStyleWithColorAndSize(
-                  //       ThemeHelper.body1,
-                  //       ThemeHelper.textSecondary,
-                  //       16,
-                  //     )
-                  //     // .copyWith(fontWeight: FontWeight.w400),
-                  //     // textAlign: TextAlign.center,
-                  //   ),
-                  // ),
-              
-                  // const Spacer(),
+            
               const SizedBox(height: 60),
                   // Apple Sign In Button
                   if (Platform.isIOS)
@@ -723,11 +685,12 @@ class _CreateAccountPageState extends State<CreateAccountPage>
                     ],
                   ),
                 ),
-                 // Language changer positioned in top-right (only shown on login screen)
+                 // Language changer positioned in top-right, manually offset by status bar (only shown on login screen)
                  if (widget.isLogin)
                    Positioned(
-                     top: 20,
-                     right: 20,
+                     // Just below the status bar so it stays fully tappable
+                     top: MediaQuery.of(context).padding.top + 4,
+                     right: 16,
                      child: _buildLanguageChanger(),
                    ),
                  // Loading overlay

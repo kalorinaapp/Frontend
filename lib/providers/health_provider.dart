@@ -76,9 +76,11 @@ class HealthProvider extends ChangeNotifier {
       // Check health permissions
       final hasPermissions = await _health.hasPermissions(_dataTypes, permissions: _dataAccess);
       _hasPermissions = hasPermissions ?? false;
+      debugPrint('HealthProvider._checkPermissions -> hasPermissions=$_hasPermissions');
     } catch (e) {
       _errorMessage = 'Failed to check permissions: $e';
       _hasPermissions = false;
+      debugPrint('HealthProvider._checkPermissions error: $e');
     }
   }
 
@@ -96,6 +98,7 @@ class HealthProvider extends ChangeNotifier {
       final authorized = await _health.requestAuthorization(_dataTypes, permissions: _dataAccess);
       _hasPermissions = authorized;
       await UserPrefs.setHealthPermissionsGranted(_hasPermissions);
+      debugPrint('HealthProvider.requestPermissions -> authorized=$_hasPermissions');
 
       if (_hasPermissions) {
         await _fetchTodaysSteps();
@@ -104,6 +107,7 @@ class HealthProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'Failed to request permissions: $e';
       _hasPermissions = false;
+      debugPrint('HealthProvider.requestPermissions error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -114,6 +118,7 @@ class HealthProvider extends ChangeNotifier {
     try {
       final now = DateTime.now();
       final startOfDay = DateTime(now.year, now.month, now.day);
+      debugPrint('HealthProvider._fetchTodaysSteps -> start=$startOfDay, now=$now');
       
       // Prefer the built-in total steps aggregation if available
       int total = 0;
@@ -122,8 +127,10 @@ class HealthProvider extends ChangeNotifier {
         if (totalSteps != null) {
           total = totalSteps;
         }
+        debugPrint('HealthProvider._fetchTodaysSteps -> getTotalStepsInInterval=$totalSteps');
       } catch (_) {
         // Fallback path below
+        debugPrint('HealthProvider._fetchTodaysSteps -> getTotalStepsInInterval threw, falling back to samples');
       }
 
       if (total == 0) {
@@ -133,6 +140,7 @@ class HealthProvider extends ChangeNotifier {
           startTime: startOfDay,
           endTime: now,
         );
+        debugPrint('HealthProvider._fetchTodaysSteps -> samples count=${samples.length}');
         for (final dp in samples) {
           if (dp.type == HealthDataType.STEPS) {
             final val = (dp.value as NumericHealthValue).numericValue;
@@ -143,19 +151,25 @@ class HealthProvider extends ChangeNotifier {
 
       _stepsToday = total;
       _errorMessage = '';
+      debugPrint('HealthProvider._fetchTodaysSteps -> _stepsToday=$_stepsToday');
     } catch (e) {
       _errorMessage = 'Failed to fetch steps: $e';
       _stepsToday = 0;
+      debugPrint('HealthProvider._fetchTodaysSteps error: $e');
     }
   }
 
   Future<void> refreshSteps() async {
+    debugPrint('HealthProvider.refreshSteps called. hasPermissions=$_hasPermissions');
     if (_hasPermissions) {
       _isLoading = true;
       notifyListeners();
       await _fetchTodaysSteps();
       _isLoading = false;
       notifyListeners();
+      debugPrint('HealthProvider.refreshSteps completed. stepsToday=$_stepsToday');
+    } else {
+      debugPrint('HealthProvider.refreshSteps aborted: no permissions');
     }
   }
 

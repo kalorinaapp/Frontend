@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
+import '../../controller/onboarding.controller.dart';
 
 class ReferralPage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -57,19 +59,19 @@ class _ReferralPageState extends State<ReferralPage>
   }
 
   void _continue() {
-    // Process referral code if provided and continue
-    String referralCode = _referralController.text.trim();
+    // Process referral code if provided and continue to next onboarding page
+    final controller = Get.find<OnboardingController>();
+    final String referralCode = _referralController.text.trim();
+
     if (referralCode.isNotEmpty) {
+      controller.setStringData('referral_code', referralCode);
     }
-    
-    // Navigator.of(context).push(
-    //   CupertinoPageRoute(
-    //     builder: (context) => WelcomeCountdownPage(
-    //       themeProvider: widget.themeProvider,
-    //       userName: widget.userName,
-    //     ),
-    //   ),
-    // );
+
+    // Dismiss keyboard
+    FocusScope.of(context).unfocus();
+
+    // Advance onboarding just like the global "Continue" button
+    controller.goToNextPage();
   }
 
   @override
@@ -168,7 +170,7 @@ class _ReferralPageState extends State<ReferralPage>
                             height: 40,
                             decoration: BoxDecoration(
                               color: _referralController.text.trim().isNotEmpty 
-                                ? CupertinoColors.systemBlue 
+                                ? CupertinoColors.black 
                                 : CupertinoColors.systemGrey2,
                               borderRadius: BorderRadius.circular(20),
                             ),

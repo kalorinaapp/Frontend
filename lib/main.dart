@@ -1,11 +1,8 @@
 
 import 'package:calorie_ai_app/screens/home_screen.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart' show OneSignal, OSLogLevel;
-import 'dart:io' show Platform;
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import 'authentication/user.controller.dart' show UserController;
 import 'l10n/app_localizations.dart' show AppLocalizations;
@@ -58,21 +55,6 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
     try {
       themeProvider = ThemeProvider();
       languageProvider = LanguageProvider();
-
-      // iOS push notifications: initialize SDK before requesting permission
-      try {
-        if (Platform.isIOS) {
-          OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-          OneSignal.Debug.setAlertLevel(OSLogLevel.none);
-          OneSignal.consentRequired(true);
-          // Initialize OneSignal with your App ID (must be set for permissions prompt to show)
-          OneSignal.initialize('c5fb6b72-40ad-4062-82ec-c576bd7709c8'); // TODO: replace with your real OneSignal App ID
-          OneSignal.consentGiven(true);
-          await OneSignal.Notifications.requestPermission(true);
-        }
-      } catch (e) {
-        debugPrint('OneSignal initialization/permission error: $e');
-      }
 
       // Wait for language to load from SharedPreferences
       await languageProvider.initialize();

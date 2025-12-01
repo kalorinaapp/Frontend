@@ -1,10 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:get/get.dart';
 import 'dart:math';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../../providers/theme_provider.dart';
 import '../../../utils/page_animations.dart';
-import '../../controller/onboarding.controller.dart';
 import '../../../utils/theme_helper.dart';
 
 class CalorieTransferPage extends StatefulWidget {
@@ -21,15 +19,12 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
   @override
   bool get wantKeepAlive => true;
 
-  late OnboardingController _controller;
   late AnimationController _animationController;
   late Animation<double> _contentAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<OnboardingController>();
-    
     // Initialize simple fade-in animation for entire content
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 900),
@@ -48,47 +43,16 @@ class _CalorieTransferPageState extends State<CalorieTransferPage>
 
   // Calculate daily calorie goal based on user data
   int _calculateDailyCalorieGoal() {
-    final int? weight = _controller.getIntData('weight');
-    final int? height = _controller.getIntData('height');
-    final String? goal = _controller.getStringData('goal');
-    final double? weightLossSpeed = _controller.getDoubleData('weight_loss_speed');
-    
-    if (weight == null || height == null) {
-      return 2250; // Default fallback
-    }
-    
-    // Convert to kg if needed
-    final bool isLbs = _controller.getBoolData('weight_unit_lbs') ?? true;
-    final double weightKg = isLbs ? weight * 0.453592 : weight.toDouble();
-    final double heightCm = isLbs ? height * 2.54 : height.toDouble();
-    
-    // Calculate BMR using Mifflin-St Jeor Equation
-    // BMR = 10 * weight(kg) + 6.25 * height(cm) - 5 * age + 5 (for men)
-    // For simplicity, assuming average age of 30 and male
-    final double bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * 30) + 5;
-    
-    // Calculate TDEE (Total Daily Energy Expenditure) - assuming sedentary activity
-    final double tdee = bmr * 1.2;
-    
-    // Adjust based on goal
-    double calorieGoal = tdee;
-    if (goal == 'lose_weight') {
-      // Create deficit based on weight loss speed
-      final double weeklyDeficit = (weightLossSpeed ?? 0.5) * 7700; // 7700 calories = 1kg
-      final double dailyDeficit = weeklyDeficit / 7;
-      calorieGoal = tdee - dailyDeficit;
-    } else if (goal == 'gain_weight') {
-      // Add surplus for weight gain
-      calorieGoal = tdee + 500; // 500 calorie surplus
-    }
-    
-    return calorieGoal.round();
+    // This screen is a static preview, so we always show the same goal
+    // for every user: 2100/2250 (yesterday) and 2100/2400 (today).
+    // Keep this value in sync with the text displayed in the cards.
+    return 2250;
   }
 
   // Calculate transferable calories from yesterday (max 200)
   int _calculateTransferableCalories() {
     final int yesterdayGoal = _calculateDailyCalorieGoal();
-    final int yesterdayEaten = 2100; // From the image
+    final int yesterdayEaten = 2100; // Static preview value
     
     final int excessCalories = max(0, yesterdayGoal - yesterdayEaten);
     return min(200, excessCalories); // Cap at 200 calories

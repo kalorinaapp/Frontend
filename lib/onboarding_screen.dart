@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:get/get.dart';
 import 'onboarding/pages/calorie_tracking_experience_page.dart' show CalorieTrackingExperiencePage;
-import 'onboarding/pages/gif.onboarding.dart' show GIFScreen;
+// import 'onboarding/pages/gif.onboarding.dart' show GIFScreen;
 import 'onboarding/pages/how_it_works_page.dart' show HowItWorksPage;
 import 'onboarding/screens/stage4_personalization/birth_date_page.dart' show BirthDatePage;
 import 'onboarding/screens/stage4_personalization/consistency_health_page.dart' show ConsistencyHealthPage;
@@ -53,8 +53,38 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   late AnimationController _animationController;
   late OnboardingController _controller;
 
-  // Add your custom pages here
-  late List<Widget> _pages;
+  // Build onboarding pages (rebuilt on theme changes)
+  List<Widget> _buildPages() {
+    return [
+      CreateAccountPage(themeProvider: widget.themeProvider, isLogin: true),
+      CalorieTrackingExperiencePage(themeProvider: widget.themeProvider),
+      HowItWorksPage(themeProvider: widget.themeProvider),
+      // GIFScreen(themeProvider: widget.themeProvider,),
+      GenderSelectionPage(themeProvider: widget.themeProvider),
+      WorkoutFrequencyPage(themeProvider: widget.themeProvider),
+      // ScanMealsPage(themeProvider: widget.themeProvider),
+      HearAboutUsPage(themeProvider: widget.themeProvider),
+      CongratulationsPage(themeProvider: widget.themeProvider),
+      HeightWeightPage(themeProvider: widget.themeProvider),
+      BirthDatePage(themeProvider: widget.themeProvider),
+      GoalSelectionPage(themeProvider: widget.themeProvider),
+      DesiredWeightPage(themeProvider: widget.themeProvider),
+      WeightLossMotivationPage(themeProvider: widget.themeProvider),
+      WeightLossSpeedPage(themeProvider: widget.themeProvider),
+      DietaryPreferencePage(themeProvider: widget.themeProvider),
+      PersonalGoalsPage(themeProvider: widget.themeProvider),
+      ProgressMotivationPage(themeProvider: widget.themeProvider),
+      SupportMotivationPage(themeProvider: widget.themeProvider),
+      NotificationPermissionPage(themeProvider: widget.themeProvider),
+      CalorieCountingPage(themeProvider: widget.themeProvider),
+      CalorieTransferPage(themeProvider: widget.themeProvider),
+      ConsistencyHealthPage(themeProvider: widget.themeProvider),
+      RatingPage(themeProvider: widget.themeProvider),
+      ReferralPage(themeProvider: widget.themeProvider, userName: ''),
+      GoalGenerationPage(themeProvider: widget.themeProvider, userName: ''),
+      AllDonePage(themeProvider: widget.themeProvider),
+    ];
+  }
 
   void _handlePageLogic(int page) {
     // Add any special logic for specific pages here
@@ -90,60 +120,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     // Initialize the controller first to get current page
     _controller = Get.find<OnboardingController>();
     
-    // Initialize onboarding pages
-    _pages = [
-      CreateAccountPage(themeProvider: widget.themeProvider, isLogin: true),
-      CalorieTrackingExperiencePage(themeProvider: widget.themeProvider),
-      HowItWorksPage(themeProvider: widget.themeProvider),
-      GIFScreen(themeProvider: widget.themeProvider,),
-      GenderSelectionPage(themeProvider: widget.themeProvider),
-      WorkoutFrequencyPage(themeProvider: widget.themeProvider),
-      // ScanMealsPage(themeProvider: widget.themeProvider),
-      
-      
-      HearAboutUsPage(themeProvider: widget.themeProvider),
-      CongratulationsPage(themeProvider: widget.themeProvider),
-      HeightWeightPage(themeProvider: widget.themeProvider),
-      BirthDatePage(themeProvider: widget.themeProvider),
-      GoalSelectionPage(themeProvider: widget.themeProvider),
-      DesiredWeightPage(themeProvider: widget.themeProvider),
-      WeightLossMotivationPage(themeProvider: widget.themeProvider),
-      WeightLossSpeedPage(themeProvider: widget.themeProvider),
-      DietaryPreferencePage(themeProvider: widget.themeProvider),
-      PersonalGoalsPage(themeProvider: widget.themeProvider),
-      ProgressMotivationPage(themeProvider: widget.themeProvider),
-      SupportMotivationPage(themeProvider: widget.themeProvider),
-      NotificationPermissionPage(themeProvider: widget.themeProvider),
-      CalorieCountingPage(themeProvider: widget.themeProvider),
-      CalorieTransferPage(themeProvider: widget.themeProvider),
-
-      ConsistencyHealthPage(themeProvider: widget.themeProvider),
-
-      RatingPage(themeProvider: widget.themeProvider),
-
-      ReferralPage(themeProvider: widget.themeProvider, userName: '',),
-
-      GoalGenerationPage(themeProvider: widget.themeProvider, userName: '',),
-      
-      AllDonePage(themeProvider: widget.themeProvider),
-      
-      // WeightTransitionPage(themeProvider: widget.themeProvider),
-      // HealthConsistencyScreen(themeProvider: widget.themeProvider),
-      // SupportPage(themeProvider: widget.themeProvider),
-      // CalorieAdjustmentPage(themeProvider: widget.themeProvider),
-      // ExtraCaloriesPage(themeProvider: widget.themeProvider),
-     
-      // Add more pages here as you create them
-      // ExtraCaloriesPage(themeProvider: widget.themeProvider),
-      // RatingPage(themeProvider: widget.themeProvider,),
-
-      
-      
-      //ConsistencyHealthPage(themeProvider: widget.themeProvider),
-    ];
-
     // Set total pages
-    _controller.setTotalPages(_pages.length);
+    _controller.setTotalPages(_buildPages().length);
     
     // Sync PageController to current page after frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -162,7 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
     
     _controller.registerPageValidation(
-      4, // Gender selection page (index 2)
+      3, // Gender selection page (index 2)
       PageValidationConfig(
         dataKey: 'selected_gender',
         validationType: ValidationType.singleChoice,
@@ -170,7 +148,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
     
     _controller.registerPageValidation(
-      5, // Workout frequency page (index 3)
+      4, // Workout frequency page (index 3)
       PageValidationConfig(
         dataKey: 'workout_frequency',
         validationType: ValidationType.singleChoice,
@@ -178,7 +156,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
 
     _controller.registerPageValidation(
-      6, // Hear about us page index fixed
+      5, // Hear about us page index fixed
       PageValidationConfig(
         dataKey: 'hear_about_us',
         validationType: ValidationType.singleChoice,
@@ -187,14 +165,14 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
     // Height/Weight page validation (index depends on _pages order). Here: HeightWeightPage at index 8.
     _controller.registerPageValidation(
-      8,
+      7,
       PageValidationConfig(
         dataKey: 'height',
         validationType: ValidationType.numberInput,
       ),
     );
     _controller.registerPageValidation(
-      8,
+      7,
       PageValidationConfig(
         dataKey: 'weight',
         validationType: ValidationType.numberInput,
@@ -202,7 +180,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
     
     _controller.registerPageValidation(
-      9, // Birth date page (index 7)
+      8, // Birth date page (index 7)
       PageValidationConfig(
         dataKey: 'birth_date',
         validationType: ValidationType.dateInput,
@@ -210,7 +188,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
     
     _controller.registerPageValidation(
-      10, // Goal selection page (index 8)
+      9, // Goal selection page (index 8)
       PageValidationConfig(
         dataKey: 'goal',
         validationType: ValidationType.singleChoice,
@@ -218,7 +196,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
     
     _controller.registerPageValidation(
-      14, // Dietary preference page (index 9)
+      13, // Dietary preference page (index 9)
       PageValidationConfig(
         dataKey: 'dietary_preference',
         validationType: ValidationType.singleChoice,
@@ -226,7 +204,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
     
     _controller.registerPageValidation(
-      15, // Personal goals page (index 10)
+      14, // Personal goals page (index 10)
       PageValidationConfig(
         dataKey: 'personal_goal',
         validationType: ValidationType.singleChoice,
@@ -290,14 +268,14 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       final int currentPage = _controller.currentPage.value;
       
       // If on goal selection page (10) and user selected "maintain_weight", skip to page 14
-      if (currentPage == 10 && goal == 'maintain_weight') {
+      if (currentPage == 9 && goal == 'maintain_weight') {
         // Directly jump to page 14, bypassing pages 11, 12, and 13
         if (_pageController.hasClients) {
-          _pageController.jumpToPage(14);
+          _pageController.jumpToPage(13);
         }
-        _controller.currentPage.value = 14;
-        _controller.validatePage(14);
-        _handlePageLogic(14);
+        _controller.currentPage.value = 13;
+        _controller.validatePage(13);
+        _handlePageLogic(13);
       } else {
         _controller.goToNextPage();
       }
@@ -314,14 +292,14 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       final String? goal = _controller.getStringData('goal');
       
       // If on dietary preference page (14) and came from goal selection (maintain_weight), go back to page 10
-      if (currentPage == 14 && goal == 'maintain_weight') {
+      if (currentPage == 13 && goal == 'maintain_weight') {
         // Jump back to page 10, bypassing pages 13, 12, and 11
         if (_pageController.hasClients) {
-          _pageController.jumpToPage(10);
+          _pageController.jumpToPage(9);
         }
-        _controller.currentPage.value = 10;
-        _controller.validatePage(10);
-        _handlePageLogic(10);
+        _controller.currentPage.value = 9;
+        _controller.validatePage(9);
+        _handlePageLogic(9);
       } else {
         _controller.goToPreviousPage();
       }
@@ -476,18 +454,25 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           navigationBar: null,
           child: Column(
             children: [
-                             Obx(() => Container(
-                 decoration: BoxDecoration(
-                   color: _controller.currentPage.value == 5 || _controller.currentPage.value == 10
-                       ? null
-                       : ThemeHelper.background,
-                 ),
-                 height: 60,
-               )),
+              // Top spacer/header background (hidden on first page)
+              Obx(
+                () => Container(
+                  decoration: BoxDecoration(
+                    color: _controller.currentPage.value == 5 ||
+                            _controller.currentPage.value == 10
+                        ? null
+                        : ThemeHelper.background,
+                  ),
+                  height: _controller.currentPage.value == 0 ? 0 : 60,
+                ),
+              ),
               // Custom navigation with back button and progress bar
               Obx(
                 () => _controller.showNavigation.value
-                    ? Container(
+                    ? (_controller.currentPage.value == 0
+                        // No top navigation on the very first page
+                        ? const SizedBox.shrink()
+                        : Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -517,75 +502,79 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                               
                             const SizedBox(width: 16),
                               
-                            // Progress bar
-                            Expanded(
-                              child: Container(
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color:  ThemeHelper.divider,
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return Stack(
-                                      children: [
-                                        Obx(
-                                          () => AnimatedContainer(
-                                            duration: const Duration(
-                                              milliseconds: 300,
-                                            ),
-                                            curve: Curves.easeInOut,
-                                            width: constraints.maxWidth *
-                                                _controller.progressPercentage,
-                                            height: 6,
-                                            decoration: BoxDecoration(
-                                             color: ThemeHelper.textPrimary,
-                                              borderRadius: BorderRadius.circular(3),
+                            // Progress bar (hidden on first page)
+                            if (_controller.currentPage.value > 0)
+                              Expanded(
+                                child: Container(
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color:  ThemeHelper.divider,
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return Stack(
+                                        children: [
+                                          Obx(
+                                            () => AnimatedContainer(
+                                              duration: const Duration(
+                                                milliseconds: 300,
+                                              ),
+                                              curve: Curves.easeInOut,
+                                              width: constraints.maxWidth *
+                                                  _controller.progressPercentage,
+                                              height: 6,
+                                              decoration: BoxDecoration(
+                                               color: ThemeHelper.textPrimary,
+                                                borderRadius: BorderRadius.circular(3),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                              
-                            const SizedBox(width: 16),
-                              
-                         //   Theme switch button
-                            GestureDetector(
-                              onTap: () {
-                                HapticFeedback.mediumImpact();
-                                if (ThemeHelper.isLightMode) {
-                                  widget.themeProvider.setDarkTheme();
-                                } else {
-                                  widget.themeProvider.setLightTheme();
-                                }
-                              },
-                              child: Container(
-                                height: 40,
-                                width: 40,
-                                decoration: BoxDecoration(
-                                  color: ThemeHelper.cardBackground,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: ThemeHelper.divider,
-                                    width: 1,
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ),
-                                child: Icon(
-                                  ThemeHelper.isLightMode
-                                      ? CupertinoIcons.moon
-                                      : CupertinoIcons.sun_max,
-                                  size: 20,
-                                  color: ThemeHelper.textPrimary,
-                                ),
-                              ),
-                            ),
+                              )
+                            else
+                              const Spacer(),
+
+                            const SizedBox(width: 16),
+
+                            // Theme switch button - only show on second onboarding page (index 1)
+                            // if (_controller.currentPage.value == 1)
+                            //   GestureDetector(
+                            //     onTap: () {
+                            //       HapticFeedback.mediumImpact();
+                            //       if (ThemeHelper.isLightMode) {
+                            //         widget.themeProvider.setDarkTheme();
+                            //       } else {
+                            //         widget.themeProvider.setLightTheme();
+                            //       }
+                            //     },
+                            //     child: Container(
+                            //       height: 32,
+                            //       width: 32,
+                            //       decoration: BoxDecoration(
+                            //         color: ThemeHelper.cardBackground,
+                            //         shape: BoxShape.circle,
+                            //         border: Border.all(
+                            //           color: ThemeHelper.divider,
+                            //           width: 1,
+                            //         ),
+                            //       ),
+                            //       child: Icon(
+                            //         ThemeHelper.isLightMode
+                            //             ? CupertinoIcons.moon
+                            //             : CupertinoIcons.sun_max,
+                            //         size: 18,
+                            //         color: ThemeHelper.textPrimary,
+                            //       ),
+                            //     ),
+                            //   ),
                           ],
                         ),
-                      )
+                      ))
                     : const SizedBox.shrink(),
               ),
           
@@ -595,7 +584,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   controller: _pageController,
                   physics: const NeverScrollableScrollPhysics(),
                   onPageChanged: _onPageChanged,
-                  children: _pages,
+                  children: _buildPages(),
                 ),
               ),
           
