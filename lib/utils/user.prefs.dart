@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 
 class UserPrefs {
   static const String keyName = 'user_name';
@@ -7,6 +8,7 @@ class UserPrefs {
   static const String keyToken = 'user_token';
   static const String keyRefreshToken = 'user_refresh_token';
   static const String keyId = 'user_id';
+  static const String keyDeviceId = 'device_id';
   static const String keyLastWeighInIso = 'last_weigh_in_iso';
   static const String keyHealthPermsGranted = 'health_permissions_granted';
   static const String keyLastStepsDate = 'last_steps_date';
@@ -52,6 +54,30 @@ class UserPrefs {
     return prefs.getString(keyId);
   }
 
+  /// Get or create a unique device ID stored in SharedPreferences
+  static Future<String> getDeviceId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? deviceId = prefs.getString(keyDeviceId);
+      
+      if (deviceId == null || deviceId.isEmpty) {
+        // Generate a new UUID for this device
+        deviceId = const Uuid().v4();
+        await prefs.setString(keyDeviceId, deviceId);
+      }
+      
+      return deviceId;
+    } catch (e) {
+      // Fallback to a generated UUID if SharedPreferences fails
+      return const Uuid().v4();
+    }
+  }
+
+  static Future<void> setDeviceId(String deviceId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(keyDeviceId, deviceId);
+  }
+
   static Future<void> clearUserData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(keyName);
@@ -59,6 +85,7 @@ class UserPrefs {
     await prefs.remove(keyToken);
     await prefs.remove(keyRefreshToken);
     await prefs.remove(keyId);
+    // Note: We don't remove deviceId here as it should persist across logouts
     await prefs.remove(keyLastWeighInIso);
     await prefs.remove(keyHealthPermsGranted);
     await prefs.remove(keyLastStepsDate);

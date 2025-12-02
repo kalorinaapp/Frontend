@@ -109,6 +109,95 @@ class UserController extends GetxController {
     }
   }
 
+  Future<void> registerGuestUser(
+    Map<String, dynamic> data,
+    BuildContext context,
+    ThemeProvider themeProvider,
+    LanguageProvider languageProvider,
+  ) async {
+    try {
+      print('📞 registerGuestUser called with data: $data');
+      isLoading.value = true;
+      errorMessage.value = '';
+      isSuccess.value = false;
+      userData.clear();
+
+      print('🌐 Making API call to: api/guest/register');
+      await multiPostAPINew(
+        methodName: 'api/auth/guest/register',
+        param: data,
+        callback: (response) {
+          print('📥 API Response received - Status: ${response.code}, Response: ${response.response}');
+          try {
+            isLoading.value = false;
+            final decoded = response.response;
+           
+            final json = decoded is String ? jsonDecode(decoded) : decoded;
+            if (json['success'] == true) {
+              isSuccess.value = true;
+              userData.assignAll(json['user'] ?? {});
+
+              print('✅ Guest registration successful!');
+              print('📦 Full response: $json');
+              
+              // Save to shared prefs
+              final user = json['user'] ?? {};
+              final token = json['token'] ?? '';
+              final refreshToken = token; // Use same token as refresh token if not provided separately
+              
+              print('🔑 Extracted token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+              print('👤 Extracted user ID: ${user['_id'] ?? user['id'] ?? 'NOT FOUND'}');
+              
+              // Create full name from firstName and lastName
+              final firstName = user['firstName'] ?? '';
+              final lastName = user['lastName'] ?? '';
+              final fullName = '$firstName $lastName'.trim();
+              
+              final userId = user['_id'] ?? user['id'] ?? '';
+              print('💾 Saving to SharedPreferences - ID: $userId');
+              
+              UserPrefs.saveUserData(
+                name: fullName.isNotEmpty ? fullName : 'Guest User',
+                email: '', // Guest users don't have email
+                token: token,
+                refreshToken: refreshToken,
+                id: userId,
+              );
+
+              AppConstants.userId = userId;
+              AppConstants.authToken = token;
+              
+              print('✅ AppConstants.userId set to: ${AppConstants.userId}');
+              print('✅ AppConstants.authToken set to: ${AppConstants.authToken.substring(0, AppConstants.authToken.length > 20 ? 20 : AppConstants.authToken.length)}...');
+
+              // Navigate to home screen
+              Navigator.of(context).pushAndRemoveUntil(
+                CupertinoPageRoute(
+                  builder: (context) => HomeScreen(
+                    themeProvider: themeProvider, 
+                    languageProvider: languageProvider,
+                  ),
+                ),
+                (route) => false, // Remove all previous routes
+              );
+            } else {
+              errorMessage.value = json['message'] ?? 'Guest registration failed.';
+            }
+          } catch (e) {
+            isLoading.value = false;
+            errorMessage.value = 'Invalid server response.';
+            print('❌ Error processing guest registration response: $e');
+          }
+        },
+      );
+    } catch (e, stackTrace) {
+      isLoading.value = false;
+      errorMessage.value = 'Guest registration failed. Please check your connection and try again.';
+      print('❌ Error during guest registration: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
   Future<bool> loginUser(
     Map<String, dynamic> data,
     BuildContext context,

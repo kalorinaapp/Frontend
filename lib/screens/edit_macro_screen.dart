@@ -142,7 +142,9 @@ class _EditMacroScreenState extends State<EditMacroScreen> {
                           widget.iconAsset,
                           width: 24,
                           height: 24,
-                          color: widget.color,
+                          color: widget.iconAsset == 'assets/icons/apple.png' 
+                              ? ThemeHelper.textPrimary 
+                              : widget.color,
                         ),
                       ),
                     ),

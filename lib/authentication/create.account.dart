@@ -8,7 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart' show GoogleSignIn;
-import 'package:onesignal_flutter/onesignal_flutter.dart' show OneSignal, OSLogLevel;
+import 'package:onesignal_flutter/onesignal_flutter.dart' show OneSignal;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart'
     show AppleIDAuthorizationScopes, SignInWithApple;
 import 'package:supabase_flutter/supabase_flutter.dart'
@@ -17,10 +17,10 @@ import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../onboarding/controller/onboarding.controller.dart';
-import '../onboarding/pages/how_it_works_page.dart' show HowItWorksPage;
 import 'user.controller.dart';
 import '../../screens/language_selection_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/language_provider.dart';
 
@@ -92,19 +92,6 @@ class _CreateAccountPageState extends State<CreateAccountPage>
   }
 
 
-    void _handleAllowNotifications() {
-    // Request system notification permission via OneSignal and proceed
-    () async {
-      try {
-        // On iOS this shows the native permission dialog; on Android this is a no-op
-        final bool accepted = await OneSignal.Notifications.requestPermission(true);
-        debugPrint('OneSignal permission accepted: $accepted');
-      } catch (e) {
-        debugPrint('OneSignal permission request error: $e');
-      } finally {
-      }
-    }();
-  }
 
   @override
   void dispose() {
@@ -295,6 +282,74 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       "providerId": userId.toString(),
       "provider": "google", // Will be updated per provider
     };
+  }
+
+  // Helper function to collect guest registration data
+  Future<Map<String, dynamic>> _collectGuestRegistrationData() async {
+    // Extract birth date and calculate age
+    final birthDate = _controller.getDateTimeData('birth_date');
+    int age = 25; // default age
+    if (birthDate != null) {
+      final now = DateTime.now();
+      age = now.year - birthDate.year;
+      if (now.month < birthDate.month || 
+          (now.month == birthDate.month && now.day < birthDate.day)) {
+        age--;
+      }
+    }
+
+    // Generate a random device ID each time (not stored)
+    final deviceId = const Uuid().v4();
+
+    // Get platform
+    final platform = Platform.isIOS ? 'ios' : (Platform.isAndroid ? 'android' : 'web');
+
+    // Parse name from onboarding if available
+    String firstName = '';
+    String lastName = '';
+    
+    // Try to get name from onboarding data if available
+    final nameData = _controller.getStringData('name');
+    if (nameData != null && nameData.isNotEmpty) {
+      final nameParts = nameData.split(' ').where((part) => part.isNotEmpty).toList();
+      if (nameParts.isNotEmpty) {
+        firstName = nameParts.first;
+        if (nameParts.length > 1) {
+          lastName = nameParts.sublist(1).join(' ');
+        }
+      }
+    }
+
+    // Build guest registration payload
+    final Map<String, dynamic> data = {
+      "deviceId": deviceId,
+      "platform": platform,
+    };
+
+    // Add optional fields only if they exist
+    if (firstName.isNotEmpty) data["firstName"] = firstName;
+    if (lastName.isNotEmpty) data["lastName"] = lastName;
+    if (age > 0) data["age"] = age;
+    
+    final weight = _controller.getIntData('weight');
+    if (weight != null) data["weight"] = weight.toDouble();
+    
+    final height = _controller.getIntData('height');
+    if (height != null) data["height"] = height;
+    
+    // Always include gender (with default)
+    final gender = _controller.getStringData('selected_gender');
+    data["gender"] = gender ?? 'male';
+    
+    // Add activityLevel (mapped from workout frequency)
+    final workoutFrequency = _controller.getStringData('workout_frequency') ?? '0';
+    data["activityLevel"] = _mapWorkoutFrequencyToActivityLevel(workoutFrequency);
+    
+    // Add dailyCalorieGoal (with default)
+    final dailyCalorieGoal = _controller.getIntData('daily_calorie_goal');
+    data["dailyCalorieGoal"] = dailyCalorieGoal ?? 2250;
+
+    return data;
   }
 
   // Helper function to collect all onboarding data
@@ -623,47 +678,42 @@ class _CreateAccountPageState extends State<CreateAccountPage>
                     ),
                   ),
               
-                   // Only show "Want to sign in later? Skip" on login screen
-                   if (widget.isLogin) ...[
-                     const SizedBox(height: 12),
-                     Row(
-                       mainAxisAlignment: MainAxisAlignment.center,
-                       children: [
-                         Text(
-                           l10n.wantToSignInLater,
+                   // Show "Want to sign in later? Skip" on both login and sign up screens
+                   const SizedBox(height: 12),
+                   Row(
+                     mainAxisAlignment: MainAxisAlignment.center,
+                     children: [
+                       Text(
+                         l10n.wantToSignInLater,
+                         style: ThemeHelper.textStyleWithColorAndSize(
+                           ThemeHelper.caption1,
+                           ThemeHelper.textSecondary,
+                           12,
+                         ),
+                       ),
+                       GestureDetector(
+                         onTap: () async {
+                           if (widget.isLogin) {
+                             // For login screen, navigate to home screen without authentication
+                             _onboardingController.goToNextPage();
+                           } else {
+                             // For sign up screen, register as guest
+                             await _handleGuestRegistration();
+                           }
+                         },
+                         child: Text(
+                           l10n.skip,
                            style: ThemeHelper.textStyleWithColorAndSize(
                              ThemeHelper.caption1,
                              ThemeHelper.textSecondary,
                              12,
+                           ).copyWith(
+                             decoration: TextDecoration.underline,
                            ),
                          ),
-                         GestureDetector(
-                           onTap: () {
-                             // Navigate to home screen without authentication
-                             _onboardingController.goToNextPage();
-
-                             if (!widget.isLogin) {
-                             Navigator.of(context).push(
-                               CupertinoPageRoute(
-                                 builder: (context) => HowItWorksPage(themeProvider: widget.themeProvider, postSignUp: true),
-                               ),
-                             );
-                             }
-                           },
-                           child: Text(
-                             l10n.skip,
-                             style: ThemeHelper.textStyleWithColorAndSize(
-                               ThemeHelper.caption1,
-                               ThemeHelper.textSecondary,
-                               12,
-                             ).copyWith(
-                               decoration: TextDecoration.underline,
-                             ),
-                           ),
-                         ),
-                       ],
-                     ),
-                   ],
+                       ),
+                     ],
+                   ),
           
                    const SizedBox(height: 24),
               
@@ -881,6 +931,47 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       // Hide loading on error
       _setLoading(false);
       print('Error in googleSignInByIdAndroid: $e');
+      _showErrorDialog(AppLocalizations.of(context)!.networkErrorDescription);
+    }
+  }
+
+  Future<void> _handleGuestRegistration() async {
+    try {
+      // Show loading
+      _setLoading(true);
+      
+      // Collect guest registration data
+      final params = await _collectGuestRegistrationData();
+      
+      print('Collected guest registration data: $params');
+      print('🚀 About to call registerGuestUser API...');
+      
+      // Ensure language provider is available
+      if (_languageProvider == null) {
+        try {
+          _languageProvider = Get.find<LanguageProvider>();
+        } catch (e) {
+          debugPrint('LanguageProvider not found, creating default: $e');
+        }
+      }
+      
+      // Call guest registration API
+      await _userController.registerGuestUser(
+        params,
+        context,
+        widget.themeProvider,
+        _languageProvider ?? Get.find<LanguageProvider>(),
+      );
+      
+      print('✅ Guest registration API call completed');
+      
+      // Hide loading on success
+      _setLoading(false);
+    } catch (e, stackTrace) {
+      // Hide loading on error
+      _setLoading(false);
+      print('❌ Error in guest registration: $e');
+      print('Stack trace: $stackTrace');
       _showErrorDialog(AppLocalizations.of(context)!.networkErrorDescription);
     }
   }

@@ -49,18 +49,18 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
   List<String> _getIntensityDescriptions(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return [
-      l10n.nearSprintingDescription,
+      l10n.briskWalkDescription,
       l10n.steadyRunDescription,
-      l10n.briskWalkDescription
+      l10n.nearSprintingDescription
     ];
   }
   
   List<String> _getWeightIntensityDescriptions(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return [
-      l10n.heavyWeightsDescription,
+      l10n.lightWeightsDescription,
       l10n.moderateWeightsDescription,
-      l10n.lightWeightsDescription
+      l10n.heavyWeightsDescription
     ];
   }
 

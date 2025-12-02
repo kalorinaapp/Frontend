@@ -710,7 +710,6 @@ class _DayTile extends StatelessWidget {
   }
 
   void _handleStreakAction(String action, BuildContext context) async {
-    final l10n = AppLocalizations.of(context)!;
     final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     final previousSummary = streakService.snapshotStreakSummary();
     
@@ -746,15 +745,6 @@ class _DayTile extends StatelessWidget {
             streakService.streaksMap.remove(dateKey);
           }
           streakService.restoreStreakSummary(previousSummary);
-          Get.snackbar(
-            l10n.error,
-            streakService.errorMessage.value.isNotEmpty 
-                ? streakService.errorMessage.value 
-                : l10n.failedToCreateStreak,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red.withOpacity(0.8),
-            colorText: Colors.white,
-          );
         } else {
           // Refresh streak history after successful creation
           await streakService.getStreakHistory();
@@ -792,15 +782,6 @@ class _DayTile extends StatelessWidget {
             streakService.streaksMap.remove(dateKey);
           }
           streakService.restoreStreakSummary(previousSummary);
-          Get.snackbar(
-            l10n.error,
-            streakService.errorMessage.value.isNotEmpty 
-                ? streakService.errorMessage.value 
-                : l10n.failedToCreateStreak,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red.withOpacity(0.8),
-            colorText: Colors.white,
-          );
         } else {
           // Refresh streak history after successful creation
           await streakService.getStreakHistory();
@@ -828,13 +809,6 @@ class _DayTile extends StatelessWidget {
           if (success) {
             // Refresh streak history after successful deletion
             await streakService.getStreakHistory();
-            Get.snackbar(
-              l10n.success,
-              '${l10n.streakUndoneFor} ${DateFormat('MMM d, y', Localizations.localeOf(context).toString()).format(date)}',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green.withOpacity(0.8),
-              colorText: Colors.white,
-            );
           } else {
             // Revert if failed
             if (previousData != null) {
@@ -843,20 +817,7 @@ class _DayTile extends StatelessWidget {
               streakService.streaksMap.remove(dateKey);
             }
             streakService.restoreStreakSummary(previousSummary);
-            Get.snackbar(
-              l10n.error,
-              streakService.errorMessage.value,
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red.withOpacity(0.8),
-              colorText: Colors.white,
-            );
           }
-        } else {
-          Get.snackbar(
-            l10n.info,
-            '${l10n.noStreakToUndoFor} ${DateFormat('MMM d, y', Localizations.localeOf(context).toString()).format(date)}',
-            snackPosition: SnackPosition.BOTTOM,
-          );
         }
         break;
     }

@@ -50,6 +50,8 @@ Future multiPostAPINew({
     Uri uri = Uri.parse(url);
     // Utils.logger.e(uri);
     log("==request== $uri");
+    log("==full URL== $url");
+    log("==methodName== $methodName");
     log("==params== $param");
 
     Map<String, String>? headers = getHeaders();

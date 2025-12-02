@@ -226,6 +226,9 @@ class _UserCard extends StatelessWidget {
         final lastName = userController.userData['lastName'] ?? '';
         final fullName = '$firstName $lastName'.trim();
         final displayName = fullName.isNotEmpty ? fullName : 'User Name';
+        final isEmpty = fullName.isEmpty;
+        // If name is empty, make font size 30% smaller (20 * 0.7 = 14)
+        final fontSize = isEmpty ? 14.0 : 20.0;
         
         return GestureDetector(
           onTap: () => _showUsernameDialog(context, userController, displayName),
@@ -240,7 +243,7 @@ class _UserCard extends StatelessWidget {
                     style: ThemeHelper.textStyleWithColorAndSize(
                       ThemeHelper.body1,
                       ThemeHelper.textSecondary,
-                      16,
+                      fontSize,
                     ),
                   ),
                   const SizedBox(width: 8.0),
@@ -913,6 +916,15 @@ class _PersonalDetailsCard extends StatelessWidget {
 class _SettingsListCard extends StatelessWidget {
   const _SettingsListCard();
 
+  // Helper to check if user is a guest
+  // Only returns true if isGuest flag is explicitly set to true in userData
+  bool _isGuestUser() {
+    final userController = Get.find<UserController>();
+    final isGuest = userController.userData['isGuest'] as bool?;
+    // Only hide features if isGuest is explicitly true
+    return isGuest == true;
+  }
+
   Future<void> _launchEmail() async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
@@ -1345,13 +1357,14 @@ class _SettingsListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isGuest = _isGuestUser();
+    
     return _CardShell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
             onTap: () {
-
               Navigator.push(context, CupertinoPageRoute(builder: (context) =>  SetGoalsScreen()));
             },
             child: _tile(AppLocalizations.of(context)!.adjustMacronutrients, 'assets/icons/adjust.png'),
@@ -1362,10 +1375,10 @@ class _SettingsListCard extends StatelessWidget {
             },
             child: _tile(AppLocalizations.of(context)!.appearance, 'assets/icons/appearance.png')),
           GestureDetector(
-          onTap: () {
-            Navigator.push(context, CupertinoPageRoute(builder: (context) =>  LanguageSelectionScreen()));
-          },
-          child: _tile(AppLocalizations.of(context)!.language, 'assets/icons/language.png')),
+            onTap: () {
+              Navigator.push(context, CupertinoPageRoute(builder: (context) =>  LanguageSelectionScreen()));
+            },
+            child: _tile(AppLocalizations.of(context)!.language, 'assets/icons/language.png')),
           GestureDetector(
             onTap: _launchEmail,
             child: _tile(AppLocalizations.of(context)!.support, 'assets/icons/support.png'),
@@ -1378,16 +1391,19 @@ class _SettingsListCard extends StatelessWidget {
             onTap: _launchTermsAndConditions,
             child: _tile(AppLocalizations.of(context)!.termsAndConditions, 'assets/icons/terms.png'),
           ),
-          GestureDetector(
-            onTap: () => _showDeleteAccountConfirmation(context),
-            child: _tile(AppLocalizations.of(context)!.deleteAccount, 'assets/icons/delete_account.png'),
-          ),
-          const SizedBox(height: 20),
-          GestureDetector(
-            onTap: () {
-              _handleLogout(context);
-            },
-            child: _tile(AppLocalizations.of(context)!.logout, 'assets/icons/logout.png', isLast: true)),
+          // Only show delete account and logout for non-guest users
+          if (!isGuest) ...[
+            GestureDetector(
+              onTap: () => _showDeleteAccountConfirmation(context),
+              child: _tile(AppLocalizations.of(context)!.deleteAccount, 'assets/icons/delete_account.png'),
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () {
+                _handleLogout(context);
+              },
+              child: _tile(AppLocalizations.of(context)!.logout, 'assets/icons/logout.png', isLast: true)),
+          ],
         ],
       ),
     );

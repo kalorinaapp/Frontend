@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../network/http_helper.dart' show multiGetAPINew, multiDeleteAPINew;
-import '../utils/network.dart' show multiPostAPINew;
+import '../utils/network.dart' show multiPostAPINew, putAPI;
 
 class ProgressService extends GetxController {
   // Store daily progress data as reactive
@@ -190,6 +190,46 @@ class ProgressService extends GetxController {
         }
       },
     );
+    return parsed;
+  }
+
+  Future<Map<String, dynamic>?> updateManualProgress({
+    required String dateYYYYMMDD,
+    int? calories,
+    int? protein,
+    int? carbs,
+    int? fat,
+    String? notes,
+  }) async {
+    Map<String, dynamic>? parsed;
+    
+    final Map<String, dynamic> body = {
+      'date': dateYYYYMMDD,
+    };
+    
+    if (calories != null) body['calorieGoal'] = calories;
+    if (protein != null) body['proteinGoal'] = protein;
+    if (carbs != null) body['carbsGoal'] = carbs;
+    if (fat != null) body['fatGoal'] = fat;
+    if (notes != null && notes.isNotEmpty) body['notes'] = notes;
+    
+    await putAPI(
+      methodName: 'api/progress/adjustments',
+      param: body,
+      callback: (resp) async {
+        try {
+          if (resp.response.isNotEmpty) {
+            parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+          } else {
+            parsed = const {'success': true};
+          }
+        } catch (e) {
+          debugPrint('ProgressService updateManualProgress parse error: $e');
+          parsed = null;
+        }
+      },
+    );
+    
     return parsed;
   }
 }

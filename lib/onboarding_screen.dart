@@ -90,7 +90,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     // Add any special logic for specific pages here
     
     // Hide navigation for goal generation page
-    if (page == 24) { // GoalGenerationPage index
+    if (page == 23) { // GoalGenerationPage index
       _controller.showNavigation.value = false;
     } else {
       _controller.showNavigation.value = true;
