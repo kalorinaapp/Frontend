@@ -253,7 +253,7 @@ class _ConsistencyHealthPageState extends State<ConsistencyHealthPage>
       child: Opacity(
         opacity: opacity,
         child: Image.asset(
-          'assets/icons/flame.png',
+          'assets/icons/apple.png',
           width: 40,
           height: 40,
           fit: BoxFit.cover,

@@ -51,104 +51,7 @@ class _LogFoodView extends StatelessWidget {
   
   List<String> _getTabs(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return [l10n.all, l10n.myMeals, l10n.myFoods, l10n.savedScans, l10n.directInput];
-  }
-
-  void _onAddFood(BuildContext context, int index) async {
-    // Navigate to create meal screen with meal data
-    final suggestion = controller.suggestions[index];
-    final result = await Navigator.of(context).push(
-      CupertinoPageRoute(
-        builder: (context) => CreateMealScreen(
-          mealData: suggestion,
-          userId: controller.userId,
-          mealType: controller.mealType,
-        ),
-      ),
-    );
-    
-    // Optimistically add the new meal if result contains meal data
-    if (result != null && result is Map<String, dynamic>) {
-      controller.addOrUpdateMeal({
-        'id': result['id'] ?? '',
-        'mealName': result['mealName'] ?? '',
-        'totalCalories': result['totalCalories'] ?? 0,
-        'totalProtein': result['totalProtein'] ?? 0,
-        'totalCarbs': result['totalCarbs'] ?? 0,
-        'totalFat': result['totalFat'] ?? 0,
-        'entriesCount': result['entriesCount'] ?? 0,
-        'mealType': result['mealType'] ?? '',
-        'date': result['date'] ?? '',
-        'notes': result['notes'] ?? '',
-        'entries': result['entries'] ?? [],
-      });
-    } else if (result == true) {
-      // Fallback: Refresh if result is just true
-      controller.fetchMyMeals();
-    }
-  }
-
-  void _onEditMeal(BuildContext context, Map<String, dynamic> meal) async {
-    // Parse entries from the meal data
-    final entries = meal['entries'] as List<dynamic>? ?? [];
-    final items = entries.map((entry) {
-      return {
-        'name': entry['foodName'] ?? '',
-        'quantity': entry['quantity'] ?? 0,
-        'unit': entry['unit'] ?? '',
-        'calories': entry['calories'] ?? 0,
-        'protein': entry['protein'] ?? 0,
-        'carbohydrates': entry['carbs'] ?? 0, // Map 'carbs' to 'carbohydrates'
-        'fat': entry['fat'] ?? 0,
-      };
-    }).toList();
-    
-    // Convert meal data to match CreateMealScreen expected format
-    final mealData = {
-      'name': meal['mealName'] ?? '',
-      'calories': meal['totalCalories'] ?? 0,
-      'protein': meal['totalProtein'] ?? 0,
-      'carbohydrates': meal['totalCarbs'] ?? 0,
-      'fat': meal['totalFat'] ?? 0,
-      'servingSize': '1',
-      'items': items,
-    };
-    
-    final result = await Navigator.of(context).push(
-      CupertinoPageRoute(
-        builder: (context) => CreateMealScreen(
-          mealData: mealData,
-          userId: controller.userId,
-          mealType: meal['mealType'] ?? controller.mealType,
-          isEdit: true,
-          mealId: meal['id'],
-        ),
-      ),
-    );
-    
-    // Handle result
-    if (result == 'deleted') {
-      // Meal was deleted, remove from list
-      controller.removeMeal(meal['id']);
-    } else if (result != null && result is Map<String, dynamic>) {
-      // Optimistically update the meal if result contains updated meal data
-      controller.addOrUpdateMeal({
-        'id': result['id'] ?? '',
-        'mealName': result['mealName'] ?? '',
-        'totalCalories': result['totalCalories'] ?? 0,
-        'totalProtein': result['totalProtein'] ?? 0,
-        'totalCarbs': result['totalCarbs'] ?? 0,
-        'totalFat': result['totalFat'] ?? 0,
-        'entriesCount': result['entriesCount'] ?? 0,
-        'mealType': result['mealType'] ?? '',
-        'date': result['date'] ?? '',
-        'notes': result['notes'] ?? '',
-        'entries': result['entries'] ?? [],
-      });
-    } else if (result == true) {
-      // Fallback: Refresh if result is just true
-      controller.fetchMyMeals();
-    }
+    return [l10n.myFoods, l10n.savedScans, l10n.directInput];
   }
 
   void _onEditFood(BuildContext context, Map<String, dynamic> food) async {
@@ -245,32 +148,23 @@ class _LogFoodView extends StatelessWidget {
             // Search Bar (only show for non-Direct Input tabs)
             Obx(() {
               final currentTab = controller.selectedTabIndex.value;
-              if (currentTab == 4) {
+              if (currentTab == 2) {
                 return const SizedBox(height: 20);
               }
               
               // Use different controller based on tab
-              final isMyMealsTab = currentTab == 1;
-              final isMyFoodsTab = currentTab == 2;
-              final isSavedScansTab = currentTab == 3;
+              final isMyFoodsTab = currentTab == 0;
+              final isSavedScansTab = currentTab == 1;
               
-              final searchCtrl = isMyMealsTab 
-                  ? controller.mealsSearchController 
-                  : isMyFoodsTab 
-                      ? controller.foodsSearchController 
-                      : isSavedScansTab
-                          ? controller.scannedMealsSearchController
-                          : controller.searchController;
+              final searchCtrl = isMyFoodsTab 
+                  ? controller.foodsSearchController 
+                  : controller.scannedMealsSearchController;
               
-              final placeholder = isMyMealsTab 
-                  ? l10n.searchMeals 
-                  : isMyFoodsTab 
-                      ? l10n.searchFoods 
-                      : isSavedScansTab
-                          ? l10n.searchScannedMeals
-                          : l10n.chickenBr;
+              final placeholder = isMyFoodsTab 
+                  ? l10n.searchFoods 
+                  : l10n.searchScannedMeals;
               
-              final showClearButton = isMyMealsTab || isMyFoodsTab || isSavedScansTab;
+              final showClearButton = isMyFoodsTab || isSavedScansTab;
               
               return Column(
                 children: [
@@ -361,158 +255,6 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildAllTab(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    
-    return Container(
-      margin: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          // Suggestions Container
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: ThemeHelper.cardBackground,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: ThemeHelper.divider,
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: ThemeHelper.textPrimary.withOpacity(0.08),
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
-                    spreadRadius: 0,
-                  ),
-                  BoxShadow(
-                    color: ThemeHelper.textPrimary.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.suggestions,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: ThemeHelper.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  
-                  // Suggestions List
-                  Expanded(
-                    child: Obx(() => controller.isLoadingSuggestions.value
-                        ? ListView.separated(
-                            itemCount: 8,
-                            separatorBuilder: (context, index) => const SizedBox(height: 16),
-                            itemBuilder: (context, index) => _buildShimmerItem(),
-                          )
-                        : controller.suggestions.isEmpty
-                            ? Center(
-                                child: Text(
-                                  l10n.noSuggestionsAvailable,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: ThemeHelper.textSecondary,
-                                  ),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: controller.suggestions.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 16),
-                                itemBuilder: (context, index) {
-                                  final suggestion = controller.suggestions[index];
-                                  return GestureDetector(
-                                    onTap: () => _onAddFood(context, index),
-                                    child: _buildSuggestionItem(
-                                      context: context,
-                                      title: suggestion['name'],
-                                      calories: suggestion['calories'],
-                                      onAdd: () => _onAddFood(context, index),
-                                    ),
-                                  );
-                                },
-                              ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMyMealsTab(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    
-    return Stack(
-      children: [
-        Container(
-          margin: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              // Meals List
-              Expanded(
-                child: Obx(() => controller.isLoadingMyMeals.value
-                    ? ListView.separated(
-                        padding: const EdgeInsets.only(bottom: 100),
-                        itemCount: 8,
-                        separatorBuilder: (context, index) => const SizedBox(height: 16),
-                        itemBuilder: (context, index) => _buildShimmerItem(),
-                      )
-                    : controller.myMeals.isEmpty
-                        ? Center(
-                            child: Text(
-                              l10n.noMealsSavedYet,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: ThemeHelper.textSecondary,
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.only(bottom: 100),
-                            itemCount: controller.myMeals.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: 16),
-                            itemBuilder: (context, index) {
-                              final meal = controller.myMeals[index];
-                              return _buildMealItem(
-                                context: context,
-                                title: meal['mealName'],
-                                calories: (meal['totalCalories'] as num).toInt(),
-                                onTap: () => _onEditMeal(context, meal),
-                              );
-                            },
-                          ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        // Bottom Bar
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Builder(
-            builder: (context) => _buildBottomBar(context),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildShimmerItem() {
     return Shimmer.fromColors(
       baseColor: ThemeHelper.divider,
@@ -572,82 +314,6 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildMealItem({
-    required BuildContext context,
-    required String title,
-    required int calories,
-    VoidCallback? onTap,
-  }) {
-    final l10n = AppLocalizations.of(context)!;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: ThemeHelper.cardBackground,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: ThemeHelper.divider,
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: ThemeHelper.textPrimary.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: ThemeHelper.textPrimary.withOpacity(0.03),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Flame icon
-            Image.asset('assets/icons/flame_black.png', width: 16, height: 16, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
-            const SizedBox(width: 8),
-            
-            // Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: ThemeHelper.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$calories ${l10n.calories}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: ThemeHelper.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Arrow icon
-            Icon(
-              CupertinoIcons.chevron_right,
-              size: 16,
-              color: ThemeHelper.textSecondary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildFoodItem({
     required BuildContext context,
     required String title,
@@ -684,7 +350,7 @@ class _LogFoodView extends StatelessWidget {
         child: Row(
           children: [
             // Flame icon
-            Image.asset('assets/icons/flame_black.png', width: 16, height: 16, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
+            Image.asset('assets/icons/apple.png', width: 16, height: 16, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
             const SizedBox(width: 8),
             
             // Content
@@ -724,79 +390,6 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildSuggestionItem({
-    required BuildContext context,
-    required String title,
-    required int calories,
-    required VoidCallback onAdd,
-  }) {
-    final l10n = AppLocalizations.of(context)!;
-    return Row(
-      children: [
-        // Flame icon
-        Image.asset('assets/icons/flame_black.png', width: 16, height: 16, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
-        const SizedBox(width: 8),
-        
-        // Content
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: ThemeHelper.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '$calories calories',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: ThemeHelper.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        // Add button
-        GestureDetector(
-          onTap: onAdd,
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: ThemeHelper.cardBackground,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: ThemeHelper.textPrimary.withOpacity(0.15),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                  spreadRadius: 0,
-                ),
-                BoxShadow(
-                  color: ThemeHelper.textPrimary.withOpacity(0.08),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
-            child: Icon(
-              CupertinoIcons.add,
-              color: ThemeHelper.textPrimary,
-              size: 18,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCustomTabBar(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final tabs = _getTabs(context);
@@ -804,37 +397,40 @@ class _LogFoodView extends StatelessWidget {
     return Obx(() => SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: tabs.asMap().entries.map((entry) {
-          final index = entry.key;
-          final tab = entry.value;
-          final isSelected = index == controller.selectedTabIndex.value;
-          
-          return GestureDetector(
-            onTap: () {
-              controller.selectedTabIndex.value = index;
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: isSelected ? ThemeHelper.textPrimary : const Color(0x00000000),
-                    width: 2,
+        children: [
+          const SizedBox(width: 20), // Left padding to start from beginning
+          ...tabs.asMap().entries.map((entry) {
+            final index = entry.key;
+            final tab = entry.value;
+            final isSelected = index == controller.selectedTabIndex.value;
+            
+            return GestureDetector(
+              onTap: () {
+                controller.selectedTabIndex.value = index;
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isSelected ? ThemeHelper.textPrimary : const Color(0x00000000),
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  tab,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
                   ),
                 ),
               ),
-              child: Text(
-                tab,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? ThemeHelper.textPrimary : ThemeHelper.textSecondary,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ],
       ),
     ));
   }
@@ -845,19 +441,15 @@ class _LogFoodView extends StatelessWidget {
     return Obx(() {
       switch (controller.selectedTabIndex.value) {
         case 0:
-          return _buildAllTab(context);
-        case 1:
-          return _buildMyMealsTab(context);
-        case 2:
           return _buildMyFoodsTab(context);
-        case 3:
+        case 1:
           return Builder(
             builder: (context) => _buildEmptyTab(context, l10n.savedScans),
           );
-        case 4:
+        case 2:
           return _buildDirectInputTab(context);
         default:
-          return _buildAllTab(context);
+          return _buildMyFoodsTab(context);
       }
     });
   }
@@ -1199,7 +791,7 @@ class _LogFoodView extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Image.asset('assets/icons/flame_black.png', width: 28, height: 28, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
+                      Image.asset('assets/icons/apple.png', width: 28, height: 28, color: ThemeHelper.isLightMode ? null : CupertinoColors.white),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
@@ -1278,153 +870,6 @@ class _LogFoodView extends StatelessWidget {
                   );
                 }),
                 
-                const SizedBox(height: 24),
-                
-                // Ingredients Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l10n.ingredients,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                    ),
-                    Builder(
-                      builder: (context) => GestureDetector(
-                        onTap: () {
-                          _showAddDirectInputIngredientDialog(context);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: ThemeHelper.cardBackground,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: ThemeHelper.divider,
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: ThemeHelper.textPrimary.withOpacity(0.06),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                                spreadRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                l10n.addMore,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: ThemeHelper.textPrimary,
-                                ),
-                              ),
-                              SizedBox(width: 4),
-                              Icon(
-                                CupertinoIcons.pencil,
-                                size: 14,
-                                color: ThemeHelper.textPrimary,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                
-                // Ingredients List
-                Obx(() {
-                  // Access observable's length to trigger reactivity
-                  final hasIngredients = controller.directInputIngredients.isNotEmpty;
-                  final ingredientsList = controller.directInputIngredients.toList();
-                  
-                  return Builder(
-                    builder: (context) => hasIngredients
-                        ? Column(
-                            children: [
-                              const SizedBox(height: 16),
-                              ...ingredientsList.map((ingredient) => _buildDirectInputIngredientCard(context, ingredient)).toList(),
-                            ],
-                          )
-                        : const SizedBox.shrink(),
-                  );
-                }),
-                
-                const SizedBox(height: 16),
-                
-                // Amount Section
-                Obx(() {
-                  // Access observable directly in Obx scope
-                  final amount = controller.amountValue.value;
-                  
-                  return Builder(
-                    builder: (context) => Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l10n.amount,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: ThemeHelper.textPrimary,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            _showAmountInputSheet(context);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: ThemeHelper.cardBackground,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: ThemeHelper.divider,
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: ThemeHelper.textPrimary.withOpacity(0.06),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                  spreadRadius: 0,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '$amount',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: ThemeHelper.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  CupertinoIcons.pencil,
-                                  size: 14,
-                                  color: ThemeHelper.textPrimary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-                
                 const SizedBox(height: 100), // Space for bottom button
               ],
             ),
@@ -1479,92 +924,6 @@ class _LogFoodView extends StatelessWidget {
           color: color,
           initialValue: currentValue,
           onValueChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  void _showAmountInputSheet(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final TextEditingController amountController = TextEditingController(text: controller.amountValue.value.toString());
-    
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) => Container(
-        height: 300,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: ThemeHelper.cardBackground,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Title
-            Text(
-              l10n.enterAmount,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: ThemeHelper.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            
-            // Text Field
-            CupertinoTextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              placeholder: l10n.enterAmountPlaceholder,
-              style: const TextStyle(fontSize: 16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: ThemeHelper.divider,
-                  width: 1.5,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.all(12),
-              autofocus: true,
-            ),
-            
-            const Spacer(),
-            
-            // Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: CupertinoButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      l10n.cancel,
-                      style: const TextStyle(color: CupertinoColors.systemGrey),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: CupertinoButton(
-                    color: ThemeHelper.textPrimary,
-                    onPressed: () {
-                      final value = int.tryParse(amountController.text);
-                      if (value != null && value > 0) {
-                        controller.amountValue.value = value;
-                      }
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      l10n.save,
-                      style: TextStyle(color: ThemeHelper.background),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );
@@ -1988,485 +1347,4 @@ class _LogFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildDirectInputIngredientCard(BuildContext context, dynamic ingredient) {
-    final l10n = AppLocalizations.of(context)!;
-    final name = ingredient['name'] ?? '';
-    final quantity = ingredient['quantity']?.toString() ?? '';
-    final unit = ingredient['unit'] ?? '';
-    final calories = ingredient['calories']?.toString() ?? '0';
-    final protein = ingredient['protein']?.toString() ?? '0';
-    final carbs = ingredient['carbohydrates']?.toString() ?? '0';
-    final fat = ingredient['fat']?.toString() ?? '0';
-    
-    return GestureDetector(
-      onTap: () {
-        _showAddDirectInputIngredientDialog(context, existingIngredient: ingredient);
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: ThemeHelper.cardBackground,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: ThemeHelper.divider,
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: ThemeHelper.textPrimary.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: ThemeHelper.textPrimary,
-                    ),
-                  ),
-                ),
-                if (quantity.isNotEmpty && unit.isNotEmpty)
-                  Text(
-                    '$quantity $unit',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: ThemeHelper.textSecondary,
-                    ),
-                  ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    controller.removeDirectInputIngredient(ingredient);
-                  },
-                  child: Icon(
-                    CupertinoIcons.xmark_circle_fill,
-                    size: 20,
-                    color: ThemeHelper.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (calories != '0')
-                  _buildDirectInputNutrientBadge(context, '$calories kcal'),
-                if (protein != '0')
-                  _buildDirectInputNutrientBadge(context, 'P: ${protein}g'),
-                if (carbs != '0')
-                  _buildDirectInputNutrientBadge(context, 'C: ${carbs}g'),
-                if (fat != '0')
-                  _buildDirectInputNutrientBadge(context, 'F: ${fat}g'),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDirectInputNutrientBadge(BuildContext context, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: ThemeHelper.background,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: ThemeHelper.textPrimary,
-          width: 1,
-        ),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: ThemeHelper.textPrimary,
-        ),
-      ),
-    );
-  }
-
-  void _showAddDirectInputIngredientDialog(BuildContext context, {dynamic existingIngredient}) {
-    final l10n = AppLocalizations.of(context)!;
-    final bool isEditing = existingIngredient != null;
-    
-    final TextEditingController nameController = TextEditingController(
-      text: existingIngredient?['name'] ?? '',
-    );
-    final TextEditingController quantityController = TextEditingController(
-      text: existingIngredient != null && existingIngredient['quantity'] != 0
-          ? existingIngredient['quantity'].toString()
-          : '',
-    );
-    final TextEditingController unitController = TextEditingController(
-      text: existingIngredient?['unit'] ?? '',
-    );
-    final TextEditingController caloriesController = TextEditingController(
-      text: existingIngredient != null && existingIngredient['calories'] != 0
-          ? existingIngredient['calories'].toString()
-          : '',
-    );
-    final TextEditingController proteinController = TextEditingController(
-      text: existingIngredient != null && existingIngredient['protein'] != 0
-          ? existingIngredient['protein'].toString()
-          : '',
-    );
-    final TextEditingController carbsController = TextEditingController(
-      text: existingIngredient != null && existingIngredient['carbohydrates'] != 0
-          ? existingIngredient['carbohydrates'].toString()
-          : '',
-    );
-    final TextEditingController fatController = TextEditingController(
-      text: existingIngredient != null && existingIngredient['fat'] != 0
-          ? existingIngredient['fat'].toString()
-          : '',
-    );
-
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: BoxDecoration(
-          color: ThemeHelper.cardBackground,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: ThemeHelper.divider,
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Text(
-                      l10n.cancel,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: CupertinoColors.systemGrey,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    isEditing ? l10n.editIngredient : l10n.addIngredient,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      final name = nameController.text.trim();
-                      if (name.isEmpty) {
-                        return;
-                      }
-
-                      final ingredientData = {
-                        'name': name,
-                        'quantity': quantityController.text.trim().isNotEmpty 
-                            ? double.tryParse(quantityController.text.trim()) ?? 0 
-                            : 0,
-                        'unit': unitController.text.trim(),
-                        'calories': caloriesController.text.trim().isNotEmpty 
-                            ? int.tryParse(caloriesController.text.trim()) ?? 0 
-                            : 0,
-                        'protein': proteinController.text.trim().isNotEmpty 
-                            ? int.tryParse(proteinController.text.trim()) ?? 0 
-                            : 0,
-                        'carbohydrates': carbsController.text.trim().isNotEmpty 
-                            ? int.tryParse(carbsController.text.trim()) ?? 0 
-                            : 0,
-                        'fat': fatController.text.trim().isNotEmpty 
-                            ? int.tryParse(fatController.text.trim()) ?? 0 
-                            : 0,
-                      };
-
-                      if (isEditing) {
-                        // Find and update the existing ingredient
-                        controller.updateDirectInputIngredient(existingIngredient, ingredientData);
-                      } else {
-                        // Add new ingredient
-                        controller.addDirectInputIngredient(ingredientData);
-                      }
-
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      isEditing ? l10n.save : l10n.add,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Name Field (Mandatory)
-                    Text(
-                      l10n.name,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    CupertinoTextField(
-                      controller: nameController,
-                      placeholder: l10n.enterIngredientName,
-                      placeholderStyle: TextStyle(
-                        color: ThemeHelper.textSecondary,
-                        fontSize: 16,
-                      ),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ThemeHelper.background,
-                        border: Border.all(
-                          color: ThemeHelper.divider,
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.all(16),
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Quantity Section
-                    Text(
-                      l10n.quantityUnit,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: CupertinoTextField(
-                            controller: quantityController,
-                            placeholder: l10n.amountPlaceholder,
-                            keyboardType: TextInputType.number,
-                            placeholderStyle: TextStyle(
-                              color: ThemeHelper.textSecondary,
-                              fontSize: 16,
-                            ),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: ThemeHelper.textPrimary,
-                            ),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.white,
-                              border: Border.all(
-                                color: ThemeHelper.divider,
-                                width: 1.5,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 3,
-                          child: CupertinoTextField(
-                            controller: unitController,
-                            placeholder: l10n.unitPlaceholder,
-                            placeholderStyle: TextStyle(
-                              color: ThemeHelper.textSecondary,
-                              fontSize: 16,
-                            ),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: ThemeHelper.textPrimary,
-                            ),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.white,
-                              border: Border.all(
-                                color: ThemeHelper.divider,
-                                width: 1.5,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Nutrition Information
-                    Text(
-                      l10n.nutritionOptional,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    
-                    // Calories
-                    CupertinoTextField(
-                      controller: caloriesController,
-                      placeholder: l10n.caloriesPlaceholder2,
-                      keyboardType: TextInputType.number,
-                      placeholderStyle: TextStyle(
-                        color: ThemeHelper.textSecondary,
-                        fontSize: 16,
-                      ),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ThemeHelper.background,
-                        border: Border.all(
-                          color: ThemeHelper.divider,
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.all(16),
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // Protein and Carbs
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CupertinoTextField(
-                            controller: proteinController,
-                            placeholder: l10n.proteinG,
-                            keyboardType: TextInputType.number,
-                            placeholderStyle: TextStyle(
-                              color: ThemeHelper.textSecondary,
-                              fontSize: 16,
-                            ),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: ThemeHelper.textPrimary,
-                            ),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.white,
-                              border: Border.all(
-                                color: ThemeHelper.divider,
-                                width: 1.5,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CupertinoTextField(
-                            controller: carbsController,
-                            placeholder: l10n.carbsG,
-                            keyboardType: TextInputType.number,
-                            placeholderStyle: TextStyle(
-                              color: ThemeHelper.textSecondary,
-                              fontSize: 16,
-                            ),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: ThemeHelper.textPrimary,
-                            ),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.white,
-                              border: Border.all(
-                                color: ThemeHelper.divider,
-                                width: 1.5,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // Fat
-                    CupertinoTextField(
-                      controller: fatController,
-                      placeholder: l10n.fatG,
-                      keyboardType: TextInputType.number,
-                      placeholderStyle: TextStyle(
-                        color: ThemeHelper.textSecondary,
-                        fontSize: 16,
-                      ),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: ThemeHelper.textPrimary,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ThemeHelper.background,
-                        border: Border.all(
-                          color: ThemeHelper.divider,
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.all(16),
-                    ),
-                    
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

@@ -195,6 +195,26 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     }
   }
 
+  void _removeLocalExercise(String exerciseId) {
+    _localTodayExercises.removeWhere((exercise) {
+      final id = _extractExerciseId(exercise);
+      return id != null && id == exerciseId;
+    });
+
+    if (widget.todayExercises != null) {
+      widget.todayExercises!
+        ..clear()
+        ..addAll(_localTodayExercises.map((exercise) => Map<String, dynamic>.from(exercise)));
+    }
+
+    if (Get.isRegistered<HomeScreenController>()) {
+      final controller = Get.find<HomeScreenController>();
+      controller.todayExercises.assignAll(
+        _localTodayExercises.map((exercise) => Map<String, dynamic>.from(exercise)).toList(),
+      );
+    }
+  }
+
   void _recalculateLocalTotals({bool preferWidgetTotals = false}) {
     if (preferWidgetTotals && widget.todayTotals != null) {
       _localTodayTotals = Map<String, int>.from(widget.todayTotals!);
@@ -374,17 +394,21 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       children: [
               // Top Header
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   children: [
                     // App Title
-                    Image.asset('assets/icons/app_logo.png', width: 48, height: 48, color: ThemeHelper.textPrimary),
-                    Text(
-                      l10n.appTitle,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: ThemeHelper.textPrimary,
+                    Transform.translate(offset: Offset(-16, 0), child: Image.asset('assets/icons/app_logo.png', width: 80, height: 80, color: ThemeHelper.textPrimary)),
+                   
+                    Transform.translate(
+                      offset: Offset(-32, 0),
+                      child: Text(
+                        l10n.appTitle,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: ThemeHelper.textPrimary,
+                        ),
                       ),
                     ),
                     const Spacer(),
@@ -885,15 +909,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         (_localTodayTotals == null) &&
                         ((widget.todayEntries == null) || widget.todayEntries!.isEmpty) &&
                         _localTodayExercises.isEmpty) ...[
-                      Text(
-                        l10n.noFoodLogged,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: ThemeHelper.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
                       _animateCard(
                         id: 'recently_logged',
                         order: 3,
@@ -1009,7 +1024,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   Future<void> _openExerciseDetails(Map<String, dynamic> exercise) async {
-    final updatedExercise = await Navigator.of(context).push<Map<String, dynamic>>(
+    final result = await Navigator.of(context).push<Map<String, dynamic>>(
       CupertinoPageRoute(
         builder: (context) => ExerciseDetailScreen(
           exerciseData: Map<String, dynamic>.from(exercise),
@@ -1017,9 +1032,18 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       ),
     );
 
-    if (updatedExercise != null) {
+    if (result != null) {
       setState(() {
-        _applyLocalExerciseUpdate(updatedExercise);
+        // Check if exercise was deleted
+        if (result['deleted'] == true) {
+          final exerciseId = _extractExerciseId(exercise);
+          if (exerciseId != null) {
+            _removeLocalExercise(exerciseId);
+          }
+        } else {
+          // Exercise was updated, apply the update
+          _applyLocalExerciseUpdate(result);
+        }
       });
       if (Get.isRegistered<HomeScreenController>()) {
         final controller = Get.find<HomeScreenController>();
@@ -1360,21 +1384,25 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       return _buildAnalyzingCard();
     }
 
-    // Otherwise, show the full layout with text
-    return Column(
-      children: [
-        // Food image with rounded border
-        Container(
-          width: widget.selectedImage != null ? 80 : double.infinity,
-          height: widget.selectedImage != null ? 80 : null,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: CupertinoColors.systemGrey4,
-              width: widget.selectedImage != null ? 1 : 0,
-            ),
-          ),
-          child: Stack(
+    // Otherwise, show the full layout with text inside a card
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: ThemeHelper.divider.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          // BoxShadow(
+          //   color: ThemeHelper.textPrimary.withOpacity(0.1),
+          //   blurRadius: 10,
+          //   offset: const Offset(0, 2),
+          // ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Food image with rounded border
+          Stack(
             children: [
               // Show selected image if available, otherwise placeholder
               if (widget.selectedImage != null)
@@ -1388,22 +1416,22 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   ),
                 )
               else
-                Image.asset(ThemeHelper.isLightMode ? 'assets/images/AI_Slides_Image.png' : 'assets/images/AI_Slides_Image_Dark.png'),
+                Image.asset(width: 240, height: 80, ThemeHelper.isLightMode ? 'assets/images/AI_Slides_Image.png' : 'assets/images/AI_Slides_Image_Dark.png'),
             ],
           ),
-        ),
-        const SizedBox(height: 16),
-        // Message text
-        Text(
-          AppLocalizations.of(context)!.tapPlusToTrack,
-          style: TextStyle(
-            fontSize: 16,
-            color: ThemeHelper.textSecondary,
-            height: 1.4,
+          const SizedBox(height: 16),
+          // Message text
+          Text(
+            AppLocalizations.of(context)!.tapPlusToTrack,
+            style: TextStyle(
+              fontSize: 16,
+              color: ThemeHelper.textPrimary,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1954,11 +1982,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Center(
-                          child: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
+                          child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
                         ),
                         errorWidget: (context, url, error) => Center(
                           child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
@@ -2298,7 +2322,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               // App icon and name
               Row(
                 children: [
-                  Image.asset('assets/icons/app_logo.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
+                  Image.asset('assets/icons/app_logo.png', width: 48, height: 48, color: ThemeHelper.textPrimary),
                   const SizedBox(width: 6),
                   Text(
                     l10n.kalorina,

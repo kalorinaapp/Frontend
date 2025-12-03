@@ -155,7 +155,7 @@ class _IngredientDetailsScreenState extends State<IngredientDetailsScreen> {
                         ),
                         child: Row(
                           children: [
-                            Image.asset('assets/icons/flame_black.png', width: 28, height: 28, color: ThemeHelper.textPrimary),
+                            Image.asset('assets/icons/apple.png', width: 28, height: 28, color: ThemeHelper.textPrimary),
                             const SizedBox(width: 12),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

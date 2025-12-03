@@ -489,54 +489,124 @@ class LogFoodController extends GetxController {
   }
 
   Future<void> saveDirectInputFood() async {
+    debugPrint('🍔 saveDirectInputFood: Method called (saving as meal)');
+    
     // Validate required fields
-    if (foodNameController.text.trim().isEmpty) {
-      showErrorDialog('Please enter a food name');
+    final mealName = foodNameController.text.trim();
+    final caloriesText = caloriesController.text.trim();
+    
+    debugPrint('🍔 saveDirectInputFood: Validation - mealName: "$mealName", caloriesText: "$caloriesText"');
+    
+    if (mealName.isEmpty) {
+      debugPrint('❌ saveDirectInputFood: Validation failed - meal name is empty');
+      showErrorDialog('Please enter a meal name');
       return;
     }
 
-    if (caloriesController.text.trim().isEmpty) {
+    if (caloriesText.isEmpty) {
+      debugPrint('❌ saveDirectInputFood: Validation failed - calories is empty');
       showErrorDialog('Please enter calories');
       return;
     }
 
-    final calories = int.tryParse(caloriesController.text.trim());
+    final calories = int.tryParse(caloriesText);
     if (calories == null || calories < 0) {
+      debugPrint('❌ saveDirectInputFood: Validation failed - invalid calories value: $caloriesText');
       showErrorDialog('Please enter a valid calories value');
       return;
     }
 
+    debugPrint('✅ saveDirectInputFood: Validation passed');
+    
+    // Get userId and mealType
+    final userId = AppConstants.userId;
+    final currentMealType =  'breakfast'; // Default to breakfast if not provided
+    
+    // Get current date in ISO format
+    final now = DateTime.now();
+    final date = DateTime(now.year, now.month, now.day).toIso8601String();
+    
+    // Create entry from direct input data
+    final entry = {
+      'userId': userId,
+      'mealType': currentMealType,
+      'foodName': mealName,
+      'quantity': amountValue.value,
+      'unit': 'serving',
+      'calories': calories,
+      'protein': proteinValue.value,
+      'carbs': carbsValue.value,
+      'fat': fatsValue.value,
+      'fiber': 0,
+      'sugar': 0,
+      'sodium': 0,
+      'isScanned': true,
+      'servingSize': amountValue.value,
+      'servingUnit': 'serving',
+    };
+    
+    final entries = [entry];
+    
+    debugPrint('🍔 saveDirectInputFood: Meal data - name: $mealName, date: $date, mealType: $currentMealType');
+    debugPrint('🍔 saveDirectInputFood: Totals - calories: $calories, protein: ${proteinValue.value}, carbs: ${carbsValue.value}, fat: ${fatsValue.value}');
+    debugPrint('🍔 saveDirectInputFood: Entry: $entry');
+
     isSavingDirectInput.value = true;
 
     try {
-      final service = FoodService();
-      final response = await service.saveFood(
-        name: foodNameController.text.trim(),
-        calories: calories,
-        protein: proteinValue.value.toDouble(),
-        carbohydrates: carbsValue.value.toDouble(),
-        totalFat: fatsValue.value.toDouble(),
-        servingSize: '${amountValue.value} serving',
-        isCustom: true,
-        createdBy: AppConstants.userId,
+      final service = MealsService();
+      debugPrint('🌐 saveDirectInputFood: Calling MealsService.saveCompleteMeal...');
+      
+      final response = await service.saveCompleteMeal(
+        userId: userId,
+        date: date,
+        mealType: currentMealType,
+        mealName: mealName,
+        entries: entries,
+        notes: '',
+        totalCalories: calories,
+        totalProtein: proteinValue.value,
+        totalCarbs: carbsValue.value,
+        totalFat: fatsValue.value,
+        isScanned: true, // Direct input is not a scanned meal
       );
 
-      if (response != null && response['food'] != null) {
-        // Optimistically add to my foods
-        final foodData = response['food'];
-        myFoods.insert(0, {
-          '_id': foodData['_id'] ?? '',
-          'name': foodData['name'] ?? '',
-          'calories': foodData['calories'] ?? 0,
-          'description': foodData['description'] ?? '',
-          'servingSize': foodData['servingSize'] ?? '',
-          'servingPerContainer': foodData['servingPerContainer'] ?? '',
-          'protein': foodData['protein'] ?? 0,
-          'carbohydrates': foodData['carbohydrates'] ?? 0,
-          'totalFat': foodData['totalFat'] ?? 0,
-          'createdBy': foodData['createdBy'] ?? '',
-          'createdAt': foodData['createdAt'] ?? '',
+      debugPrint('📥 saveDirectInputFood: API response received');
+      debugPrint('📥 saveDirectInputFood: Response: $response');
+      debugPrint('📥 saveDirectInputFood: Response type: ${response.runtimeType}');
+      debugPrint('📥 saveDirectInputFood: Response is null: ${response == null}');
+      
+      if (response != null) {
+        debugPrint('📥 saveDirectInputFood: Response keys: ${response.keys}');
+        debugPrint('📥 saveDirectInputFood: Response has "meal": ${response.containsKey('meal')}');
+        debugPrint('📥 saveDirectInputFood: Response has "success": ${response.containsKey('success')}');
+        debugPrint('📥 saveDirectInputFood: Response["meal"]: ${response['meal']}');
+      }
+
+      if (response != null && response['success'] == true && response['meal'] != null) {
+        debugPrint('✅ saveDirectInputFood: Success - meal data received');
+        // Optimistically add to scanned meals list
+        final mealData = response['meal'] as Map<String, dynamic>;
+        debugPrint('✅ saveDirectInputFood: Meal data: $mealData');
+        
+        // Add to scanned meals list
+        addOrUpdateScannedMeal({
+          'id': mealData['id'] ?? mealData['_id'] ?? '',
+          'mealName': mealData['mealName'] ?? mealName,
+          'mealImage': mealData['mealImage'],
+          'totalCalories': mealData['totalCalories'] ?? calories,
+          'totalProtein': mealData['totalProtein'] ?? proteinValue.value,
+          'totalCarbs': mealData['totalCarbs'] ?? carbsValue.value,
+          'totalFat': mealData['totalFat'] ?? fatsValue.value,
+          'entriesCount': mealData['entriesCount'] ?? 1,
+          'mealType': mealData['mealType'] ?? currentMealType,
+          'date': mealData['date'] ?? date,
+          'createdAt': mealData['createdAt'] ?? DateTime.now().toIso8601String(),
+          'entries': mealData['entries'] ?? entries,
         });
+
+        debugPrint('✅ saveDirectInputFood: Meal added to scanned meals list');
+        debugPrint('✅ saveDirectInputFood: Clearing form...');
 
         // Clear the form
         foodNameController.clear();
@@ -547,15 +617,23 @@ class LogFoodController extends GetxController {
         amountValue.value = 1;
         directInputIngredients.clear();
 
-        // Switch to My Foods tab
-        selectedTabIndex.value = 2;
+        debugPrint('✅ saveDirectInputFood: Switching to Saved Scans tab (index 1)');
+        // Switch to Saved Scans tab
+        selectedTabIndex.value = 1;
+        debugPrint('✅ saveDirectInputFood: Successfully completed');
       } else {
-        showErrorDialog('Failed to save food');
+        debugPrint('❌ saveDirectInputFood: Failed - response is null or missing meal data');
+        debugPrint('❌ saveDirectInputFood: Response: $response');
+        showErrorDialog('Failed to save meal');
       }
-    } catch (e) {
-      showErrorDialog('Error saving food: $e');
+    } catch (e, stackTrace) {
+      debugPrint('❌ saveDirectInputFood: Exception caught');
+      debugPrint('❌ saveDirectInputFood: Error: $e');
+      debugPrint('❌ saveDirectInputFood: Stack trace: $stackTrace');
+      showErrorDialog('Error saving meal: $e');
     } finally {
       isSavingDirectInput.value = false;
+      debugPrint('🏁 saveDirectInputFood: Method completed, isSavingDirectInput set to false');
     }
   }
 

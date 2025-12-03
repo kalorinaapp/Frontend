@@ -53,6 +53,9 @@ class FoodService {
     bool isCustom = true,
     String? createdBy,
   }) async {
+    debugPrint('🌐 FoodService.saveFood: Method called');
+    debugPrint('🌐 FoodService.saveFood: Parameters - name: $name, calories: $calories, protein: $protein, carbs: $carbohydrates, fat: $totalFat, servingSize: $servingSize, isCustom: $isCustom, createdBy: $createdBy');
+    
     Map<String, dynamic>? parsed;
 
     final body = <String, dynamic>{
@@ -84,26 +87,44 @@ class FoodService {
     if (category != null && category.isNotEmpty) body['category'] = category;
     if (createdBy != null && createdBy.isNotEmpty) body['createdBy'] = createdBy;
 
+    debugPrint('🌐 FoodService.saveFood: Request body: $body');
+    debugPrint('🌐 FoodService.saveFood: Making POST request to api/foods...');
+
     await multiPostAPINew(
       methodName: 'api/foods',
       param: body,
       callback: (resp) async {
+        debugPrint('📥 FoodService.saveFood: API callback received');
+        debugPrint('📥 FoodService.saveFood: Response code: ${resp.code}');
+        debugPrint('📥 FoodService.saveFood: Response isError: ${resp.isError}');
+        debugPrint('📥 FoodService.saveFood: Response: ${resp.response}');
+        debugPrint('📥 FoodService.saveFood: Response type: ${resp.response.runtimeType}');
+        
         try {
           // Try to parse the response regardless of isError flag
           // since 201 Created is a success status for POST requests
           parsed = jsonDecode(resp.response) as Map<String, dynamic>;
+          debugPrint('✅ FoodService.saveFood: Response parsed successfully');
+          debugPrint('✅ FoodService.saveFood: Parsed response: $parsed');
+          debugPrint('✅ FoodService.saveFood: Parsed keys: ${parsed?.keys}');
           
           // Check if response has food data (indicates success)
           if (parsed != null && parsed!['food'] == null && parsed!['message'] == null) {
-            debugPrint('FoodService save error: ${resp.response}');
+            debugPrint('❌ FoodService.saveFood: Response missing food/message: ${resp.response}');
             parsed = null;
+          } else {
+            debugPrint('✅ FoodService.saveFood: Response contains food or message');
           }
-        } catch (e) {
-          debugPrint('FoodService save parse error: $e');
+        } catch (e, stackTrace) {
+          debugPrint('❌ FoodService.saveFood: Parse error: $e');
+          debugPrint('❌ FoodService.saveFood: Stack trace: $stackTrace');
+          debugPrint('❌ FoodService.saveFood: Raw response: ${resp.response}');
           parsed = null;
         }
       },
     );
+    
+    debugPrint('🏁 FoodService.saveFood: Method completed, returning: $parsed');
     return parsed;
   }
 

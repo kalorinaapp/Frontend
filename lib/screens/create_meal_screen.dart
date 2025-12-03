@@ -228,7 +228,7 @@ class _CreateMealScreenState extends State<CreateMealScreen> {
                             ),
                             child: Row(
                               children: [
-                                Image.asset('assets/icons/flame_black.png', width: 28, height: 28, color: ThemeHelper.textPrimary),
+                                Image.asset('assets/icons/apple.png', width: 28, height: 28, color: ThemeHelper.textPrimary),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(

@@ -105,7 +105,7 @@ class _CalorieAdjustmentPageState extends State<CalorieAdjustmentPage>
                 // Today's goal
                 Row(
                   children: [
-                    Image.asset('assets/images/flame.png', width: 24, height: 24),
+                    Image.asset('assets/images/apple.png', width: 24, height: 24),
                      
                     const SizedBox(width: 12),
                     Column(

@@ -203,17 +203,17 @@ class _LogScreenState extends State<LogScreen> {
               const SizedBox(height: 16),
               
               // Food Cards
-              _buildAnimatedCard(
-                order: 4,
-                child: _buildLogCard(
-                  iconAsset: 'assets/icons/meat.png',
-                  title: l10n.myMeals,
-                  subtitle: l10n.myMealsSubtitle,
-                  onTap: () => _navigateToMyMeals(1),
-                ),
-              ),
+              // _buildAnimatedCard(
+              //   order: 4,
+              //   child: _buildLogCard(
+              //     iconAsset: 'assets/icons/meat.png',
+              //     title: l10n.myMeals,
+              //     subtitle: l10n.myMealsSubtitle,
+              //     onTap: () => _navigateToMyMeals(0),
+              //   ),
+              // ),
       
-              const SizedBox(height: 12),
+              // const SizedBox(height: 12),
               
               _buildAnimatedCard(
                 order: 5,
@@ -221,7 +221,7 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/foods.png',
                   title: l10n.myFoods,
                   subtitle: l10n.myFoodsSubtitle,
-                  onTap: () => _navigateToMyMeals(2),
+                  onTap: () => _navigateToMyMeals(0),
                 ),
               ),
               const SizedBox(height: 12),
@@ -232,7 +232,7 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/bookmark.png',
                   title: l10n.savedScans,
                   subtitle: l10n.savedScansSubtitle,
-                  onTap: () => _navigateToMyMeals(3),
+                  onTap: () => _navigateToMyMeals(1),
                 ),
               ),
               const SizedBox(height: 12),
@@ -243,7 +243,7 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/input.png',
                   title: l10n.directInputFood,
                   subtitle: l10n.directInputFoodSubtitle,
-                  onTap: () => _navigateToMyMeals(4),
+                  onTap: () => _navigateToMyMeals(2),
                 ),
               ),
               const SizedBox(height: 80),

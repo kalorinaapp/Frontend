@@ -360,7 +360,7 @@ class _WorkoutFrequencyPageState extends State<WorkoutFrequencyPage>
                             child: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
                               child: Image.asset(
-                                'assets/icons/flame_black.png',
+                                'assets/icons/apple.png',
                                 key: ValueKey(isSelected),
                                 width: 24,
                                 height: 24,

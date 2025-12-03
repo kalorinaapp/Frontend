@@ -64,6 +64,10 @@ class ProgressPhotosCardController extends GetxController {
     localImages.addAll(images);
   }
 
+  void clearLocalImages() {
+    localImages.clear();
+  }
+
   ImagePicker get picker => _picker;
 }
 

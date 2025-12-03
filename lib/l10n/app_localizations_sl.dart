@@ -555,6 +555,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get all => 'Vse';
 
   @override
+  String get search => 'Search';
+
+  @override
   String get searchMeals => 'Išči obroke...';
 
   @override
@@ -1367,4 +1370,28 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get tryAgain => 'Try Again';
+
+  @override
+  String get deleteExerciseTitle => 'Delete Exercise?';
+
+  @override
+  String get exerciseWillBePermanentlyDeleted =>
+      'Exercise will be permanently deleted';
+
+  @override
+  String get failedToDeleteExercise =>
+      'Failed to delete exercise. Please try again.';
+
+  @override
+  String get howToScanProperly => 'How to scan properly';
+
+  @override
+  String get keepFoodInsideFrame => 'Keep food fully inside the frame';
+
+  @override
+  String get holdPhoneSteady => 'Hold your phone steady for a clear photo';
+
+  @override
+  String get takePictureStraight =>
+      'Take the picture straight, not at an angle';
 }

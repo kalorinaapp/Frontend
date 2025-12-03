@@ -132,6 +132,7 @@
   "myFoods": "Moja Hrana",
   "savedScans": "Spremljeni Skenovi",
   "directInput": "Direktan Unos",
+  "search": "Pretraži",
   "searchMeals": "Pretraži obroke...",
   "searchFoods": "Pretraži hranu...",
   "searchScannedMeals": "Pretraži skenirane obroke...",
@@ -389,5 +390,12 @@
   "testimonial4Name": "Emir S.",
   "testimonial4Review": "Savršeno za svakodnevnu rutinu. Brzo skeniram obroke i osjećam napredak već nakon sedmice.",
   "yes": "Da",
-  "no": "Ne"
+  "no": "Ne",
+  "deleteExerciseTitle": "Obrisati vježbu?",
+  "exerciseWillBePermanentlyDeleted": "Vježba će biti trajno obrisana",
+  "failedToDeleteExercise": "Neuspješno brisanje vježbe. Molimo pokušajte ponovo.",
+  "howToScanProperly": "Kako pravilno skenirati",
+  "keepFoodInsideFrame": "Držite hranu potpuno unutar okvira",
+  "holdPhoneSteady": "Držite telefon mirno za jasnu fotografiju",
+  "takePictureStraight": "Fotografirajte ravno, ne pod uglom"
 }

@@ -992,7 +992,7 @@ class _LogExerciseScreenState extends State<LogExerciseScreen> {
                   children: [
                     // Flame icon
                     Image.asset(
-                      'assets/icons/flame_black.png',
+                      'assets/icons/apple.png',
                       width: 24,
                       height: 24,
                       color: ThemeHelper.textPrimary,

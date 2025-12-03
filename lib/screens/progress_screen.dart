@@ -1894,8 +1894,8 @@ class _ProgressPhotosCardState extends State<_ProgressPhotosCard> with TickerPro
                             ),
                           ),
                   ),
-                  // Server photos
-                  ..._controller.serverPhotos.take(6).map((photo) {
+                  // Server photos - show only last 2 photos
+                  ..._controller.serverPhotos.take(2).map((photo) {
                     return GestureDetector(
                       onTap: () async {
                         await Navigator.of(context).push(
@@ -2391,7 +2391,7 @@ class _StreakCardState extends State<_StreakCard> {
                   height: 40,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage('assets/icons/flame.png'),
+                      image: AssetImage('assets/icons/apple.png'),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -2480,7 +2480,7 @@ class _StreakCardState extends State<_StreakCard> {
                             height: 16,
                             decoration: const BoxDecoration(
                               image: DecorationImage(
-                                image: AssetImage('assets/icons/flame.png'),
+                                image: AssetImage('assets/icons/apple.png'),
                                 fit: BoxFit.cover,
                               ),
                             ),

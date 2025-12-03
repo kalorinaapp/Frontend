@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
+import '../l10n/app_localizations.dart';
 
 class ScanTutorialPage extends StatelessWidget {
   const ScanTutorialPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         leading: CupertinoButton(
@@ -38,10 +40,10 @@ class ScanTutorialPage extends StatelessWidget {
               const SizedBox(height: 120),
               
               // Title
-              const Center(
+              Center(
                 child: Text(
-                  'How to scan properly',
-                  style: TextStyle(
+                  l10n.howToScanProperly,
+                  style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: CupertinoColors.black,
@@ -94,19 +96,19 @@ class ScanTutorialPage extends StatelessWidget {
                     color: CupertinoColors.systemGrey6.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _InstructionItem(
-                        text: 'Keep food fully inside the frame',
+                        text: l10n.keepFoodInsideFrame,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       _InstructionItem(
-                        text: 'Hold your phone steady for a clear photo',
+                        text: l10n.holdPhoneSteady,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       _InstructionItem(
-                        text: 'Take the picture straight, not at an angle',
+                        text: l10n.takePictureStraight,
                       ),
                     ],
                   ),
@@ -125,9 +127,9 @@ class ScanTutorialPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(25),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
-                      'Nastavi',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.continue_,
+                      style: const TextStyle(
                         color: CupertinoColors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,

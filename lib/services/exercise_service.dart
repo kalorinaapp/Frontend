@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../network/http_helper.dart';
-import '../utils/network.dart' show putAPI;
+import '../utils/network.dart' show putAPI, deleteAPI;
 
 class ExerciseService {
   const ExerciseService();
@@ -127,6 +127,31 @@ class ExerciseService {
       },
     );
     return parsed;
+  }
+
+  Future<bool> deleteExercise({
+    required String exerciseId,
+  }) async {
+    bool success = false;
+    await deleteAPI(
+      methodName: 'api/exercise/$exerciseId',
+      param: {},
+      callback: (resp) async {
+        debugPrint('ExerciseService deleteExercise response: ${resp.response}');
+        try {
+          if (resp.code >= 200 && resp.code < 300) {
+            success = true;
+          } else {
+            debugPrint('ExerciseService deleteExercise failed with code: ${resp.code}');
+            success = false;
+          }
+        } catch (e) {
+          debugPrint('ExerciseService deleteExercise parse error: $e');
+          success = false;
+        }
+      },
+    );
+    return success;
   }
 }
 

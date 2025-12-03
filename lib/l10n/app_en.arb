@@ -183,6 +183,7 @@
   "myFoods": "My Foods",
   "savedScans": "Saved Scans",
   "directInput": "Direct Input",
+  "search": "Search",
   "searchMeals": "Search meals...",
   "searchFoods": "Search foods...",
   "searchScannedMeals": "Search scanned meals...",
@@ -456,5 +457,12 @@
   "networkErrorDescription": "Unable to connect to the server. Please check your internet connection and try again.",
   "unexpectedError": "Unexpected Error",
   "unexpectedErrorDescription": "Something went wrong. Please try again later.",
-  "tryAgain": "Try Again"
+  "tryAgain": "Try Again",
+  "deleteExerciseTitle": "Delete Exercise?",
+  "exerciseWillBePermanentlyDeleted": "Exercise will be permanently deleted",
+  "failedToDeleteExercise": "Failed to delete exercise. Please try again.",
+  "howToScanProperly": "How to scan properly",
+  "keepFoodInsideFrame": "Keep food fully inside the frame",
+  "holdPhoneSteady": "Hold your phone steady for a clear photo",
+  "takePictureStraight": "Take the picture straight, not at an angle"
 }

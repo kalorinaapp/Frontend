@@ -554,6 +554,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get all => 'Sve';
 
   @override
+  String get search => 'Pretraži';
+
+  @override
   String get searchMeals => 'Pretraži obroke...';
 
   @override
@@ -1365,4 +1368,27 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get tryAgain => 'Try Again';
+
+  @override
+  String get deleteExerciseTitle => 'Obrisati vježbu?';
+
+  @override
+  String get exerciseWillBePermanentlyDeleted =>
+      'Vježba će biti trajno obrisana';
+
+  @override
+  String get failedToDeleteExercise =>
+      'Neuspješno brisanje vježbe. Molimo pokušajte ponovo.';
+
+  @override
+  String get howToScanProperly => 'Kako pravilno skenirati';
+
+  @override
+  String get keepFoodInsideFrame => 'Držite hranu potpuno unutar okvira';
+
+  @override
+  String get holdPhoneSteady => 'Držite telefon mirno za jasnu fotografiju';
+
+  @override
+  String get takePictureStraight => 'Fotografirajte ravno, ne pod kutom';
 }

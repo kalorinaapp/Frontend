@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../utils/theme_helper.dart';
 import 'progress_photo_detail_screen.dart' show ProgressPhotoDetailScreen;
 import '../controllers/progress_photos_controller.dart';
+import '../controllers/progress_photos_card_controller.dart';
 
 class ProgressPhotoItem {
   final String imagePath; // can be file path or url
@@ -134,6 +135,12 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
                                   // Refresh photos from server when a photo is deleted
                                   if (widget.shouldFetchFromServer) {
                                     _controller.loadFromServer();
+                                  }
+                                  // Also refresh the card controller if it exists (for progress_screen.dart)
+                                  if (Get.isRegistered<ProgressPhotosCardController>()) {
+                                    final cardController = Get.find<ProgressPhotosCardController>();
+                                    cardController.optimisticallyRemovePhoto(photoId);
+                                    cardController.loadServerPhotos();
                                   }
                                 },
                               ),

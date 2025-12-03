@@ -1158,6 +1158,12 @@ abstract class AppLocalizations {
   /// **'All'**
   String get all;
 
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
   /// No description provided for @searchMeals.
   ///
   /// In en, this message translates to:
@@ -2687,6 +2693,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try Again'**
   String get tryAgain;
+
+  /// No description provided for @deleteExerciseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Exercise?'**
+  String get deleteExerciseTitle;
+
+  /// No description provided for @exerciseWillBePermanentlyDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise will be permanently deleted'**
+  String get exerciseWillBePermanentlyDeleted;
+
+  /// No description provided for @failedToDeleteExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete exercise. Please try again.'**
+  String get failedToDeleteExercise;
+
+  /// No description provided for @howToScanProperly.
+  ///
+  /// In en, this message translates to:
+  /// **'How to scan properly'**
+  String get howToScanProperly;
+
+  /// No description provided for @keepFoodInsideFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep food fully inside the frame'**
+  String get keepFoodInsideFrame;
+
+  /// No description provided for @holdPhoneSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold your phone steady for a clear photo'**
+  String get holdPhoneSteady;
+
+  /// No description provided for @takePictureStraight.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the picture straight, not at an angle'**
+  String get takePictureStraight;
 }
 
 class _AppLocalizationsDelegate

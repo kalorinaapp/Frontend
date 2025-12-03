@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors, Icons; // For overlay painting & icons
 import 'package:image_picker/image_picker.dart';
 import '../l10n/app_localizations.dart' show AppLocalizations;
+import '../utils/user.prefs.dart';
 import 'scan_tutorial_page.dart';
 
 class ScanPage extends StatefulWidget {
@@ -25,6 +26,41 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initCamera();
+    _checkAndShowTutorial();
+  }
+
+  Future<void> _checkAndShowTutorial() async {
+    // Wait for the first frame to be rendered
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return;
+    
+    final tutorialShown = await UserPrefs.getScanTutorialShown();
+    if (!tutorialShown) {
+      // Show tutorial as full screen dialog
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showTutorialDialog();
+        }
+      });
+    }
+  }
+
+  void _showTutorialDialog() {
+    showCupertinoModalPopup(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: CupertinoColors.systemBackground,
+          child: const ScanTutorialPage(),
+        );
+      },
+    ).then((_) {
+      // Save flag after tutorial is dismissed
+      UserPrefs.setScanTutorialShown(true);
+    });
   }
 
   @override
@@ -179,6 +215,7 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
                         onPressed: () {
                           Navigator.of(context).push(
                             CupertinoPageRoute(
+                              fullscreenDialog: true,
                               builder: (_) => const ScanTutorialPage(),
                             ),
                           );

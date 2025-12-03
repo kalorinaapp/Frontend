@@ -11,6 +11,7 @@ import '../utils/user.prefs.dart' show UserPrefs;
 import '../utils/theme_helper.dart';
 import 'package:get/get.dart';
 import '../providers/theme_provider.dart' show ThemeProvider;
+import '../controllers/progress_photos_card_controller.dart';
 
 class ConfirmWeightScreen extends StatefulWidget {
   final String weightLabel; // e.g. "64.7 kg"
@@ -199,6 +200,15 @@ class _ConfirmWeightScreenState extends State<ConfirmWeightScreen> {
                       final bool ok = (res != null && (res['success'] == true || res['message'] == 'ok'));
                       if (ok) {
                         await UserPrefs.setLastWeighInNow();
+                        // Clear local images to prevent duplicates after successful upload
+                        try {
+                          if (Get.isRegistered<ProgressPhotosCardController>()) {
+                            final controller = Get.find<ProgressPhotosCardController>();
+                            controller.clearLocalImages();
+                            // Reload server photos to show the newly uploaded ones
+                            controller.loadServerPhotos();
+                          }
+                        } catch (_) {}
                         // Trigger a rebuild of ProgressScreen via theme provider listener
                         try {
                           // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member

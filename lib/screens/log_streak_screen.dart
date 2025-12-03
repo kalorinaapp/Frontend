@@ -295,7 +295,7 @@ class _LogStreakScreenState extends State<LogStreakScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset('assets/icons/flame.png', width: 24, height: 24),
+                  Image.asset('assets/icons/apple.png', width: 24, height: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -621,7 +621,7 @@ class _DayTile extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
                     children: [
-                      Image.asset('assets/icons/flame.png', width: 24, height: 24),
+                      Image.asset('assets/icons/apple.png', width: 24, height: 24),
                       const SizedBox(width: 8),
                       Text(
                         l10n.successfulDay,
@@ -824,7 +824,7 @@ class _DayTile extends StatelessWidget {
   }
 
   Widget _flameForStatus(_DayStatus s) {
-    final Widget img = Image.asset(_DayStatus.missed == s ? 'assets/icons/flame_missed.png' : 'assets/icons/flame.png', width: 40, height: 40, );
+    final Widget img = Image.asset(_DayStatus.missed == s ? 'assets/icons/flame_missed.png' : 'assets/icons/apple.png', width: 40, height: 40, );
     switch (s) {
       case _DayStatus.completed:
         return img;

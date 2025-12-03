@@ -13,6 +13,7 @@ class UserPrefs {
   static const String keyHealthPermsGranted = 'health_permissions_granted';
   static const String keyLastStepsDate = 'last_steps_date';
   static const String keyLastStepsValue = 'last_steps_value';
+  static const String keyScanTutorialShown = 'scan_tutorial_shown';
 
   static Future<void> saveUserData({
     required String name,
@@ -166,5 +167,16 @@ class UserPrefs {
     final String? date = prefs.getString(keyLastStepsDate);
     final int? steps = prefs.getInt(keyLastStepsValue);
     return (date, steps);
+  }
+
+  // Scan tutorial helpers
+  static Future<bool> getScanTutorialShown() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(keyScanTutorialShown) ?? false;
+  }
+
+  static Future<void> setScanTutorialShown(bool shown) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(keyScanTutorialShown, shown);
   }
 }

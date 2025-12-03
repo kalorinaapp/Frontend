@@ -236,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       child: Row(
                         children: [
-                          Image.asset('assets/icons/flame_black.png', width: 24, height: 24),
+                          Image.asset('assets/icons/apple.png', width: 24, height: 24),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Text(

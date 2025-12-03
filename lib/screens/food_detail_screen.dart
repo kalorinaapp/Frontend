@@ -112,7 +112,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                               ),
                               child: Center(
                                 child: Image.asset(
-                                  'assets/icons/flame_black.png',
+                                  'assets/icons/apple.png',
                                   width: 24,
                                   height: 24,
                                 ),
