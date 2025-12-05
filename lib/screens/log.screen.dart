@@ -299,7 +299,7 @@ class _LogScreenState extends State<LogScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: ThemeHelper.cardBackground,
+          color: ThemeHelper.background,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: ThemeHelper.divider,

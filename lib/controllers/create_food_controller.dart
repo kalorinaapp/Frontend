@@ -20,7 +20,7 @@ class CreateFoodController extends GetxController {
   final descriptionController = TextEditingController();
   final servingSizeController = TextEditingController(text: '1tbsp');
   final servingPerContainerController = TextEditingController(text: '1');
-  final caloriesController = TextEditingController();
+  final caloriesController = TextEditingController(text: '0');
 
   // Nutrition controllers
   final proteinController = TextEditingController();
@@ -49,6 +49,20 @@ class CreateFoodController extends GetxController {
     descriptionController.text = foodData['description'] ?? '';
     servingSizeController.text = foodData['servingSize'] ?? '1tbsp';
     servingPerContainerController.text = foodData['servingPerContainer'] ?? '1';
+    
+    // Handle measurement - can be object {value, unit} or string
+    final measurement = foodData['measurement'];
+    if (measurement != null) {
+      if (measurement is Map<String, dynamic>) {
+        // Measurement is an object with value and unit
+        final value = measurement['value']?.toString() ?? '';
+        final unit = measurement['unit']?.toString() ?? '';
+        servingSizeController.text = unit.isNotEmpty ? '$value $unit'.trim() : value;
+      } else if (measurement is String) {
+        // Measurement is a string (legacy format)
+        servingSizeController.text = measurement;
+      }
+    }
     
     if (foodData['calories'] != null) {
       caloriesController.text = foodData['calories'].toString();
@@ -155,6 +169,43 @@ class CreateFoodController extends GetxController {
     currentPage.value = 0;
   }
 
+  void reset() {
+    // Reset page
+    currentPage.value = 0;
+    
+    // Reset loading state
+    isSaving.value = false;
+    
+    // Reset edit mode
+    isEditing.value = false;
+    foodId = null;
+    
+    // Clear all text controllers
+    nameController.clear();
+    descriptionController.clear();
+    servingSizeController.text = '1tbsp';
+    servingPerContainerController.text = '1';
+    caloriesController.text = '0';
+    proteinController.clear();
+    carbsController.clear();
+    totalFatController.clear();
+    saturatedFatController.clear();
+    polyunsaturatedFatController.clear();
+    monounsaturatedFatController.clear();
+    transFatController.clear();
+    cholesterolController.clear();
+    sodiumController.clear();
+    potassiumController.clear();
+    sugarController.clear();
+    fiberController.clear();
+    vitaminAController.clear();
+    vitaminCController.clear();
+    calciumController.clear();
+    ironController.clear();
+    
+    update(); // Force UI update
+  }
+
   void updateControllerText(TextEditingController controller, String text) {
     controller.text = text;
     update(); // Force UI update
@@ -191,6 +242,9 @@ class CreateFoodController extends GetxController {
               : null,
           servingPerContainer: servingPerContainerController.text.trim().isNotEmpty 
               ? servingPerContainerController.text.trim() 
+              : null,
+          measurement: servingSizeController.text.trim().isNotEmpty 
+              ? servingSizeController.text.trim() 
               : null,
           protein: proteinController.text.trim().isNotEmpty 
               ? double.tryParse(proteinController.text.trim()) 
@@ -256,6 +310,9 @@ class CreateFoodController extends GetxController {
               : null,
           servingPerContainer: servingPerContainerController.text.trim().isNotEmpty 
               ? servingPerContainerController.text.trim() 
+              : null,
+          measurement: servingSizeController.text.trim().isNotEmpty 
+              ? servingSizeController.text.trim() 
               : null,
           protein: proteinController.text.trim().isNotEmpty 
               ? double.tryParse(proteinController.text.trim()) 

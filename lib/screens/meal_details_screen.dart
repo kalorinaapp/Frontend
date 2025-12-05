@@ -8,6 +8,7 @@ import 'ingredient_details_screen.dart';
 import 'edit_meal_name_screen.dart';
 import 'edit_macro_screen.dart';
 import '../utils/theme_helper.dart';
+import '../l10n/app_localizations.dart';
 
 class MealDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> mealData;
@@ -26,12 +27,25 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
   late Map<String, dynamic> _currentMealData;
   int _servingAmount = 1;
   bool _isSaving = false;
+  bool _isScannedMeal = false;
   static const String _manualAdjustmentLabel = 'Manual Adjustment';
 
   @override
   void initState() {
     super.initState();
     _currentMealData = Map<String, dynamic>.from(widget.mealData);
+    
+    // Check if this is a scanned meal that needs to be saved
+    final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+    final isScanned = _currentMealData['isScanned'] ?? false;
+    _isScannedMeal = (mealId == null && isScanned);
+    
+    // Auto-save scanned meals in the background
+    if (_isScannedMeal) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _saveScannedMeal();
+      });
+    }
   }
 
   Future<Map<String, dynamic>?> _saveScannedMeal() async {
@@ -95,10 +109,27 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       if (response != null && response['success'] == true) {
         debugPrint('MealDetailsScreen: Scanned meal saved successfully - Response: $response');
         
-        // Update local meal data with the response from server
+        // Update local meal data with the response from server, but preserve entries and image
         if (response['meal'] != null) {
           setState(() {
-            _currentMealData = Map<String, dynamic>.from(response['meal'] as Map<String, dynamic>);
+            final serverMeal = Map<String, dynamic>.from(response['meal'] as Map<String, dynamic>);
+            // Preserve original entries and image before merging
+            final originalEntries = entries;
+            final originalImage = _currentMealData['mealImage'];
+            
+            // Merge server response with existing data
+            _currentMealData = Map<String, dynamic>.from(_currentMealData)
+              ..addAll(serverMeal)
+              // Always preserve entries from what we sent (server might not return them properly)
+              ..['entries'] = originalEntries
+              // Preserve original image if it exists, otherwise use server image
+              ..['mealImage'] = originalImage ?? serverMeal['mealImage']
+              // Update totals from entries to ensure consistency
+              ..['totalCalories'] = totals['calories']
+              ..['totalProtein'] = totals['protein']
+              ..['totalCarbs'] = totals['carbs']
+              ..['totalFat'] = totals['fat'];
+            // Keep _isScannedMeal true so button stays hidden (it's auto-saved)
           });
         }
         
@@ -426,7 +457,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
+                  onTap: () => Navigator.of(context).pop(Map<String, dynamic>.from(_currentMealData)),
                   child: SvgPicture.asset(
                     'assets/icons/back.svg',
                     width: 24,
@@ -434,7 +465,16 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                     color: ThemeHelper.textPrimary,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => _showDeleteMealConfirmation(context),
+                  child: Image.asset(
+                    'assets/icons/trash.png',
+                    width: 20,
+                    height: 20,
+                    color: ThemeHelper.textPrimary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -776,76 +816,63 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                     ),
                   ),
                   
-                  const SizedBox(height: 100), // Space for bottom button
+                  SizedBox(height: _isScannedMeal ? 40 : 100), // Less space if button is hidden
                 ],
               ),
             ),
           ),
           
-          // Bottom Save/Done Button
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: ThemeHelper.background,
-              boxShadow: isDark
-                  ? []
-                  : [
-                      BoxShadow(
-                        color: ThemeHelper.textPrimary.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, -2),
-                        spreadRadius: 0,
-                      ),
-                    ],
-            ),
-            child: GestureDetector(
-              onTap: _isSaving ? null : () async {
-                // Check if this is a new scanned meal that needs to be saved
-                final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
-                final isScanned = _currentMealData['isScanned'] ?? false;
-                
-                if (mealId == null && isScanned) {
-                  // This is a new scanned meal - save it first
-                  final savedMeal = await _saveScannedMeal();
-                  if (savedMeal != null) {
-                    // Return the saved meal data for optimistic update
-                    Navigator.of(context).pop(savedMeal);
-                    return;
-                  }
-                }
-                
-                Navigator.of(context).pop(Map<String, dynamic>.from(_currentMealData));
-              },
-              child: Container(
-                width: 250,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: ThemeHelper.textPrimary,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Center(
-                  child: _isSaving 
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CupertinoActivityIndicator(
-                          color: ThemeHelper.background,
+          // Bottom Save/Done Button - Hide for auto-saved scanned meals
+          if (!_isScannedMeal)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: ThemeHelper.background,
+                boxShadow: isDark
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: ThemeHelper.textPrimary.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, -2),
+                          spreadRadius: 0,
                         ),
-                      )
-                    : Text(
-                        _getButtonText(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: ThemeHelper.background,
+                      ],
+              ),
+              child: GestureDetector(
+                onTap: _isSaving ? null : () async {
+                  Navigator.of(context).pop(Map<String, dynamic>.from(_currentMealData));
+                },
+                child: Container(
+                  width: 250,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: ThemeHelper.textPrimary,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Center(
+                    child: _isSaving 
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CupertinoActivityIndicator(
+                            color: ThemeHelper.background,
+                          ),
+                        )
+                      : Text(
+                          _getButtonText(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: ThemeHelper.background,
+                          ),
                         ),
-                      ),
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -957,7 +984,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(iconAsset, width: 12, height: 12, color: ThemeHelper.textPrimary),
+                  Image.asset(iconAsset, width: 12, height: 12),
                   const SizedBox(width: 4),
                   Text(
                     label,
@@ -1328,6 +1355,151 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
         await _updateMeal();
       }
     }
+  }
+
+  Future<void> _handleDeleteMealInBackground() async {
+    final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+    if (mealId != null) {
+      // Make API call in background - fire and forget
+      _mealsService.deleteMeal(mealId: mealId.toString()).catchError((error) {
+        debugPrint('MealDetailsScreen: Failed to delete meal $mealId - $error');
+        // Note: We don't show error to user since we've already optimistically removed it
+        // The meal will be removed from UI immediately, and if API fails,
+        // it might reappear on next refresh, but that's acceptable for optimistic UI
+        return null;
+      });
+    }
+  }
+
+  void _showDeleteMealConfirmation(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    // Show confirmation dialog
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Center(
+          child: Container(
+            width: 320,
+            margin: const EdgeInsets.symmetric(horizontal: 30),
+            decoration: BoxDecoration(
+              color: ThemeHelper.cardBackground,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // Header with title and close button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        l10n.deleteMealTitle,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: ThemeHelper.textPrimary,
+                        ),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Icon(
+                          CupertinoIcons.xmark_circle,
+                          color: ThemeHelper.textPrimary,
+                          size: 24,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Subtitle
+                  Text(
+                    l10n.mealWillBePermanentlyDeleted,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: ThemeHelper.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // Buttons
+                  Row(
+                    children: [
+                      // No button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: ThemeHelper.cardBackground,
+                              border: Border.all(
+                                color: ThemeHelper.divider,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Center(
+                              child: Text(
+                                l10n.no,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: ThemeHelper.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Yes button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            // Close the dialog
+                            Navigator.of(context).pop();
+                            // Immediately navigate back with deleted flag (optimistic)
+                            if (context.mounted) {
+                              Navigator.of(context).pop({'deleted': true});
+                            }
+                            // Make API call in background (fire and forget)
+                            _handleDeleteMealInBackground();
+                          },
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFCD5C5C), // Matching the red color from delete account dialog
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Center(
+                              child: Text(
+                                l10n.yes,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showAddIngredientSheet(BuildContext context) {

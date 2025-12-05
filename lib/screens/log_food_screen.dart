@@ -1142,8 +1142,11 @@ class _LogFoodView extends StatelessWidget {
           ),
         );
         
-        // Optimistically update the scanned meal if result contains updated meal data
-        if (result != null && result is Map<String, dynamic>) {
+        // Check if meal was deleted
+        if (result != null && result is Map<String, dynamic> && result['deleted'] == true) {
+          controller.removeScannedMeal(meal);
+        } else if (result != null && result is Map<String, dynamic>) {
+          // Optimistically update the scanned meal if result contains updated meal data
           controller.addOrUpdateScannedMeal({
             'id': result['id'] ?? result['_id'] ?? meal['id'] ?? meal['_id'],
             'mealName': result['mealName'] ?? meal['mealName'],

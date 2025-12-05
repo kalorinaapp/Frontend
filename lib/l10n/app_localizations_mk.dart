@@ -797,6 +797,9 @@ class AppLocalizationsMk extends AppLocalizations {
   String get camera => 'Камера';
 
   @override
+  String get selectImageSource => 'Select Image Source';
+
+  @override
   String get progressPhotos => 'Фотографии на Напредок';
 
   @override
@@ -901,6 +904,9 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Неодамна прикачено';
+
+  @override
+  String get recentlyLogged => 'Recently Logged';
 
   @override
   String get cannotLogFutureStreak => 'Не можете да евидентирате идни датуми';
@@ -1388,6 +1394,12 @@ class AppLocalizationsMk extends AppLocalizations {
   @override
   String get failedToDeleteExercise =>
       'Failed to delete exercise. Please try again.';
+
+  @override
+  String get deleteMealTitle => 'Delete Meal?';
+
+  @override
+  String get mealWillBePermanentlyDeleted => 'Meal will be permanently deleted';
 
   @override
   String get howToScanProperly => 'How to scan properly';

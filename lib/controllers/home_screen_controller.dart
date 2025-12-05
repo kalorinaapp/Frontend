@@ -12,6 +12,8 @@ import '../utils/user.prefs.dart' show UserPrefs;
 import '../authentication/user.controller.dart' show UserController;
 import '../providers/health_provider.dart' show HealthProvider;
 import '../screens/meal_details_screen.dart' show MealDetailsScreen;
+import '../camera/scan_page.dart' show ScanPage;
+import '../l10n/app_localizations.dart' show AppLocalizations;
 
 
 
@@ -299,12 +301,73 @@ class HomeScreenController extends GetxController {
     }
   }
   
-  void retryScan(BuildContext? context) {
-    if (selectedImage.value != null) {
-      hasScanError.value = false;
-      isAnalyzing.value = true;
-      analyzeImage(selectedImage.value!.path, context);
-    }
+  Future<void> retryScan(BuildContext? context) async {
+    if (context == null) return;
+    
+    // Close error card first
+    hasScanError.value = false;
+    
+    // Get localized strings
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
+    
+    // Show picker dialog (camera/gallery)
+    await showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text('Select Image Source'), // TODO: Use l10n.selectImageSource after regenerating localization
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              // Navigate to camera
+              final result = await Navigator.of(context).push<Map<String, dynamic>>(
+                CupertinoPageRoute(
+                  builder: (context) => const ScanPage(),
+                ),
+              );
+              
+              if (result != null && result['imagePath'] != null) {
+                final imagePath = result['imagePath'] as String;
+                setSelectedImage(File(imagePath));
+                setIsAnalyzing(true);
+                fetchTodayTotals();
+                await analyzeImage(imagePath, context);
+              }
+            },
+            child: Text(l10n.camera),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              // Pick from gallery
+              try {
+                final XFile? image = await _picker.pickImage(
+                  source: ImageSource.gallery,
+                  maxWidth: 1920,
+                  maxHeight: 1080,
+                  imageQuality: 85,
+                );
+                
+                if (image != null) {
+                  setSelectedImage(File(image.path));
+                  setIsAnalyzing(true);
+                  fetchTodayTotals();
+                  await analyzeImage(image.path, context);
+                }
+              } catch (e) {
+                debugPrint('Error picking image: $e');
+              }
+            },
+            child: Text(l10n.gallery),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: Text(l10n.cancel),
+        ),
+      ),
+    );
   }
   
   void closeErrorCard() {
@@ -419,8 +482,13 @@ class HomeScreenController extends GetxController {
                 ),
               );
               
-              // If meal was saved, add it optimistically
-              if (savedMeal != null) {
+              // Check if meal was deleted
+              if (savedMeal != null && savedMeal['deleted'] == true) {
+                removeMeal(mealData);
+                // User backed out without saving: revert scan state
+                revertScanState();
+              } else if (savedMeal != null) {
+                // If meal was saved, add it optimistically
                 addMealOptimistically(savedMeal);
               } else {
                 // User backed out without saving: revert scan state
@@ -467,6 +535,34 @@ class HomeScreenController extends GetxController {
     
     // Fetch progress data to sync with server (runs in background)
     progressService.fetchDailyProgress(dateYYYYMMDD: dateStr, steps: steps);
+  }
+
+  void removeMeal(Map<String, dynamic> mealToRemove) {
+    final mealId = mealToRemove['id'] ?? mealToRemove['_id'];
+    if (mealId != null && mealId.toString().isNotEmpty) {
+      todayMeals.removeWhere((m) {
+        final mId = m['id'] ?? m['_id'];
+        return mId != null && mId.toString() == mealId.toString();
+      });
+    } else {
+      // Fallback: try to match by other criteria if ID is not available
+      final mealName = (mealToRemove['mealName'] as String?)?.trim();
+      final totalCalories = ((mealToRemove['totalCalories'] ?? 0) as num).toInt();
+      final createdAt = mealToRemove['createdAt'] as String?;
+      
+      todayMeals.removeWhere((m) {
+        final mName = (m['mealName'] as String?)?.trim();
+        final mCalories = ((m['totalCalories'] ?? 0) as num).toInt();
+        final mCreatedAt = m['createdAt'] as String?;
+        
+        return mName == mealName && 
+               mCalories == totalCalories && 
+               mCreatedAt == createdAt;
+      });
+    }
+    
+    // Recalculate totals after removal
+    fetchTodayTotals();
   }
   
   void _updateProgressOptimistically(Map<String, dynamic> meal) {

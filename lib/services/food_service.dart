@@ -6,6 +6,62 @@ import '../network/http_helper.dart' hide multiPostAPINew;
 class FoodService {
   const FoodService();
 
+  // Helper function to parse measurement string into object
+  // Examples: "3 pcs" -> {value: 3, unit: "pcs"}, "1tbsp" -> {value: 1, unit: "tbsp"}, "100" -> {value: 100, unit: ""}
+  Map<String, dynamic>? _parseMeasurement(String? measurement) {
+    if (measurement == null || measurement.isEmpty) {
+      debugPrint('🔍 _parseMeasurement: measurement is null or empty');
+      return null;
+    }
+    
+    final trimmed = measurement.trim();
+    if (trimmed.isEmpty) {
+      debugPrint('🔍 _parseMeasurement: trimmed is empty');
+      return null;
+    }
+    
+    debugPrint('🔍 _parseMeasurement: Input: "$trimmed"');
+    
+    // Try to match: number (with optional decimal) followed by optional whitespace and unit
+    // Examples: "3 pcs", "1tbsp", "100.5 g", "2.5 cups"
+    final match = RegExp(r'^(\d+(?:\.\d+)?)\s*(.*)$').firstMatch(trimmed);
+    
+    if (match != null) {
+      final numberStr = match.group(1);
+      final unitStr = match.group(2)?.trim() ?? '';
+      
+      debugPrint('🔍 _parseMeasurement: Matched - numberStr: "$numberStr", unitStr: "$unitStr"');
+      
+      final value = double.tryParse(numberStr ?? '');
+      if (value != null) {
+        // Preserve decimal if present, otherwise use int
+        final numValue = value == value.toInt() ? value.toInt() : value;
+        final result = {
+          'value': numValue,
+          'unit': unitStr,
+        };
+        debugPrint('🔍 _parseMeasurement: Result: $result');
+        return result;
+      }
+    }
+    
+    // If regex didn't match, try parsing the whole string as a number
+    final value = double.tryParse(trimmed);
+    if (value != null) {
+      final numValue = value == value.toInt() ? value.toInt() : value;
+      final result = {
+        'value': numValue,
+        'unit': '',
+      };
+      debugPrint('🔍 _parseMeasurement: Parsed as number only: $result');
+      return result;
+    }
+    
+    // If we can't parse anything, return null (don't send invalid measurement)
+    debugPrint('🔍 _parseMeasurement: Could not parse, returning null');
+    return null;
+  }
+
   Future<Map<String, dynamic>?> getFoodSuggestions() async {
     Map<String, dynamic>? parsed;
     await multiGetAPINew(
@@ -33,6 +89,7 @@ class FoodService {
     String? description,
     String? servingSize,
     String? servingPerContainer,
+    String? measurement,
     double? protein,
     double? carbohydrates,
     double? totalFat,
@@ -68,6 +125,16 @@ class FoodService {
     if (description != null && description.isNotEmpty) body['description'] = description;
     if (servingSize != null && servingSize.isNotEmpty) body['servingSize'] = servingSize;
     if (servingPerContainer != null && servingPerContainer.isNotEmpty) body['servingPerContainer'] = servingPerContainer;
+    // Parse measurement string into object with value and unit
+    final parsedMeasurement = _parseMeasurement(measurement);
+    debugPrint('🌐 FoodService.saveFood: Original measurement: $measurement');
+    debugPrint('🌐 FoodService.saveFood: Parsed measurement: $parsedMeasurement');
+    if (parsedMeasurement != null) {
+      body['measurement'] = parsedMeasurement;
+      debugPrint('🌐 FoodService.saveFood: Added measurement to body: ${body['measurement']}');
+    } else {
+      debugPrint('🌐 FoodService.saveFood: Parsed measurement is null, not adding to body');
+    }
     if (protein != null) body['protein'] = protein;
     if (carbohydrates != null) body['carbohydrates'] = carbohydrates;
     if (totalFat != null) body['totalFat'] = totalFat;
@@ -163,6 +230,7 @@ class FoodService {
     String? description,
     String? servingSize,
     String? servingPerContainer,
+    String? measurement,
     double? protein,
     double? carbohydrates,
     double? totalFat,
@@ -191,6 +259,16 @@ class FoodService {
     if (description != null && description.isNotEmpty) body['description'] = description;
     if (servingSize != null && servingSize.isNotEmpty) body['servingSize'] = servingSize;
     if (servingPerContainer != null && servingPerContainer.isNotEmpty) body['servingPerContainer'] = servingPerContainer;
+    // Parse measurement string into object with value and unit
+    final parsedMeasurement = _parseMeasurement(measurement);
+    debugPrint('🌐 FoodService.updateFood: Original measurement: $measurement');
+    debugPrint('🌐 FoodService.updateFood: Parsed measurement: $parsedMeasurement');
+    if (parsedMeasurement != null) {
+      body['measurement'] = parsedMeasurement;
+      debugPrint('🌐 FoodService.updateFood: Added measurement to body: ${body['measurement']}');
+    } else {
+      debugPrint('🌐 FoodService.updateFood: Parsed measurement is null, not adding to body');
+    }
     if (protein != null) body['protein'] = protein;
     if (carbohydrates != null) body['carbohydrates'] = carbohydrates;
     if (totalFat != null) body['totalFat'] = totalFat;

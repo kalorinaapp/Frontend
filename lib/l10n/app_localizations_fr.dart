@@ -801,6 +801,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get camera => 'Caméra';
 
   @override
+  String get selectImageSource => 'Select Image Source';
+
+  @override
   String get progressPhotos => 'Photos de Progrès';
 
   @override
@@ -905,6 +908,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Récemment téléchargé';
+
+  @override
+  String get recentlyLogged => 'Recently Logged';
 
   @override
   String get cannotLogFutureStreak =>
@@ -1394,6 +1400,12 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get failedToDeleteExercise =>
       'Failed to delete exercise. Please try again.';
+
+  @override
+  String get deleteMealTitle => 'Delete Meal?';
+
+  @override
+  String get mealWillBePermanentlyDeleted => 'Meal will be permanently deleted';
 
   @override
   String get howToScanProperly => 'How to scan properly';

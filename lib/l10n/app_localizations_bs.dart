@@ -341,61 +341,63 @@ class AppLocalizationsBs extends AppLocalizations {
   String get kalorina => 'Kalorina';
 
   @override
-  String get exercise => 'Exercise';
+  String get exercise => 'Vježba';
 
   @override
-  String get cardio => 'Cardio';
+  String get cardio => 'Kardio';
 
   @override
   String get cardioSubtitle =>
-      'Log runs, cycling, HIIT, or any endurance activity';
+      'Prijavite trčanje, bicikliranje, HIIT ili bilo koju izdržljivost';
 
   @override
-  String get weightTraining => 'Weight Training';
+  String get weightTraining => 'Trening s utezima';
 
   @override
   String get weightTrainingSubtitle =>
-      'Track gym sessions, sets, and strength exercises';
+      'Pratite treninge u teretani, serije i vježbe snage';
 
   @override
-  String get describeExercise => 'Describe Exercise';
+  String get describeExercise => 'Opiši vježbu';
 
   @override
-  String get describeExerciseSubtitle => 'Let AI calculate calories burned';
+  String get describeExerciseSubtitle => 'Neka AI izračuna potrošene kalorije';
 
   @override
-  String get directInput => 'Direktan Unos';
+  String get directInput => 'Direktan unos';
 
   @override
-  String get directInputSubtitle => 'Type in calories burned yourself';
+  String get directInputSubtitle => 'Ručni unos potrošenih kalorija';
 
   @override
-  String get food => 'Food';
+  String get food => 'Hrana';
 
   @override
   String get myMeals => 'Moji Obroci';
 
   @override
   String get myMealsSubtitle =>
-      'Track gym sessions, sets, and strength exercises';
+      'Napravite obrok od vaših spremljenih namirnica';
 
   @override
   String get myFoods => 'Moja Hrana';
 
   @override
-  String get myFoodsSubtitle => 'Let AI calculate calories burned';
+  String get myFoodsSubtitle => 'Kreirajte svoju vlastitu bazu hrane';
 
   @override
   String get savedScans => 'Spremljeni Skenovi';
 
   @override
-  String get savedScansSubtitle => 'Type in calories burned yourself';
+  String get savedScansSubtitle =>
+      'Pronađite sve prethodno spremljene namirnice';
 
   @override
-  String get directInputFood => 'Direct Input';
+  String get directInputFood => 'Direktan Unos';
 
   @override
-  String get directInputFoodSubtitle => 'Type in what you ate yourself';
+  String get directInputFoodSubtitle =>
+      'Ručni unos kalorija i makronutrijenata';
 
   @override
   String get howDoesItWork => 'How does it work?';
@@ -793,6 +795,9 @@ class AppLocalizationsBs extends AppLocalizations {
   String get camera => 'Kamera';
 
   @override
+  String get selectImageSource => 'Odaberite izvor slike';
+
+  @override
   String get progressPhotos => 'Fotografije Napretka';
 
   @override
@@ -896,6 +901,9 @@ class AppLocalizationsBs extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Nedavno preneseno';
+
+  @override
+  String get recentlyLogged => 'Nedavno evidentirano';
 
   @override
   String get cannotLogFutureStreak => 'Nije moguće evidentirati buduće datume';
@@ -1380,6 +1388,12 @@ class AppLocalizationsBs extends AppLocalizations {
   @override
   String get failedToDeleteExercise =>
       'Neuspješno brisanje vježbe. Molimo pokušajte ponovo.';
+
+  @override
+  String get deleteMealTitle => 'Obrisati obrok?';
+
+  @override
+  String get mealWillBePermanentlyDeleted => 'Obrok će biti trajno obrisan';
 
   @override
   String get howToScanProperly => 'Kako pravilno skenirati';

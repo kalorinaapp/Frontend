@@ -801,7 +801,7 @@ abstract class AppLocalizations {
   /// No description provided for @directInputSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Type in calories burned yourself'**
+  /// **'Manual entry of calories burned'**
   String get directInputSubtitle;
 
   /// No description provided for @food.
@@ -819,7 +819,7 @@ abstract class AppLocalizations {
   /// No description provided for @myMealsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Track gym sessions, sets, and strength exercises'**
+  /// **'Build a meal from your saved foods'**
   String get myMealsSubtitle;
 
   /// No description provided for @myFoods.
@@ -831,7 +831,7 @@ abstract class AppLocalizations {
   /// No description provided for @myFoodsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Let AI calculate calories burned'**
+  /// **'Create your own food database'**
   String get myFoodsSubtitle;
 
   /// No description provided for @savedScans.
@@ -843,7 +843,7 @@ abstract class AppLocalizations {
   /// No description provided for @savedScansSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Type in calories burned yourself'**
+  /// **'Find all previously saved foods'**
   String get savedScansSubtitle;
 
   /// No description provided for @directInputFood.
@@ -855,7 +855,7 @@ abstract class AppLocalizations {
   /// No description provided for @directInputFoodSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Type in what you ate yourself'**
+  /// **'Manual entry of calories and macronutrients'**
   String get directInputFoodSubtitle;
 
   /// No description provided for @howDoesItWork.
@@ -1626,6 +1626,12 @@ abstract class AppLocalizations {
   /// **'Camera'**
   String get camera;
 
+  /// No description provided for @selectImageSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Image Source'**
+  String get selectImageSource;
+
   /// No description provided for @progressPhotos.
   ///
   /// In en, this message translates to:
@@ -1823,6 +1829,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recently Uploaded'**
   String get recentlyUploaded;
+
+  /// No description provided for @recentlyLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Logged'**
+  String get recentlyLogged;
 
   /// No description provided for @cannotLogFutureStreak.
   ///
@@ -2711,6 +2723,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to delete exercise. Please try again.'**
   String get failedToDeleteExercise;
+
+  /// No description provided for @deleteMealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Meal?'**
+  String get deleteMealTitle;
+
+  /// No description provided for @mealWillBePermanentlyDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal will be permanently deleted'**
+  String get mealWillBePermanentlyDeleted;
 
   /// No description provided for @howToScanProperly.
   ///

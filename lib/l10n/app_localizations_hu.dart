@@ -799,6 +799,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get camera => 'Kamera';
 
   @override
+  String get selectImageSource => 'Select Image Source';
+
+  @override
   String get progressPhotos => 'Haladás Fotók';
 
   @override
@@ -902,6 +905,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Nemrég feltöltve';
+
+  @override
+  String get recentlyLogged => 'Recently Logged';
 
   @override
   String get cannotLogFutureStreak => 'Jövőbeli dátumok nem rögzíthetők';
@@ -1385,6 +1391,12 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get failedToDeleteExercise =>
       'Failed to delete exercise. Please try again.';
+
+  @override
+  String get deleteMealTitle => 'Delete Meal?';
+
+  @override
+  String get mealWillBePermanentlyDeleted => 'Meal will be permanently deleted';
 
   @override
   String get howToScanProperly => 'How to scan properly';

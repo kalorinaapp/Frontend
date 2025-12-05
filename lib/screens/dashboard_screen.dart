@@ -125,9 +125,58 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   void _syncFromWidget() {
-    _localTodayMeals = (widget.todayMeals ?? const [])
-        .map((meal) => Map<String, dynamic>.from(meal))
-        .toList();
+    // Remove duplicates when syncing from widget
+    final seenIds = <String>{};
+    final uniqueMeals = <Map<String, dynamic>>[];
+    
+    for (final meal in (widget.todayMeals ?? const [])) {
+      final mealCopy = Map<String, dynamic>.from(meal);
+      final mealId = _extractMealId(mealCopy);
+      
+      if (mealId != null && mealId.isNotEmpty) {
+        if (seenIds.contains(mealId)) {
+          // Skip duplicate with ID
+          continue;
+        }
+        seenIds.add(mealId);
+      }
+      
+      // Also check for duplicates without IDs using timestamp and name
+      final createdAt = mealCopy['createdAt'] as String?;
+      final mealName = (mealCopy['mealName'] as String?)?.trim();
+      
+      if (createdAt != null && mealName != null && mealName.isNotEmpty) {
+        try {
+          final mealTime = DateTime.parse(createdAt);
+          final isDuplicate = uniqueMeals.any((existingMeal) {
+            final existingCreatedAt = existingMeal['createdAt'] as String?;
+            final existingMealName = (existingMeal['mealName'] as String?)?.trim();
+            
+            if (existingCreatedAt == null || existingMealName == null || existingMealName.isEmpty) {
+              return false;
+            }
+            
+            try {
+              final existingTime = DateTime.parse(existingCreatedAt);
+              final timeDiff = mealTime.difference(existingTime).abs().inSeconds;
+              return existingMealName == mealName && timeDiff <= 30;
+            } catch (_) {
+              return false;
+            }
+          });
+          
+          if (isDuplicate) {
+            continue;
+          }
+        } catch (_) {
+          // If parsing fails, add it anyway
+        }
+      }
+      
+      uniqueMeals.add(mealCopy);
+    }
+    
+    _localTodayMeals = uniqueMeals;
     _localTodayTotals = widget.todayTotals != null
         ? Map<String, int>.from(widget.todayTotals!)
         : null;
@@ -140,26 +189,114 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   void _applyLocalMealUpdate(Map<String, dynamic> updatedMeal) {
     final Map<String, dynamic> copy = Map<String, dynamic>.from(updatedMeal);
     final String? targetId = _extractMealId(copy);
-    if (targetId == null) {
-      _localTodayMeals.insert(0, copy);
-      widget.todayMeals?.insert(0, copy);
-      return;
-    }
+    
+    // First try to find by ID (most reliable)
+    if (targetId != null && targetId.isNotEmpty) {
+      final int existingIndex = _localTodayMeals.indexWhere((meal) {
+        final id = _extractMealId(meal);
+        return id != null && id.isNotEmpty && id == targetId;
+      });
 
-    final int existingIndex = _localTodayMeals.indexWhere((meal) {
-      final id = _extractMealId(meal);
-      return id != null && id == targetId;
-    });
-
-    if (existingIndex >= 0) {
-      _localTodayMeals[existingIndex] = copy;
-      if (widget.todayMeals != null && existingIndex < widget.todayMeals!.length) {
-        widget.todayMeals![existingIndex] = copy;
+      if (existingIndex >= 0) {
+        // Update existing meal
+        _localTodayMeals[existingIndex] = copy;
+        if (widget.todayMeals != null && existingIndex < widget.todayMeals!.length) {
+          widget.todayMeals![existingIndex] = copy;
+        }
+        return;
       }
-    } else {
-      _localTodayMeals.insert(0, copy);
-      widget.todayMeals?.insert(0, copy);
     }
+    
+    // If no ID match, try to find by multiple criteria to avoid duplicates
+    final updatedCreatedAt = copy['createdAt'] as String?;
+    final updatedMealName = (copy['mealName'] as String?)?.trim();
+    final updatedTotalCalories = ((copy['totalCalories'] ?? 0) as num).toInt();
+    final updatedIsScanned = copy['isScanned'] == true;
+    
+    // More comprehensive duplicate detection
+    if (updatedCreatedAt != null && updatedMealName != null && updatedMealName.isNotEmpty) {
+      try {
+        final updatedTime = DateTime.parse(updatedCreatedAt);
+        final int existingIndex = _localTodayMeals.indexWhere((meal) {
+          // Skip if this meal already has the same ID (shouldn't happen, but safety check)
+          final mealId = _extractMealId(meal);
+          if (targetId != null && targetId.isNotEmpty && mealId != null && mealId == targetId) {
+            return true;
+          }
+          
+          // If target has ID but meal doesn't, or vice versa, they're different
+          if ((targetId != null && targetId.isNotEmpty) != (mealId != null && mealId.isNotEmpty)) {
+            return false;
+          }
+          
+          final mealCreatedAt = meal['createdAt'] as String?;
+          final mealName = (meal['mealName'] as String?)?.trim();
+          final mealTotalCalories = ((meal['totalCalories'] ?? 0) as num).toInt();
+          final mealIsScanned = meal['isScanned'] == true;
+          
+          // Must have createdAt and mealName to match
+          if (mealCreatedAt == null || mealName == null || mealName.isEmpty) {
+            return false;
+          }
+          
+          try {
+            final mealTime = DateTime.parse(mealCreatedAt);
+            final timeDiff = updatedTime.difference(mealTime).abs().inSeconds;
+            
+            // Match criteria:
+            // 1. Same meal name
+            // 2. Created within 30 seconds (more lenient for auto-saved meals)
+            // 3. Same total calories (within 5 calories tolerance for rounding)
+            // 4. Both are scanned meals (or both are not)
+            final caloriesMatch = (updatedTotalCalories - mealTotalCalories).abs() <= 5;
+            final scannedMatch = updatedIsScanned == mealIsScanned;
+            
+            if (mealName == updatedMealName && 
+                timeDiff <= 30 && 
+                caloriesMatch && 
+                scannedMatch) {
+              return true;
+            }
+          } catch (_) {
+            return false;
+          }
+          
+          return false;
+        });
+        
+        if (existingIndex >= 0) {
+          // Update existing meal (likely the optimistically added one)
+          _localTodayMeals[existingIndex] = copy;
+          if (widget.todayMeals != null && existingIndex < widget.todayMeals!.length) {
+            widget.todayMeals![existingIndex] = copy;
+          }
+          return;
+        }
+      } catch (_) {
+        // If parsing fails, fall through to add new
+      }
+    }
+    
+    // No match found, add as new meal (but check one more time if list is getting too long)
+    // Remove any meals without IDs that might be duplicates
+    if (_localTodayMeals.length > 10) {
+      // Clean up potential duplicates without IDs
+      final seenIds = <String>{};
+      _localTodayMeals.removeWhere((meal) {
+        final id = _extractMealId(meal);
+        if (id != null && id.isNotEmpty) {
+          if (seenIds.contains(id)) {
+            return true; // Remove duplicate with ID
+          }
+          seenIds.add(id);
+        }
+        return false;
+      });
+    }
+    
+    // Add as new meal
+    _localTodayMeals.insert(0, copy);
+    widget.todayMeals?.insert(0, copy);
   }
 
   void _applyLocalExerciseUpdate(Map<String, dynamic> updatedExercise) {
@@ -265,6 +402,53 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     final dynamic id = meal['id'] ?? meal['_id'] ?? meal['mealId'];
     if (id == null) return null;
     return id.toString();
+  }
+
+  void _removeLocalMeal(Map<String, dynamic> mealToRemove) {
+    final String? targetId = _extractMealId(mealToRemove);
+    
+    if (targetId != null && targetId.isNotEmpty) {
+      // Remove from local list
+      _localTodayMeals.removeWhere((meal) {
+        final id = _extractMealId(meal);
+        return id != null && id.isNotEmpty && id == targetId;
+      });
+      
+      // Also remove from widget's list if it exists
+      if (widget.todayMeals != null) {
+        widget.todayMeals!.removeWhere((meal) {
+          final id = _extractMealId(meal);
+          return id != null && id.isNotEmpty && id == targetId;
+        });
+      }
+    } else {
+      // Fallback: try to match by other criteria if ID is not available
+      final mealName = (mealToRemove['mealName'] as String?)?.trim();
+      final totalCalories = ((mealToRemove['totalCalories'] ?? 0) as num).toInt();
+      final createdAt = mealToRemove['createdAt'] as String?;
+      
+      _localTodayMeals.removeWhere((meal) {
+        final mName = (meal['mealName'] as String?)?.trim();
+        final mCalories = ((meal['totalCalories'] ?? 0) as num).toInt();
+        final mCreatedAt = meal['createdAt'] as String?;
+        
+        return mName == mealName && 
+               mCalories == totalCalories && 
+               mCreatedAt == createdAt;
+      });
+      
+      if (widget.todayMeals != null) {
+        widget.todayMeals!.removeWhere((meal) {
+          final mName = (meal['mealName'] as String?)?.trim();
+          final mCalories = ((meal['totalCalories'] ?? 0) as num).toInt();
+          final mCreatedAt = meal['createdAt'] as String?;
+          
+          return mName == mealName && 
+                 mCalories == totalCalories && 
+                 mCreatedAt == createdAt;
+        });
+      }
+    }
   }
 
   String? _extractExerciseId(Map<String, dynamic> exercise) {
@@ -642,50 +826,49 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                   ),
                                 ),
                                 const SizedBox(height: 8),
+                                const Spacer(),
                                 // Info message
-                                Center(
-                                  child: GetBuilder<ProgressService>(
-                                    builder: (progressService) {
-                                      final progressData = progressService.dailyProgressData;
-                                      
-                                      final localConsumed = _getLocalTotal('totalCalories');
-                                      int consumed = localConsumed ?? 0;
-                                      int goal = 0;
-                                      int remaining;
-                                      
-                                      if (progressData != null && progressData['progress'] != null) {
-                                        final progress = progressData['progress'] as Map<String, dynamic>;
-                                        if (consumed == 0) {
-                                          consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
-                                        }
-                                        goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
+                                GetBuilder<ProgressService>(
+                                  builder: (progressService) {
+                                    final progressData = progressService.dailyProgressData;
+                                    
+                                    final localConsumed = _getLocalTotal('totalCalories');
+                                    int consumed = localConsumed ?? 0;
+                                    int goal = 0;
+                                    int remaining;
+                                    
+                                    if (progressData != null && progressData['progress'] != null) {
+                                      final progress = progressData['progress'] as Map<String, dynamic>;
+                                      if (consumed == 0) {
+                                        consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
                                       }
-
-                                      remaining = goal > 0 ? (goal - consumed).clamp(0, goal) : 0;
-                                      
-                                      return Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            CupertinoIcons.info_circle,
-                                            size: 12,
-                                            color: ThemeHelper.textSecondary,
-                                          ),
-                                          const SizedBox(width: 3),
-                                          Flexible(
-                                            child: Text(
-                                              '$remaining ${l10n.caloriesMoreToGo}',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: ThemeHelper.textSecondary,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
+                                      goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
+                                    }
+                                
+                                    remaining = goal > 0 ? (goal - consumed).clamp(0, goal) : 0;
+                                    
+                                    return Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          CupertinoIcons.info_circle,
+                                          size: 12,
+                                          color: ThemeHelper.textSecondary,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Flexible(
+                                          child: Text(
+                                            '$remaining ${l10n.caloriesMoreToGo}',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: ThemeHelper.textSecondary,
                                             ),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                        ],
-                                      );
-                                    },
-                                  ),
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -705,7 +888,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             child: _buildCompactMacroCard(
                               l10n.fats,
                               'fat',
-                              CupertinoColors.systemRed,
+                              const Color(0xFFE17878), // Red
                               l10n,
                             ),
                           ),
@@ -716,7 +899,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             child: _buildCompactMacroCard(
                               l10n.protein,
                               'protein',
-                              CupertinoColors.systemBlue,
+                              const Color(0xFF6C9ADE), // Blue
                               l10n,
                             ),
                           ),
@@ -727,7 +910,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             child: _buildCompactMacroCard(
                               l10n.carbs,
                               'carbs',
-                              CupertinoColors.systemOrange,
+                              const Color(0xFFDE9A69), // Yellow
                               l10n,
                             ),
                           ),
@@ -1011,14 +1194,29 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     );
 
     if (updatedMeal != null) {
-      setState(() {
-        _applyLocalMealUpdate(updatedMeal);
-        _recalculateLocalTotals();
-      });
-      if (Get.isRegistered<HomeScreenController>()) {
-        final controller = Get.find<HomeScreenController>();
-        // Refresh backend data to keep other observers in sync.
-        controller.fetchTodayTotals();
+      // Check if meal was deleted
+      if (updatedMeal['deleted'] == true) {
+        setState(() {
+          _removeLocalMeal(meal);
+          _recalculateLocalTotals();
+        });
+        if (Get.isRegistered<HomeScreenController>()) {
+          final controller = Get.find<HomeScreenController>();
+          // Remove from controller's list too
+          controller.removeMeal(meal);
+          // Refresh backend data to keep other observers in sync
+          controller.fetchTodayTotals();
+        }
+      } else {
+        setState(() {
+          _applyLocalMealUpdate(updatedMeal);
+          _recalculateLocalTotals();
+        });
+        if (Get.isRegistered<HomeScreenController>()) {
+          final controller = Get.find<HomeScreenController>();
+          // Refresh backend data to keep other observers in sync.
+          controller.fetchTodayTotals();
+        }
       }
     }
   }

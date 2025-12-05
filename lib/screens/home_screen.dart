@@ -223,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             _buildNavItem(
                               iconAsset: 'assets/icons/graph.png',
-                              label: 'Progress',
+                              label: l10n.progress,
                               index: 3,
                               isActive: _controller.currentIndex.value == 2,
                               showDot: _controller.isWeighInDueToday.value,

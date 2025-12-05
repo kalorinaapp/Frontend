@@ -367,7 +367,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get directInput => 'Direkten Vnos';
 
   @override
-  String get directInputSubtitle => 'Type in calories burned yourself';
+  String get directInputSubtitle => 'Manual entry of calories burned';
 
   @override
   String get food => 'Food';
@@ -376,26 +376,26 @@ class AppLocalizationsSl extends AppLocalizations {
   String get myMeals => 'Moji Obroki';
 
   @override
-  String get myMealsSubtitle =>
-      'Track gym sessions, sets, and strength exercises';
+  String get myMealsSubtitle => 'Build a meal from your saved foods';
 
   @override
   String get myFoods => 'Moja Hrana';
 
   @override
-  String get myFoodsSubtitle => 'Let AI calculate calories burned';
+  String get myFoodsSubtitle => 'Create your own food database';
 
   @override
   String get savedScans => 'Shranjeni Skeni';
 
   @override
-  String get savedScansSubtitle => 'Type in calories burned yourself';
+  String get savedScansSubtitle => 'Find all previously saved foods';
 
   @override
   String get directInputFood => 'Direct Input';
 
   @override
-  String get directInputFoodSubtitle => 'Type in what you ate yourself';
+  String get directInputFoodSubtitle =>
+      'Manual entry of calories and macronutrients';
 
   @override
   String get howDoesItWork => 'How does it work?';
@@ -793,6 +793,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get camera => 'Kamera';
 
   @override
+  String get selectImageSource => 'Select Image Source';
+
+  @override
   String get progressPhotos => 'Fotografije Napredka';
 
   @override
@@ -896,6 +899,9 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Nedavno naloženo';
+
+  @override
+  String get recentlyLogged => 'Recently Logged';
 
   @override
   String get cannotLogFutureStreak =>
@@ -1381,6 +1387,12 @@ class AppLocalizationsSl extends AppLocalizations {
   @override
   String get failedToDeleteExercise =>
       'Failed to delete exercise. Please try again.';
+
+  @override
+  String get deleteMealTitle => 'Delete Meal?';
+
+  @override
+  String get mealWillBePermanentlyDeleted => 'Meal will be permanently deleted';
 
   @override
   String get howToScanProperly => 'How to scan properly';

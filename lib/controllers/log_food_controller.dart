@@ -712,6 +712,31 @@ class LogFoodController extends GetxController {
     }
   }
 
+  void removeScannedMeal(Map<String, dynamic> mealToRemove) {
+    final mealId = mealToRemove['id'] ?? mealToRemove['_id'];
+    if (mealId != null && mealId.toString().isNotEmpty) {
+      scannedMeals.removeWhere((m) {
+        final mId = m['id'] ?? m['_id'];
+        return mId != null && mId.toString() == mealId.toString();
+      });
+    } else {
+      // Fallback: try to match by other criteria if ID is not available
+      final mealName = (mealToRemove['mealName'] as String?)?.trim();
+      final totalCalories = ((mealToRemove['totalCalories'] ?? 0) as num).toInt();
+      final createdAt = mealToRemove['createdAt'] as String?;
+      
+      scannedMeals.removeWhere((m) {
+        final mName = (m['mealName'] as String?)?.trim();
+        final mCalories = ((m['totalCalories'] ?? 0) as num).toInt();
+        final mCreatedAt = m['createdAt'] as String?;
+        
+        return mName == mealName && 
+               mCalories == totalCalories && 
+               mCreatedAt == createdAt;
+      });
+    }
+  }
+
   void addDirectInputIngredient(Map<String, dynamic> ingredient) {
     directInputIngredients.add(ingredient);
   }

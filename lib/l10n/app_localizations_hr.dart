@@ -367,7 +367,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get directInput => 'Direktan Unos';
 
   @override
-  String get directInputSubtitle => 'Upišite potrošene kalorije sami';
+  String get directInputSubtitle => 'Ručni unos potrošenih kalorija';
 
   @override
   String get food => 'Hrana';
@@ -377,25 +377,27 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get myMealsSubtitle =>
-      'Pratite treninge u teretani, serije i vježbe snage';
+      'Napravite obrok od vaših spremljenih namirnica';
 
   @override
   String get myFoods => 'Moja Hrana';
 
   @override
-  String get myFoodsSubtitle => 'Neka AI izračuna potrošene kalorije';
+  String get myFoodsSubtitle => 'Kreirajte svoju vlastitu bazu hrane';
 
   @override
   String get savedScans => 'Spremljeni Skenovi';
 
   @override
-  String get savedScansSubtitle => 'Upišite potrošene kalorije sami';
+  String get savedScansSubtitle =>
+      'Pronađite sve prethodno spremljene namirnice';
 
   @override
   String get directInputFood => 'Izravni unos';
 
   @override
-  String get directInputFoodSubtitle => 'Upišite što ste jeli sami';
+  String get directInputFoodSubtitle =>
+      'Ručni unos kalorija i makronutrijenata';
 
   @override
   String get howDoesItWork => 'Kako to funkcionira?';
@@ -793,6 +795,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get camera => 'Kamera';
 
   @override
+  String get selectImageSource => 'Odaberite izvor slike';
+
+  @override
   String get progressPhotos => 'Fotografije Napretka';
 
   @override
@@ -896,6 +901,9 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get recentlyUploaded => 'Nedavno učitano';
+
+  @override
+  String get recentlyLogged => 'Nedavno evidentirano';
 
   @override
   String get cannotLogFutureStreak => 'Nije moguće evidentirati buduće datume';
@@ -1379,6 +1387,12 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get failedToDeleteExercise =>
       'Neuspješno brisanje vježbe. Molimo pokušajte ponovo.';
+
+  @override
+  String get deleteMealTitle => 'Obrisati obrok?';
+
+  @override
+  String get mealWillBePermanentlyDeleted => 'Obrok će biti trajno obrisan';
 
   @override
   String get howToScanProperly => 'Kako pravilno skenirati';

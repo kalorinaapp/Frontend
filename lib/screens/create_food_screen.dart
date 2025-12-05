@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:get/get.dart';
 import '../controllers/create_food_controller.dart';
 import '../utils/theme_helper.dart';
+import '../l10n/app_localizations.dart';
+import 'edit_macro_screen.dart';
 
 class CreateFoodScreen extends StatelessWidget {
   final bool isEditing;
@@ -16,7 +18,17 @@ class CreateFoodScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Delete existing controller to ensure fresh state
+    if (Get.isRegistered<CreateFoodController>()) {
+      Get.delete<CreateFoodController>();
+    }
+    
     final controller = Get.put(CreateFoodController());
+    
+    // Reset controller if creating new food (not editing)
+    if (!isEditing) {
+      controller.reset();
+    }
     
     // Initialize with food data if editing
     if (isEditing && foodData != null) {
@@ -39,7 +51,7 @@ class _CreateFoodView extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
-            // Header with back button and title
+            // Header with back button
             Container(
               padding: const EdgeInsets.symmetric(horizontal:  20, vertical: 16),
               child: Row(
@@ -60,39 +72,14 @@ class _CreateFoodView extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Obx(() => Text(
-                    controller.isEditing.value 
-                        ? (controller.currentPage.value == 0 ? 'Edit Food' : 'Edit Food') 
-                        : (controller.currentPage.value == 0 ? 'Create Food' : 'Add Food'),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: ThemeHelper.textPrimary,
-                    ),
-                  )),
-                  const Spacer(),
-                  Obx(() => controller.isEditing.value
-                      ? GestureDetector(
-                          onTap: () {
-                            controller.showOptionsMenu();
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            child: Icon(
-                              CupertinoIcons.ellipsis_vertical,
-                              size: 24,
-                              color: ThemeHelper.textPrimary,
-                            ),
-                          ),
-                        )
-                      : const SizedBox(width: 24)), // Balance the back button
+                  const SizedBox(width: 24), // Balance the back button
                 ],
               ),
             ),
 
             // Content - Show different pages based on currentPage
             Expanded(
-              child: Obx(() => controller.currentPage.value == 0 ? _buildPage1() : _buildPage2()),
+              child: Obx(() => controller.currentPage.value == 0 ? _buildPage1(context) : _buildPage2()),
             ),
           ],
         ),
@@ -101,78 +88,367 @@ class _CreateFoodView extends StatelessWidget {
   }
 
   // Page 1: Basic Information
-  Widget _buildPage1() {
+  Widget _buildPage1(BuildContext context) {
+    final bool isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+    
     return Stack(
       children: [
         Container(
           margin: const EdgeInsets.all(20),
           child: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
 
-                // Food Details Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: ThemeHelper.cardBackground,
-                    borderRadius: BorderRadius.circular(13),
-                    boxShadow: [
-                      BoxShadow(
-                        color: ThemeHelper.textPrimary.withOpacity(0.25),
-                        blurRadius: 5,
-                        offset: const Offset(0, 0),
-                        spreadRadius: 1,
+                // Food Name Input Field with Bookmark
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        _showEditNameSheet(context);
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: ThemeHelper.cardBackground,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: ThemeHelper.divider,
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: ThemeHelper.textPrimary.withOpacity(0.08),
+                              blurRadius: 15,
+                              offset: const Offset(0, 4),
+                              spreadRadius: 0,
+                            ),
+                            BoxShadow(
+                              color: ThemeHelper.textPrimary.withOpacity(0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                              spreadRadius: 0,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CupertinoTextField(
+                                controller: controller.nameController,
+                                placeholder: 'Protein bar',
+                                placeholderStyle: TextStyle(
+                                  color: ThemeHelper.textSecondary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: ThemeHelper.textPrimary,
+                                ),
+                                decoration: const BoxDecoration(),
+                                padding: EdgeInsets.zero,
+                                readOnly: true,
+                                enabled: false,
+                              ),
+                            ),
+                            Icon(
+                              CupertinoIcons.pencil,
+                              size: 20,
+                              color: ThemeHelper.textSecondary,
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
+                    // Bookmark icon positioned below and to the right
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16, right: 20),
+                      child: Icon(
+                        CupertinoIcons.bookmark,
+                        size: 24,
+                        color: ThemeHelper.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 32),
+
+                // Measurement Section (smaller width)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Measurement',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: ThemeHelper.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () {
+                        controller.showEditDialog(
+                          label: 'Measurement',
+                          controller: controller.servingSizeController,
+                          placeholder: '0',
+                        );
+                      },
+                      child: Container(
+                        width: 100,
+                        height: 30,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: ThemeHelper.cardBackground,
+                          borderRadius: BorderRadius.circular(13),
+                          border: Border.all(
+                            color: ThemeHelper.divider,
+                            width: 1.5,
+                          ),
+                          boxShadow: isDark
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: ThemeHelper.textPrimary.withOpacity(0.25),
+                                    blurRadius: 5,
+                                    offset: Offset(0, 0),
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                        ),
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: controller.servingSizeController,
+                          builder: (context, value, child) => Center(
+                            child: Text(
+                              value.text.isEmpty 
+                                  ? '0' 
+                                  : value.text,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: ThemeHelper.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Number of Servings Section (in a row with label and field)
+                Row(
+                  children: [
+                    Text(
+                      'Number of servings',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: ThemeHelper.textSecondary,
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        controller.showEditDialog(
+                          label: 'Number of servings',
+                          controller: controller.servingPerContainerController,
+                          placeholder: '1',
+                        );
+                      },
+                      child: Container(
+                        height: 30,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: ThemeHelper.cardBackground,
+                          borderRadius: BorderRadius.circular(13),
+                          border: Border.all(
+                            color: ThemeHelper.divider,
+                            width: 1.5,
+                          ),
+                          boxShadow: isDark
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: ThemeHelper.textPrimary.withOpacity(0.25),
+                                    blurRadius: 5,
+                                    offset: Offset(0, 0),
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                        ),
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: controller.servingPerContainerController,
+                          builder: (context, value, child) => Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                value.text.isEmpty 
+                                    ? '1' 
+                                    : value.text,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: ThemeHelper.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '/',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: ThemeHelper.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                CupertinoIcons.pencil,
+                                size: 14,
+                                color: ThemeHelper.textPrimary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Calories Card
+                GestureDetector(
+                  onTap: () {
+                    final currentCalories = int.tryParse(controller.caloriesController.text) ?? 0;
+                    Navigator.of(context).push(
+                      CupertinoPageRoute(
+                        builder: (context) => EditMacroScreen(
+                          macroName: 'Calories',
+                          iconAsset: 'assets/icons/apple.png',
+                          color: ThemeHelper.textPrimary,
+                          initialValue: currentCalories,
+                          onValueChanged: (newValue) {
+                            controller.updateControllerText(controller.caloriesController, newValue.toString());
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: ThemeHelper.cardBackground,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: ThemeHelper.divider,
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: ThemeHelper.textPrimary.withOpacity(0.08),
+                          blurRadius: 15,
+                          offset: const Offset(0, 4),
+                          spreadRadius: 0,
+                        ),
+                        BoxShadow(
+                          color: ThemeHelper.textPrimary.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Image.asset(
+                          'assets/icons/apple.png',
+                          width: 28,
+                          height: 28,
+                          color: ThemeHelper.isLightMode ? null : CupertinoColors.white,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Calories',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: ThemeHelper.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: controller.caloriesController,
+                                builder: (context, value, child) => Text(
+                                  value.text.isEmpty 
+                                      ? '0' 
+                                      : value.text,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                    color: ThemeHelper.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name Field (Required)
-                      _buildFieldRow(
-                        label: 'Name *',
-                        textController: controller.nameController,
-                        placeholder: '',
+                ),
+
+                const SizedBox(height: 16),
+
+                // Macros Row (Carbs, Protein, Fats)
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMacroCard(
+                        context,
+                        l10n.carbs,
+                        controller.carbsController,
+                        'assets/icons/carbs.png',
+                        CupertinoColors.systemOrange,
                       ),
-                      
-                      const SizedBox(height: 16),
-                      _buildDivider(),
-                      const SizedBox(height: 16),
-
-                      // Description Field
-                      _buildFieldRow(
-                        label: 'Description',
-                        textController: controller.descriptionController,
-                        placeholder: '',
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildMacroCard(
+                        context,
+                        'Protein',
+                        controller.proteinController,
+                        'assets/icons/drumstick.png',
+                        CupertinoColors.systemBlue,
                       ),
-
-                      const SizedBox(height: 16),
-                      _buildDivider(),
-                      const SizedBox(height: 16),
-
-                      // Serving size Field
-                      _buildFieldRow(
-                        label: 'Serving size',
-                        textController: controller.servingSizeController,
-                        placeholder: '',
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildMacroCard(
+                        context,
+                        'Fats',
+                        controller.totalFatController,
+                        'assets/icons/fat.png',
+                        CupertinoColors.systemRed,
                       ),
-
-                      const SizedBox(height: 16),
-                      _buildDivider(),
-                      const SizedBox(height: 16),
-
-                      // Serving per container Field
-                      _buildFieldRow(
-                        label: 'Serving per container',
-                        textController: controller.servingPerContainerController,
-                        placeholder: '',
-                      ),
-                      
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 100), // Space for bottom button
@@ -442,59 +718,78 @@ class _CreateFoodView extends StatelessWidget {
     );
   }
 
-  Widget _buildFieldRow({
-    required String label,
-    required TextEditingController textController,
-    String? placeholder,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        controller.showEditDialog(
-          label: label,
-          controller: textController,
-          placeholder: placeholder,
-        );
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Label
-          Text(
-            label,
-            style: TextStyle(
-              color: ThemeHelper.textPrimary,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
+  void _showEditNameSheet(BuildContext context) {
+    final TextEditingController tempController = TextEditingController(text: controller.nameController.text);
+    
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 300,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: ThemeHelper.cardBackground,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
           ),
-
-          // Value and Edit Icon
-          GetBuilder<CreateFoodController>(
-            builder: (_) => Row(
+        ),
+        child: Column(
+          children: [
+            Text(
+              'Edit Name',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: ThemeHelper.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            CupertinoTextField(
+              controller: tempController,
+              placeholder: 'Enter food name',
+              style: TextStyle(fontSize: 16, color: ThemeHelper.textPrimary),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: ThemeHelper.divider,
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.all(12),
+              autofocus: true,
+            ),
+            
+            const Spacer(),
+            
+            Row(
               children: [
-                if (textController.text.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                Expanded(
+                  child: CupertinoButton(
+                    onPressed: () => Navigator.of(context).pop(),
                     child: Text(
-                      textController.text,
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        color: ThemeHelper.textSecondary,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      'Cancel',
+                      style: TextStyle(color: ThemeHelper.textSecondary),
                     ),
                   ),
-                Icon(
-                  CupertinoIcons.pencil,
-                  size: 8,
-                  color: ThemeHelper.textSecondary,
+                ),
+                Expanded(
+                  child: CupertinoButton(
+                    color: ThemeHelper.textPrimary,
+                    onPressed: () {
+                      controller.updateControllerText(controller.nameController, tempController.text);
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      'Save',
+                      style: TextStyle(color: ThemeHelper.background),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -508,6 +803,115 @@ class _CreateFoodView extends StatelessWidget {
             width: 1,
             color: ThemeHelper.divider,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMacroCard(
+    BuildContext context,
+    String label,
+    TextEditingController textController,
+    String iconAsset,
+    Color color,
+  ) {
+    final bool isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+    
+    return GestureDetector(
+      onTap: () {
+        final currentValue = int.tryParse(textController.text) ?? 0;
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (context) => EditMacroScreen(
+              macroName: label,
+              iconAsset: iconAsset,
+              color: color,
+              initialValue: currentValue,
+              onValueChanged: (newValue) {
+                controller.updateControllerText(textController, newValue.toString());
+              },
+            ),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: ThemeHelper.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: ThemeHelper.divider,
+            width: 1.5,
+          ),
+          boxShadow: isDark
+              ? []
+              : [
+                  BoxShadow(
+                    color: ThemeHelper.textPrimary.withOpacity(0.08),
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: ThemeHelper.textPrimary.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                    spreadRadius: 0,
+                  ),
+                ],
+        ),
+        child: Column(
+          children: [
+            // Label as table header with gray background
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: ThemeHelper.cardBackground,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(iconAsset, width: 12, height: 12),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.systemGrey,
+                        letterSpacing: 0.1,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Amount as table content
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: textController,
+                builder: (context, value, child) => Text(
+                  value.text.isEmpty 
+                      ? '0 g' 
+                      : '${value.text} g',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: ThemeHelper.textPrimary,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

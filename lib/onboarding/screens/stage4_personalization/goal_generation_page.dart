@@ -93,6 +93,19 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
   //   Navigator.of(context).pop(); // For now, just go back
   // }
 
+  String _getProgressLabel(int percentage) {
+    if (percentage >= 1 && percentage <= 24) {
+      return "Analyzing your data...";
+    } else if (percentage >= 25 && percentage <= 49) {
+      return "Building your personalized nutrition profile...";
+    } else if (percentage >= 50 && percentage <= 74) {
+      return "Applying BMR formula...";
+    } else if (percentage >= 75 && percentage <= 100) {
+      return "Finalizing your custom plan...";
+    }
+    return "Analyzing your data..."; // Default fallback
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -157,16 +170,22 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
                     
                     const SizedBox(height: 24),
                     
-                    // Title
-                    Text(
-                      l10n.generatingYourPlan,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: ThemeHelper.textPrimary,
-                        height: 1.2,
-                      ),
-                      textAlign: TextAlign.center,
+                    // Title - Dynamic based on progress
+                    AnimatedBuilder(
+                      animation: _progressAnimation,
+                      builder: (context, child) {
+                        final percentage = (_progressAnimation.value * 100).round();
+                        return Text(
+                          _getProgressLabel(percentage),
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: ThemeHelper.textPrimary,
+                            height: 1.2,
+                          ),
+                          textAlign: TextAlign.center,
+                        );
+                      },
                     ),
                     
                     const SizedBox(height: 60),
