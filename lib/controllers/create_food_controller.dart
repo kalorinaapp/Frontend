@@ -43,7 +43,7 @@ class CreateFoodController extends GetxController {
   // Initialize with food data for editing
   void initializeWithFoodData(Map<String, dynamic> foodData, bool editing) {
     isEditing.value = editing;
-    foodId = foodData['_id'];
+    foodId = foodData['_id']?.toString() ?? foodData['id']?.toString();
     
     nameController.text = foodData['name'] ?? '';
     descriptionController.text = foodData['description'] ?? '';
@@ -162,6 +162,19 @@ class CreateFoodController extends GetxController {
   }
 
   void goToNextPage() {
+    // Validate calories before allowing navigation to next page
+    final caloriesText = caloriesController.text.trim();
+    if (caloriesText.isEmpty || caloriesText == '0') {
+      _showErrorDialog('Please enter calories');
+      return;
+    }
+    
+    final calories = int.tryParse(caloriesText);
+    if (calories == null || calories <= 0) {
+      _showErrorDialog('Please enter a valid calories value greater than 0');
+      return;
+    }
+    
     currentPage.value = 1;
   }
 
@@ -215,6 +228,19 @@ class CreateFoodController extends GetxController {
     // Validate required fields
     if (nameController.text.trim().isEmpty) {
       _showErrorDialog('Please enter a food name');
+      return;
+    }
+    
+    // Validate calories is required and valid
+    final caloriesText = caloriesController.text.trim();
+    if (caloriesText.isEmpty || caloriesText == '0') {
+      _showErrorDialog('Please enter calories');
+      return;
+    }
+    
+    final calories = int.tryParse(caloriesText);
+    if (calories == null || calories <= 0) {
+      _showErrorDialog('Please enter a valid calories value greater than 0');
       return;
     }
 
@@ -372,6 +398,8 @@ class CreateFoodController extends GetxController {
       if (response != null && (response['food'] != null || response['message'] != null)) {
         // Return the updated/created food data
         final foodData = response['food'];
+        
+        // Return food data directly - dashboard will handle optimistic update
         _showSuccessDialog(
           isEditing.value ? 'Food updated successfully!' : 'Food saved successfully!',
           foodData,
@@ -678,8 +706,8 @@ class CreateFoodController extends GetxController {
       isSaving.value = false;
 
       if (response != null && response['message'] != null) {
-        // Show success and navigate back with delete flag
-        Get.back(result: 'deleted');
+        // Navigate back with deleted flag (optimistic - like MealDetailsScreen)
+        Get.back(result: {'deleted': true});
       } else {
         _showErrorDialog('Failed to delete food');
       }

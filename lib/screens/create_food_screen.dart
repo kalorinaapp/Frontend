@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:get/get.dart';
 import '../controllers/create_food_controller.dart';
 import '../utils/theme_helper.dart';
 import '../l10n/app_localizations.dart';
+import '../services/food_service.dart';
 import 'edit_macro_screen.dart';
 
 class CreateFoodScreen extends StatelessWidget {
@@ -51,7 +53,7 @@ class _CreateFoodView extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
-            // Header with back button
+            // Header with back button and delete button (if editing)
             Container(
               padding: const EdgeInsets.symmetric(horizontal:  20, vertical: 16),
               child: Row(
@@ -72,7 +74,19 @@ class _CreateFoodView extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  const SizedBox(width: 24), // Balance the back button
+                  Obx(() => controller.isEditing.value
+                      ? GestureDetector(
+                          onTap: () {
+                            _showDeleteFoodConfirmation(context);
+                          },
+                          child: Image.asset(
+                            'assets/icons/trash.png',
+                            width: 20,
+                            height: 20,
+                            color: ThemeHelper.textPrimary,
+                          ),
+                        )
+                      : const SizedBox(width: 24)), // Balance when not editing
                 ],
               ),
             ),
@@ -792,6 +806,156 @@ class _CreateFoodView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showDeleteFoodConfirmation(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    // Show confirmation dialog
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Center(
+          child: Container(
+            width: 320,
+            margin: const EdgeInsets.symmetric(horizontal: 30),
+            decoration: BoxDecoration(
+              color: ThemeHelper.cardBackground,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // Header with title and close button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        l10n.deleteMealTitle, // Reusing meal deletion title
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: ThemeHelper.textPrimary,
+                        ),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Icon(
+                          CupertinoIcons.xmark_circle,
+                          color: ThemeHelper.textPrimary,
+                          size: 24,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Subtitle
+                  Text(
+                    l10n.mealWillBePermanentlyDeleted, // Reusing meal deletion message
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: ThemeHelper.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // Buttons
+                  Row(
+                    children: [
+                      // No button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: ThemeHelper.cardBackground,
+                              border: Border.all(
+                                color: ThemeHelper.divider,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Center(
+                              child: Text(
+                                l10n.no,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: ThemeHelper.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Yes button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            // Close the dialog
+                            Navigator.of(context).pop();
+                            // Immediately navigate back with deleted flag (optimistic)
+                            if (context.mounted) {
+                              Navigator.of(context).pop({'deleted': true});
+                            }
+                            // Make API call in background (fire and forget)
+                            _handleDeleteFoodInBackground();
+                          },
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFCD5C5C), // Matching the red color from delete meal dialog
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Center(
+                              child: Text(
+                                l10n.yes,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleDeleteFoodInBackground() async {
+    final foodId = controller.foodId;
+    if (foodId != null && foodId.isNotEmpty) {
+      // Make API call in background - fire and forget
+      try {
+        const service = FoodService();
+        await service.deleteFood(foodId: foodId).catchError((error) {
+          debugPrint('CreateFoodScreen: Failed to delete food $foodId - $error');
+          // Note: We don't show error to user since we've already optimistically removed it
+          // The food will be removed from UI immediately, and if API fails,
+          // it might reappear on next refresh, but that's acceptable for optimistic UI
+          return null;
+        });
+      } catch (e) {
+        debugPrint('CreateFoodScreen: Error deleting food: $e');
+      }
+    }
   }
 
   Widget _buildDivider() {

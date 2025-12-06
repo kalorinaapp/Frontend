@@ -754,7 +754,7 @@ class AppLocalizationsBg extends AppLocalizations {
   String get update => 'Актуализирай';
 
   @override
-  String get toTargetWeight => 'До целевото тегло';
+  String get toTargetWeight => 'към целевото тегло';
 
   @override
   String get weightGoalProgress => 'Напредък на Целевото Тегло';

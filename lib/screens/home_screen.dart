@@ -32,6 +32,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final HomeScreenController _controller;
+  // Use GlobalKey to preserve dashboard state when switching tabs
+  final GlobalKey _dashboardKey = GlobalKey();
 
   @override
   void initState() {
@@ -46,7 +48,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDashboardScreen() {
+    // Use Obx to reactively update props, but IndexedStack will preserve the widget state
     return Obx(() => DashboardScreen(
+      key: _dashboardKey,
       themeProvider: widget.themeProvider,
       selectedImage: _controller.selectedImage.value,
       isAnalyzing: _controller.isAnalyzing.value,
@@ -139,33 +143,28 @@ class _HomeScreenState extends State<HomeScreen> {
               backgroundColor: ThemeHelper.background,
               child: Stack(
                 children: [
-                  // Main content
+                  // Main content - Use IndexedStack to preserve state when switching tabs
                   Positioned.fill(
-                    child: Obx(() {
-                      switch (_controller.currentIndex.value) {
-                        case 0:
-                          return _buildDashboardScreen();
-                        case 1:
-                          return LogScreen(
-                            themeProvider: widget.themeProvider,
-                            onExerciseLogged: () {
-                              _controller.fetchTodayTotals();
-                            },
-                          );
-                        case 2:
-                          return ProgressScreen(
-                            themeProvider: widget.themeProvider, 
-                            healthProvider: _controller.healthProvider,
-                            onWeightLogged: _controller.refreshWeighInStatus,
-                          );
-                        case 3:
-                          return SettingsPage(
-                            themeProvider: widget.themeProvider,
-                          );
-                        default:
-                          return _buildDashboardScreen();
-                      }
-                    }),
+                    child: Obx(() => IndexedStack(
+                      index: _controller.currentIndex.value,
+                      children: [
+                        _buildDashboardScreen(),
+                        LogScreen(
+                          themeProvider: widget.themeProvider,
+                          onExerciseLogged: () {
+                            _controller.fetchTodayTotals();
+                          },
+                        ),
+                        ProgressScreen(
+                          themeProvider: widget.themeProvider, 
+                          healthProvider: _controller.healthProvider,
+                          onWeightLogged: _controller.refreshWeighInStatus,
+                        ),
+                        SettingsPage(
+                          themeProvider: widget.themeProvider,
+                        ),
+                      ],
+                    )),
                   ),
                   // Custom Bottom Navigation Bar
                   Positioned(

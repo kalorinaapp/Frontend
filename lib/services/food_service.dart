@@ -109,6 +109,7 @@ class FoodService {
     String? category,
     bool isCustom = true,
     String? createdBy,
+    String? loggedAt,
   }) async {
     debugPrint('🌐 FoodService.saveFood: Method called');
     debugPrint('🌐 FoodService.saveFood: Parameters - name: $name, calories: $calories, protein: $protein, carbs: $carbohydrates, fat: $totalFat, servingSize: $servingSize, isCustom: $isCustom, createdBy: $createdBy');
@@ -153,6 +154,14 @@ class FoodService {
     if (iron != null) body['iron'] = iron;
     if (category != null && category.isNotEmpty) body['category'] = category;
     if (createdBy != null && createdBy.isNotEmpty) body['createdBy'] = createdBy;
+    // Add loggedAt date-time in ISO 8601 format (use current date-time if not provided)
+    if (loggedAt != null && loggedAt.isNotEmpty) {
+      body['loggedAt'] = loggedAt;
+    } else {
+      // Default to current local date-time in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)
+      final now = DateTime.now().toLocal();
+      body['loggedAt'] = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}T${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+    }
 
     debugPrint('🌐 FoodService.saveFood: Request body: $body');
     debugPrint('🌐 FoodService.saveFood: Making POST request to api/foods...');

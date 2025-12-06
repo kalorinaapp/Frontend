@@ -14,6 +14,7 @@ import 'log_streak_screen.dart' show LogStreakScreen;
 import 'set_goals_screen.dart' show SetGoalsScreen;
 import 'exercise_detail_screen.dart' show ExerciseDetailScreen;
 import 'meal_details_screen.dart' show MealDetailsScreen;
+import 'create_food_screen.dart' show CreateFoodScreen;
 import '../controllers/home_screen_controller.dart';
 
 enum StreakStatus {
@@ -66,13 +67,15 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
+class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin, WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
+ 
   int selectedDay = 6; // Thursday (6th)
   bool _showStreakCard = false; // State for showing streak card
   late final StreakService streakService;
   List<DateTime> weekDates = [];
 
   List<Map<String, dynamic>> _localTodayMeals = [];
+  List<Map<String, dynamic>> _localTodayFoods = [];
   Map<String, int>? _localTodayTotals;
   List<Map<String, dynamic>> _localTodayExercises = [];
   bool _cardAnimationsActivated = false;
@@ -88,22 +91,23 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   final int fatLeft = 25;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     streakService = Get.put(StreakService());
+    
+    // Ensure ProgressService is registered
+    if (!Get.isRegistered<ProgressService>()) {
+      Get.put(ProgressService(), permanent: true);
+    }
+    
     _initializeWeek();
     _syncFromWidget();
     _loadStreaksForWeek();
-    // Ensure progress data loads independently of meals fetch timing
-    try {
-      final now = DateTime.now();
-      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      final progressService = Get.find<ProgressService>();
-      // Fire and forget; GetBuilder will rebuild on update
-      // ignore: discarded_futures
-      progressService.fetchDailyProgress(dateYYYYMMDD: dateStr);
-    } catch (_) {}
-    
+    _refreshProgressData();
     
     // Animation setup removed as it's no longer needed
 
@@ -113,6 +117,54 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         _cardAnimationsActivated = true;
       });
     });
+  }
+
+  void _refreshProgressData() {
+    try {
+      final now = DateTime.now();
+      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final progressService = Get.find<ProgressService>();
+      // Fire and forget; GetBuilder will rebuild on update
+      // ignore: discarded_futures
+      progressService.fetchDailyProgress(dateYYYYMMDD: dateStr);
+    } catch (_) {}
+  }
+
+  Future<void> _refreshProgressDataWithCallback() async {
+    try {
+      final now = DateTime.now();
+      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final progressService = Get.find<ProgressService>();
+      await progressService.fetchDailyProgress(dateYYYYMMDD: dateStr);
+    } catch (e) {
+      debugPrint('❌ Error refreshing progress data: $e');
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Refresh progress data when app comes to foreground
+    if (state == AppLifecycleState.resumed && mounted) {
+      _refreshProgressData();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+      // This is called when returning to this screen
+      // Delay refresh to avoid clearing optimistic data immediately after creating food
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          // Small delay to allow optimistic update to settle
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              _refreshProgressData();
+            }
+          });
+        }
+      });
   }
 
   void _initializeWeek() {
@@ -125,6 +177,13 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   void _syncFromWidget() {
+    // Don't sync if we already have local state - preserve existing content
+    // Only sync on first load when local state is empty
+    if (_localTodayMeals.isNotEmpty || _localTodayFoods.isNotEmpty) {
+      debugPrint('🔄 Dashboard: Skipping sync - local state already has data');
+      return;
+    }
+    
     // Remove duplicates when syncing from widget
     final seenIds = <String>{};
     final uniqueMeals = <Map<String, dynamic>>[];
@@ -352,6 +411,116 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     }
   }
 
+  Map<String, dynamic> _transformFoodToCardFormat(Map<String, dynamic> food) {
+    // Transform food to match meal card format
+    final foodId = food['id']?.toString() ?? food['_id']?.toString() ?? '';
+    return {
+      'id': foodId,
+      '_id': foodId,
+      'mealName': (food['name'] as String?)?.trim() ?? '',
+      'totalCalories': ((food['calories'] ?? 0) as num).toInt(),
+      'totalProtein': ((food['protein'] ?? 0) as num).toInt(),
+      'totalCarbs': ((food['carbohydrates'] ?? food['carbs'] ?? 0) as num).toInt(),
+      'totalFat': ((food['totalFat'] ?? food['fat'] ?? 0) as num).toInt(),
+      'createdAt': food['loggedAt']?.toString() ?? food['createdAt']?.toString() ?? DateTime.now().toIso8601String(),
+      'mealImage': food['imageUrl']?.toString(),
+      'source': 'food',
+      // Store original food data for editing
+      'foodData': food,
+    };
+  }
+
+  void _addFoodToLocalState(Map<String, dynamic> foodData) {
+    // Transform and add food directly to local state
+    final transformedFood = _transformFoodToCardFormat(foodData);
+    final foodId = transformedFood['id']?.toString() ?? '';
+    
+    // Check if food already exists (avoid duplicates)
+    if (foodId.isNotEmpty) {
+      final exists = _localTodayFoods.any((food) {
+        final id = food['id']?.toString() ?? food['_id']?.toString();
+        return id != null && id == foodId;
+      });
+      
+      if (!exists) {
+        setState(() {
+          _localTodayFoods.insert(0, transformedFood);
+          _recalculateLocalTotals();
+        });
+        debugPrint('✅ Added food directly to local state: ${foodData['name']}');
+      } else {
+        // Update existing food
+        final index = _localTodayFoods.indexWhere((food) {
+          final id = food['id']?.toString() ?? food['_id']?.toString();
+          return id != null && id == foodId;
+        });
+        if (index >= 0) {
+          setState(() {
+            _localTodayFoods[index] = transformedFood;
+            _recalculateLocalTotals();
+          });
+          debugPrint('✅ Updated food in local state: ${foodData['name']}');
+        }
+      }
+    }
+  }
+
+  void _extractFoodsFromProgress() {
+    try {
+      final progressService = Get.find<ProgressService>();
+      final progressData = progressService.dailyProgressData;
+      
+      debugPrint('🍎 _extractFoodsFromProgress: progressData is ${progressData != null ? "not null" : "null"}');
+      
+      // Only update foods if we have valid progress data with a progress object
+      // Don't clear foods if data is missing - it might just not be loaded yet
+      if (progressData != null && progressData['progress'] != null) {
+        final progress = progressData['progress'] as Map<String, dynamic>;
+        final foodsList = progress['foods'] as List<dynamic>?;
+        
+        debugPrint('🍎 _extractFoodsFromProgress: foodsList has ${foodsList?.length ?? 0} items');
+        
+        // Only update if we have a foods list (even if empty - that's valid data)
+        if (foodsList != null) {
+          final newFoods = foodsList.map((food) {
+            return _transformFoodToCardFormat(food);
+          }).toList();
+          
+          // Merge foods instead of replacing - preserve locally added foods
+          final existingFoodIds = _localTodayFoods.map((f) {
+            return f['id']?.toString() ?? f['_id']?.toString() ?? '';
+          }).where((id) => id.isNotEmpty).toSet();
+          
+          // Add new foods from progress that don't exist locally
+          final mergedFoods = List<Map<String, dynamic>>.from(_localTodayFoods);
+          for (final newFood in newFoods) {
+            final foodId = newFood['id']?.toString() ?? newFood['_id']?.toString() ?? '';
+            if (foodId.isNotEmpty && !existingFoodIds.contains(foodId)) {
+              mergedFoods.add(newFood);
+              existingFoodIds.add(foodId);
+            }
+          }
+          
+          // Only update if foods actually changed
+          if (mergedFoods.length != _localTodayFoods.length || 
+              !_listEquals(_localTodayFoods, mergedFoods)) {
+            if (mounted) {
+              setState(() {
+                _localTodayFoods = mergedFoods;
+                _recalculateLocalTotals();
+              });
+            }
+          }
+        }
+        // If foodsList is null, don't clear - progress data structure might be incomplete
+      }
+      // If progressData is null or progress['progress'] is null, don't clear - data just hasn't loaded yet
+    } catch (e) {
+      debugPrint('❌ Error extracting foods from progress: $e');
+      // Don't clear foods on error - might be temporary
+    }
+  }
+
   void _recalculateLocalTotals({bool preferWidgetTotals = false}) {
     if (preferWidgetTotals && widget.todayTotals != null) {
       _localTodayTotals = Map<String, int>.from(widget.todayTotals!);
@@ -363,7 +532,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     int carbs = 0;
     int fat = 0;
 
-    if (_localTodayMeals.isEmpty) {
+    if (_localTodayMeals.isEmpty && _localTodayFoods.isEmpty) {
       _localTodayTotals = null;
       return;
     }
@@ -373,6 +542,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       protein += _intFrom(meal['totalProtein']);
       carbs += _intFrom(meal['totalCarbs']);
       fat += _intFrom(meal['totalFat']);
+    }
+    
+    // Add food totals
+    for (final food in _localTodayFoods) {
+      calories += _intFrom(food['totalCalories']);
+      protein += _intFrom(food['totalProtein']);
+      carbs += _intFrom(food['totalCarbs']);
+      fat += _intFrom(food['totalFat']);
     }
 
     _localTodayTotals = {
@@ -457,6 +634,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     return id.toString();
   }
 
+  // Helper to compare lists for equality
+  bool _listEquals(List<Map<String, dynamic>> a, List<Map<String, dynamic>> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      final aId = _extractMealId(a[i]);
+      final bId = _extractMealId(b[i]);
+      if (aId != bId) return false;
+    }
+    return true;
+  }
+
   int? _getLocalTotal(String key) => _localTodayTotals?[key];
 
   int? _getLocalMacro(String dataKey) {
@@ -522,6 +710,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -533,15 +722,23 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     } else if (!widget.isAnalyzing && oldWidget.isAnalyzing) {
       // Reset animation when analyzing stops
     }
-    if (widget.todayMeals != oldWidget.todayMeals ||
+    // Only sync if we don't have local state - preserve existing content when switching tabs
+    if ((widget.todayMeals != oldWidget.todayMeals ||
         widget.todayTotals != oldWidget.todayTotals ||
-        widget.todayExercises != oldWidget.todayExercises) {
+        widget.todayExercises != oldWidget.todayExercises) &&
+        _localTodayMeals.isEmpty && _localTodayFoods.isEmpty) {
       _syncFromWidget();
+    }
+    
+    // Only extract foods if progress data actually changed - avoid unnecessary updates
+    if (widget.dailyProgress != oldWidget.dailyProgress) {
+      _extractFoodsFromProgress();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context)!;
     
     return ListenableBuilder(
@@ -571,11 +768,26 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             child: SafeArea(
               child: Stack(
                 children: [
-                  // Main content
-                  SingleChildScrollView(
+                  // Main content with pull-to-refresh
+                  CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      children: [
+                    slivers: [
+                      CupertinoSliverRefreshControl(
+                        onRefresh: () async {
+                          // Refresh progress data
+                          await _refreshProgressDataWithCallback();
+                          // Also refresh streaks
+                          await _loadStreaksForWeek();
+                          // Refresh today totals if HomeScreenController is available
+                          if (Get.isRegistered<HomeScreenController>()) {
+                            final controller = Get.find<HomeScreenController>();
+                            await controller.fetchTodayTotals();
+                          }
+                        },
+                      ),
+                      SliverToBoxAdapter(
+                        child: Column(
+                          children: [
               // Top Header
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1112,33 +1324,113 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           child: _buildScanErrorCard(),
                         ),
                       // Removed optimistic scanned food card - only show after meal is saved
-                      if (_localTodayMeals.isNotEmpty) ...[
-                        Column(
-                          children: _localTodayMeals.asMap().entries
-                              .map((entry) {
-                                final index = entry.key;
-                                final meal = entry.value;
-                                final mealId = _extractMealId(meal) ?? 'idx_$index';
-                                return _animateCard(
-                                  id: 'meal_$mealId',
-                                  order: 4 + index,
-                                  child: GestureDetector(
-                                    onTap: () => _openMealDetails(meal),
-                                    child: _buildMealTotalsCard(meal, l10n),
-                                  ),
-                                );
-                              })
-                              .toList(),
-                        ),
-                        const SizedBox(height: 12),
-                      ] else if (_localTodayTotals != null) ...[
-                        _animateCard(
-                          id: 'today_totals_card',
-                          order: 4,
-                          child: _buildTodayTotalsCard(l10n, _localTodayTotals!),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
+                      GetBuilder<ProgressService>(
+                        builder: (progressService) {
+                          debugPrint('🔄 Dashboard GetBuilder: REBUILDING!');
+                          
+                          // Extract foods directly from progress data for immediate rendering
+                          final progressData = progressService.dailyProgressData;
+                          List<Map<String, dynamic>> foodsFromProgress = [];
+                          
+                          if (progressData != null && progressData['progress'] != null) {
+                            final progress = progressData['progress'] as Map<String, dynamic>;
+                            final foodsList = progress['foods'] as List<dynamic>?;
+                            
+                            if (foodsList != null) {
+                              foodsFromProgress = foodsList.map((food) {
+                                return _transformFoodToCardFormat(food);
+                              }).toList();
+                              
+                              // Update local state for totals calculation (async to avoid setState during build)
+                              if (_localTodayFoods.length != foodsFromProgress.length || 
+                                  !_listEquals(_localTodayFoods, foodsFromProgress)) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  if (mounted) {
+                                    setState(() {
+                                      _localTodayFoods = foodsFromProgress;
+                                      _recalculateLocalTotals();
+                                    });
+                                  }
+                                });
+                              }
+                            }
+                          }
+                          
+                          // Combine meals and foods for display
+                          // Use foodsFromProgress if available, otherwise fall back to local foods
+                          final combined = <Map<String, dynamic>>[];
+                          combined.addAll(_localTodayMeals);
+                          
+                          if (foodsFromProgress.isNotEmpty || (progressData != null && progressData['progress'] != null)) {
+                            // Use foods from progress data (even if empty - that's valid)
+                            combined.addAll(foodsFromProgress);
+                          } else {
+                            // Fall back to local foods if no progress data yet
+                            combined.addAll(_localTodayFoods);
+                          }
+                          
+                          debugPrint('🔍 Dashboard GetBuilder: Combined has ${combined.length} items (${_localTodayMeals.length} meals + ${combined.length - _localTodayMeals.length} foods)');
+                          
+                          // Sort by createdAt descending
+                          combined.sort((a, b) {
+                            final aCreated = a['createdAt'] as String?;
+                            final bCreated = b['createdAt'] as String?;
+                            if (aCreated == null && bCreated == null) return 0;
+                            if (aCreated == null) return 1;
+                            if (bCreated == null) return -1;
+                            try {
+                              final aDate = DateTime.parse(aCreated);
+                              final bDate = DateTime.parse(bCreated);
+                              return bDate.compareTo(aDate);
+                            } catch (_) {
+                              return 0;
+                            }
+                          });
+                          
+                          if (combined.isNotEmpty) {
+                            debugPrint('🍎 Dashboard GetBuilder: Rendering ${combined.length} cards');
+                            return Column(
+                              children: combined.asMap().entries
+                                  .map((entry) {
+                                    final index = entry.key;
+                                    final item = entry.value;
+                                    final isFood = item['source'] == 'food';
+                                    final itemId = _extractMealId(item) ?? 'idx_$index';
+                                    final cardId = isFood ? 'food_$itemId' : 'meal_$itemId';
+                                    
+                                    return _animateCard(
+                                      id: cardId,
+                                      order: 4 + index,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          if (isFood) {
+                                            _openFoodDetails(item);
+                                          } else {
+                                            _openMealDetails(item);
+                                          }
+                                        },
+                                        child: _buildMealTotalsCard(item, l10n),
+                                      ),
+                                    );
+                                  })
+                                  .toList(),
+                            );
+                          } else if (_localTodayTotals != null) {
+                            return Column(
+                              children: [
+                                _animateCard(
+                                  id: 'today_totals_card',
+                                  order: 4,
+                                  child: _buildTodayTotalsCard(l10n, _localTodayTotals!),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                            );
+                          } else {
+                            return const SizedBox.shrink();
+                          }
+                        },
+                      ),
                      
                       // Only show overall meal, not separate entries
                     ],
@@ -1146,9 +1438,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 ),
               ),
               
-              SizedBox(height: 40 + MediaQuery.of(context).padding.bottom + 20),
-                      ],
-                    ),
+                          SizedBox(height: 40 + MediaQuery.of(context).padding.bottom + 20),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   
                   // Overlay and streak card
@@ -1182,6 +1476,41 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         );
       },
     );
+  }
+
+  Future<void> _openFoodDetails(Map<String, dynamic> foodItem) async {
+    // Extract original food data or use the item itself
+    final foodData = foodItem['foodData'] as Map<String, dynamic>? ?? foodItem;
+    
+    final result = await Navigator.of(context).push<Map<String, dynamic>>(
+      CupertinoPageRoute(
+        builder: (context) => CreateFoodScreen(
+          isEditing: true,
+          foodData: foodData,
+        ),
+      ),
+    );
+    
+    // Handle result directly without refetching progress data
+    if (result != null) {
+      if (result['deleted'] == true) {
+        // Food was deleted - remove from local state
+        setState(() {
+          final foodId = foodItem['id']?.toString() ?? foodItem['_id']?.toString();
+          if (foodId != null && foodId.isNotEmpty) {
+            _localTodayFoods.removeWhere((food) {
+              final id = food['id']?.toString() ?? food['_id']?.toString();
+              return id != null && id == foodId;
+            });
+          }
+          _recalculateLocalTotals();
+        });
+        debugPrint('✅ Removed deleted food from local state');
+      } else if (result['_id'] != null) {
+        // Food was updated - update local state directly
+        _addFoodToLocalState(result);
+      }
+    }
   }
 
   Future<void> _openMealDetails(Map<String, dynamic> meal) async {
@@ -2124,6 +2453,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     final fat = ((meal['totalFat'] ?? 0) as num).toInt();
     final carbs = ((meal['totalCarbs'] ?? 0) as num).toInt();
     final mealName = (meal['mealName'] as String?)?.trim();
+    
+    debugPrint('🎴 _buildMealTotalsCard called for: $mealName (calories: $calories, source: ${meal['source']})');
     // Prefer mealImage; fallback to first entry.imageUrl if available
     String? imageUrl = (meal['mealImage'] as String?)?.trim();
     if ((imageUrl == null || imageUrl.isEmpty) && meal['entries'] is List) {
