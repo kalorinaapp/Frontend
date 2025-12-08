@@ -24,7 +24,7 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
   late AnimationController _animationController;
   late Animation<double> _titleAnimation;
   late Animation<double> _cardAnimation;
-  late Animation<double> _exampleAnimation;
+  // late Animation<double> _exampleAnimation;
 
   @override
   void initState() {
@@ -46,12 +46,12 @@ class _CalorieCountingPageState extends State<CalorieCountingPage>
       ),
     );
     
-    _exampleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.5, 0.9, curve: Curves.easeOut),
-      ),
-    );
+    // _exampleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    //   CurvedAnimation(
+    //     parent: _animationController,
+    //     curve: const Interval(0.5, 0.9, curve: Curves.easeOut),
+    //   ),
+    // );
     
     _animationController.forward();
   }

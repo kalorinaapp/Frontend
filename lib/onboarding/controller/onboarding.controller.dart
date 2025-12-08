@@ -36,6 +36,9 @@ class OnboardingController extends GetxController {
   // Dual button mode for Yes/No pages
   final RxBool isDualButtonMode = false.obs;
   final RxString dualButtonChoice = ''.obs;
+  
+  // Track if user has completed registration
+  final RxBool isRegistrationComplete = false.obs;
 
   // Data storage for different page types
   final RxMap<String, dynamic> _pageData = <String, dynamic>{}.obs;

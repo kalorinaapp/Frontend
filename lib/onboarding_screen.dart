@@ -23,7 +23,13 @@ import 'onboarding/screens/stage4_personalization/rating.dart' show RatingPage;
 import 'onboarding/screens/stage4_personalization/referral.page.dart' show ReferralPage;
 import 'onboarding/screens/stage4_personalization/all_done_page.dart' show AllDonePage;
 import 'providers/theme_provider.dart';
+import 'providers/language_provider.dart';
 import 'onboarding/controller/onboarding.controller.dart';
+import 'screens/home_screen.dart';
+import 'constants/app_constants.dart';
+import 'authentication/user.controller.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // Import onboarding pages
 import 'onboarding/screens/stage4_personalization/gender_selection_page.dart';
 import 'onboarding/screens/stage4_personalization/workout_frequency_page.dart';
@@ -56,7 +62,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // Build onboarding pages (rebuilt on theme changes)
   List<Widget> _buildPages() {
     return [
-      CreateAccountPage(themeProvider: widget.themeProvider, isLogin: true),
+      CreateAccountPage(themeProvider: widget.themeProvider),
       CalorieTrackingExperiencePage(themeProvider: widget.themeProvider),
       HowItWorksPage(themeProvider: widget.themeProvider),
       // GIFScreen(themeProvider: widget.themeProvider,),
@@ -287,6 +293,29 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
 
   void _previousPage() {
+    // If registration is complete, redirect to home screen instead of going back
+    if (_controller.isRegistrationComplete.value) {
+      // Get LanguageProvider if available
+      LanguageProvider? languageProvider;
+      try {
+        languageProvider = Get.find<LanguageProvider>();
+      } catch (e) {
+        // LanguageProvider not available, that's okay
+      }
+      
+      // Navigate to home screen and remove all previous routes
+      Navigator.of(context).pushAndRemoveUntil(
+        CupertinoPageRoute(
+          builder: (context) => HomeScreen(
+            themeProvider: widget.themeProvider,
+            languageProvider: languageProvider ?? LanguageProvider(),
+          ),
+        ),
+        (route) => false, // Remove all previous routes
+      );
+      return;
+    }
+    
     if (_controller.currentPage.value > 0) {
       final int currentPage = _controller.currentPage.value;
       final String? goal = _controller.getStringData('goal');
@@ -308,17 +337,235 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     }
   }
 
+  // Helper method to map workout frequency to activity level
+  String _mapWorkoutFrequencyToActivityLevel(String workoutFreq) {
+    switch (workoutFreq) {
+      case '0':
+        return 'sedentary';
+      case '1-2':
+        return 'lightly_active';
+      case '3-5':
+        return 'moderately_active';
+      case '6-7':
+        return 'very_active';
+      default:
+        return 'lightly_active';
+    }
+  }
+
+  // Helper method to map workout frequency to number
+  int _mapWorkoutFrequencyToNumber(String workoutFreq) {
+    switch (workoutFreq) {
+      case '0':
+        return 0;
+      case '1-2':
+        return 2;
+      case '3-5':
+        return 4;
+      case '6-7':
+        return 6;
+      default:
+        return 2;
+    }
+  }
+
+  // Helper method to map goal to fitness goal
+  String _mapGoalToFitnessGoal(String goal) {
+    switch (goal) {
+      case 'lose_weight':
+        return 'weight_loss';
+      case 'gain_weight':
+        return 'weight_gain';
+      case 'maintain_weight':
+        return 'maintenance';
+      default:
+        return 'maintenance';
+    }
+  }
+
+  // Helper method to map hear_about_us to valid enum values
+  String _mapHearAboutUsToEnum(String hearAboutUs) {
+    switch (hearAboutUs.toLowerCase()) {
+      case 'google_play':
+      case 'app_store':
+        return 'app_store';
+      case 'youtube':
+      case 'tiktok':
+      case 'instagram':
+        return 'social_media';
+      case 'influencer':
+        return 'advertisement';
+      case 'friends_family':
+        return 'friend_referral';
+      case 'other':
+        return 'other';
+      default:
+        return 'other';
+    }
+  }
+
+
+
+  // Helper method to get target weight (simplified - assumes metric units)
+  double _getTargetWeight() {
+    final double? desiredWeight = _controller.getDoubleData('desired_weight');
+    if (desiredWeight != null) {
+      return desiredWeight;
+    }
+    return (_controller.getIntData('weight') ?? 70).toDouble();
+  }
+
+  // Helper function to filter onboarding data for user profile update (excludes auth and identity fields)
+  Map<String, dynamic> _filterOnboardingDataForUpdate(Map<String, dynamic> onboardingData) {
+    // Fields to exclude from profile update
+    final excludedFields = {
+      'email',
+      'password',
+      'firstName',
+      'lastName',
+      'provider',
+      'providerId',
+      'supabaseId',
+      'revenueCatId',
+      'referrerId',
+      'oneSignalId',
+    };
+    
+    // Create filtered map
+    final Map<String, dynamic> filtered = {};
+    onboardingData.forEach((key, value) {
+      if (!excludedFields.contains(key) && value != null) {
+        filtered[key] = value;
+      }
+    });
+    
+    return filtered;
+  }
+
+  // Collect onboarding data for user profile update
+  Future<Map<String, dynamic>> _collectOnboardingDataForUpdate() async {
+    // Extract birth date and calculate age
+    final birthDate = _controller.getDateTimeData('birth_date');
+    int age = 25; // default age
+    if (birthDate != null) {
+      final now = DateTime.now();
+      age = now.year - birthDate.year;
+      if (now.month < birthDate.month || 
+          (now.month == birthDate.month && now.day < birthDate.day)) {
+        age--;
+      }
+    }
+
+    // Get device timezone
+    String timezone = 'Europe/Zagreb'; // Default fallback
+    try {
+      timezone = await FlutterNativeTimezone.getLocalTimezone();
+    } catch (e) {
+      debugPrint('⚠️ Error getting timezone, using default: $e');
+    }
+
+    // Get current language from SharedPreferences or default
+    String languageCode = 'en';
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      languageCode = prefs.getString('selected_language') ?? 'en';
+    } catch (e) {
+      // Use default
+    }
+
+    // Map onboarding data to API format (excluding auth fields)
+    final onboardingData = {
+      // Basic profile info
+      "age": age,
+      "weight": (_controller.getIntData('weight') ?? 70).toDouble(),
+      "height": _controller.getIntData('height') ?? 170,
+      "gender": _controller.getStringData('selected_gender') ?? 'male',
+      "birthdate": DateTime.now().toIso8601String().split('T').first,
+
+      // Activity and fitness
+      "activityLevel": _mapWorkoutFrequencyToActivityLevel(_controller.getStringData('workout_frequency') ?? '0'),
+      "dailyCalorieGoal": _controller.getIntData('daily_calorie_goal') ?? 2250,
+      "workoutsPerWeek": _mapWorkoutFrequencyToNumber(_controller.getStringData('workout_frequency') ?? '0'),
+      "fitnessGoals": _mapGoalToFitnessGoal(_controller.getStringData('goal') ?? 'maintain_weight'),
+      "targetWeight": _getTargetWeight(),
+      "weeklyGoal": _controller.getDoubleData('weight_loss_speed') ?? 0.7,
+      "speedToGoal": _controller.getDoubleData('weight_loss_speed') ?? 0.7,
+
+      // Dietary preferences
+      "dietaryPreferences": [_controller.getStringData('dietary_preference') ?? 'classic'],
+      "allergies": [],
+      "healthConditions": [],
+
+      // Preferences
+      "timezone": timezone,
+      "language": languageCode,
+      "units": _controller.getBoolData('is_metric') ?? true ? "metric" : "imperial",
+
+      // Onboarding questionnaire fields
+      "hearAboutUs": _mapHearAboutUsToEnum(_controller.getStringData('hear_about_us') ?? ''),
+      "triedOtherCalorieTrackingApps": false,
+      "whatStoppingFromReachingGoals": "",
+      "followSpecificDiet": _controller.getStringData('dietary_preference') != 'classic',
+      "specificDiet": _controller.getStringData('dietary_preference') ?? '',
+      "whatWouldLikeToAccomplish": _controller.getStringData('personal_goal') ?? '',
+    };
+
+    // Filter out null values and auth fields
+    return _filterOnboardingDataForUpdate(onboardingData);
+  }
+
   void _startApp() {
-    // Navigate to post-onboarding flow starting with CreateAccountPage
-    // Navigator.of(context).push(
-    //   CupertinoPageRoute(
-    //     builder: (context) => ExclusiveOfferPage(themeProvider: widget.themeProvider,),
-    //   ),
-    // );
-     Navigator.of(context).push(
+    // Check if user is authenticated (has token and userId)
+    if (AppConstants.authToken.isEmpty || AppConstants.userId.isEmpty) {
+      // If not authenticated, navigate to CreateAccountPage
+      debugPrint('⚠️ User not authenticated: navigating to CreateAccountPage');
+      Navigator.of(context).push(
+        CupertinoPageRoute(
+          builder: (context) => CreateAccountPage(themeProvider: widget.themeProvider),
+        ),
+      );
+      return;
+    }
+    
+    // If authenticated, update user profile with onboarding data (without await)
+    _collectOnboardingDataForUpdate().then((updateData) {
+      if (updateData.isNotEmpty) {
+        try {
+          final userController = Get.find<UserController>();
+          final languageProvider = Get.find<LanguageProvider>();
+          
+          // Call updateUser without await (fire-and-forget)
+          userController.updateUser(
+            AppConstants.userId,
+            updateData,
+            context,
+            widget.themeProvider,
+            languageProvider,
+          );
+          debugPrint('📝 Updating user profile with onboarding data (non-blocking)');
+        } catch (e) {
+          debugPrint('⚠️ Error updating user profile: $e');
+        }
+      }
+    });
+    
+    // Navigate directly to HomeScreen
+    LanguageProvider? languageProvider;
+    try {
+      languageProvider = Get.find<LanguageProvider>();
+    } catch (e) {
+      // LanguageProvider not available, create default
+      languageProvider = LanguageProvider();
+    }
+    
+    Navigator.of(context).pushAndRemoveUntil(
       CupertinoPageRoute(
-        builder: (context) => CreateAccountPage(themeProvider: widget.themeProvider,),
+        builder: (context) => HomeScreen(
+          themeProvider: widget.themeProvider,
+          languageProvider: languageProvider!,
+        ),
       ),
+      (route) => false, // Remove all previous routes
     );
   }
 

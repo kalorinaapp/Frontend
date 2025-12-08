@@ -426,7 +426,7 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       "weight": (_controller.getIntData('weight') ?? 70).toDouble(),
       "height": _controller.getIntData('height') ?? 170,
       "gender": _controller.getStringData('selected_gender') ?? 'male',
-      "birthdate": birthDate?.toIso8601String().split('T').first ?? '',
+      "birthdate": DateTime.now().toIso8601String().split('T').first, // Hardcoded to today's date
 
       // Activity and fitness
       "activityLevel": _mapWorkoutFrequencyToActivityLevel(_controller.getStringData('workout_frequency') ?? '0'),
@@ -842,14 +842,19 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       // Show loading
       _setLoading(true);
       
-      if (widget.isLogin) {
-        await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
-      } else {
-        await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
-      }
+      // Register API now handles both login and sign-up
+      await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
       
       // Hide loading on success
       _setLoading(false);
+      
+      // If sign-up was successful (not login), move to next onboarding page
+      // (Login navigation is handled in registerUser)
+      if (_userController.isSuccess.value && !widget.isLogin) {
+        // Mark registration as complete
+        _onboardingController.isRegistrationComplete.value = true;
+        _onboardingController.goToNextPage();
+      }
     } catch (e) {
       // Hide loading on error
       _setLoading(false);
@@ -914,11 +919,8 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       // Show loading
       _setLoading(true);
       
-      if (widget.isLogin) {
-        await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
-      } else {
-        await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
-      }
+      // Register API now handles both login and sign-up
+      await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
       
       // Hide loading and check for errors
       _setLoading(false);
@@ -926,6 +928,12 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       // Check if there was an error
       if (_userController.errorMessage.value.isNotEmpty && !_userController.isSuccess.value) {
         _showErrorDialog(_userController.errorMessage.value);
+      } else if (_userController.isSuccess.value && !widget.isLogin) {
+        // Mark registration as complete
+        _onboardingController.isRegistrationComplete.value = true;
+        // If sign-up was successful (not login), move to next onboarding page
+        // (Login navigation is handled in registerUser)
+        _onboardingController.goToNextPage();
       }
     } catch (e) {
       // Hide loading on error
@@ -1036,14 +1044,19 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       // Show loading
       _setLoading(true);
       
-      if (widget.isLogin) {
-        await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
-      } else {
-        await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
-      }
+      // Register API now handles both login and sign-up
+      await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
       
       // Hide loading on success
       _setLoading(false);
+      
+      // If sign-up was successful (not login), move to next onboarding page
+      // (Login navigation is handled in registerUser)
+      if (_userController.isSuccess.value && !widget.isLogin) {
+        // Mark registration as complete
+        _onboardingController.isRegistrationComplete.value = true;
+        _onboardingController.goToNextPage();
+      }
     } catch (e) {
       // Hide loading on error
       _setLoading(false);
@@ -1083,11 +1096,8 @@ class _CreateAccountPageState extends State<CreateAccountPage>
           _setLoading(true);
           
           try {
-            if (widget.isLogin) {
-              await _userController.loginUser(params, context, widget.themeProvider, _languageProvider!);
-            } else {
-              await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
-            }
+            // Register API now handles both login and sign-up
+            await _userController.registerUser(params, context, widget.themeProvider, _languageProvider!);
             
             // Hide loading and check for errors
             _setLoading(false);
@@ -1097,6 +1107,13 @@ class _CreateAccountPageState extends State<CreateAccountPage>
               _showErrorDialog(_userController.errorMessage.value);
               completer.completeError(_userController.errorMessage.value);
             } else {
+              // If sign-up was successful (not login), move to next onboarding page
+              // (Login navigation is handled in registerUser)
+              if (_userController.isSuccess.value && !widget.isLogin) {
+                // Mark registration as complete
+                _onboardingController.isRegistrationComplete.value = true;
+                _onboardingController.goToNextPage();
+              }
               completer.complete(); // Complete the Future when sign-in is successful
             }
           } catch (e) {

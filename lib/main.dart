@@ -90,8 +90,20 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
       } catch (_) {}
 
       // Register the same instances with GetX so both can use the same providers
-      Get.put(themeProvider, permanent: true);
-      Get.put(languageProvider, permanent: true);
+      // Only register if not already registered (avoid duplicates from InitialBindings)
+      if (!Get.isRegistered<ThemeProvider>()) {
+        Get.put(themeProvider, permanent: true);
+      } else {
+        // If already registered, delete and re-register with our instance to ensure consistency
+        Get.delete<ThemeProvider>(force: true);
+        Get.put(themeProvider, permanent: true);
+      }
+      if (!Get.isRegistered<LanguageProvider>()) {
+        Get.put(languageProvider, permanent: true);
+      } else {
+        Get.delete<LanguageProvider>(force: true);
+        Get.put(languageProvider, permanent: true);
+      }
 
       initialData = await getInitialScreenData();
     } finally {

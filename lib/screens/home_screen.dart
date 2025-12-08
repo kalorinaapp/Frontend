@@ -38,7 +38,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.put(HomeScreenController());
+    // Only register if not already registered (avoid duplicates)
+    if (!Get.isRegistered<HomeScreenController>()) {
+      _controller = Get.put(HomeScreenController());
+    } else {
+      _controller = Get.find<HomeScreenController>();
+    }
   }
 
   @override

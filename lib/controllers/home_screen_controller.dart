@@ -45,8 +45,8 @@ class HomeScreenController extends GetxController {
   final isWeighInDueToday = false.obs;
   final pendingMealData = Rxn<Map<String, dynamic>>();
   
-  // Services
-  final ProgressService progressService = Get.put(ProgressService());
+  // Services - will be initialized in onInit to avoid issues
+  late final ProgressService progressService;
   StreakService? streakService;
   
   ImagePicker get picker => _picker;
@@ -54,9 +54,32 @@ class HomeScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    streakService = Get.put(StreakService());
-    loadInitialData();
-    checkWeighInDue();
+    // Initialize ProgressService
+    if (!Get.isRegistered<ProgressService>()) {
+      progressService = Get.put(ProgressService(), permanent: true);
+    } else {
+      progressService = Get.find<ProgressService>();
+    }
+    
+    // Register StreakService only if not already registered
+    if (!Get.isRegistered<StreakService>()) {
+      streakService = Get.put(StreakService(), permanent: true);
+    } else {
+      streakService = Get.find<StreakService>();
+    }
+    
+    // Delay initialization to ensure app is fully ready and user is authenticated
+    // This prevents race conditions and UI freezing
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.microtask(() {
+        if (AppConstants.userId.isNotEmpty && AppConstants.authToken.isNotEmpty) {
+          loadInitialData();
+          checkWeighInDue();
+        } else {
+          debugPrint('⚠️ HomeScreenController: Skipping data load - user not authenticated');
+        }
+      });
+    });
   }
   
   Future<void> checkWeighInDue() async {
@@ -115,6 +138,15 @@ class HomeScreenController extends GetxController {
   }
   
   Future<void> loadInitialData() async {
+    // Guard: Don't load if user is not authenticated
+    if (AppConstants.userId.isEmpty || AppConstants.authToken.isEmpty) {
+      debugPrint('⚠️ HomeScreenController: Cannot load data - user not authenticated');
+      isLoadingInitialData.value = false;
+      isLoadingMeals.value = false;
+      isLoadingProgress.value = false;
+      return;
+    }
+    
     final now = DateTime.now().toLocal();
     final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     
@@ -132,20 +164,24 @@ class HomeScreenController extends GetxController {
       // Get steps from Apple Health if includeStepCaloriesInGoal is true
       int? steps;
       try {
-        final userController = Get.find<UserController>();
-        final includeStepCalories = userController.userData['includeStepCaloriesInGoal'] ?? false;
-        if (includeStepCalories && healthProvider.hasPermissions) {
-          steps = healthProvider.stepsToday;
+        if (Get.isRegistered<UserController>()) {
+          final userController = Get.find<UserController>();
+          final includeStepCalories = userController.userData['includeStepCaloriesInGoal'] ?? false;
+          if (includeStepCalories && healthProvider.hasPermissions) {
+            steps = healthProvider.stepsToday;
+          }
         }
-      } catch (_) {
-        // Silently handle if UserController not available
+      } catch (e) {
+        debugPrint('⚠️ Error getting steps from UserController: $e');
       }
       
       // Start streak history in background (doesn't block UI)
-      streakService!.getStreakHistory().catchError((e) {
-        debugPrint('Error loading streak history: $e');
-        return null;
-      });
+      if (streakService != null) {
+        streakService!.getStreakHistory().catchError((e) {
+          debugPrint('Error loading streak history: $e');
+          return null;
+        });
+      }
       
       // Process meals data as soon as it's available
       MealsService().fetchDailyMeals(userId: userId, dateYYYYMMDD: dateStr, steps: steps)

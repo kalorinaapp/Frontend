@@ -12,9 +12,10 @@ import 'package:flutter/cupertino.dart'
         Text;
 import 'package:get/get.dart';
 import '../constants/app_constants.dart' show AppConstants;
+import '../onboarding/controller/onboarding.controller.dart' show OnboardingController;
 import '../providers/language_provider.dart' show LanguageProvider;
 import '../providers/theme_provider.dart' show ThemeProvider;
-import 'dart:convert';
+import 'dart:convert' show jsonDecode, base64Url, utf8;
 import '../utils/network.dart' show deleteAPI, getAPI, multiPostAPINew, putAPI;
 import '../utils/user.prefs.dart' show UserPrefs;
 
@@ -37,63 +38,128 @@ class UserController extends GetxController {
       userData.clear();
 
       await multiPostAPINew(
-        methodName: 'api/users',
+        methodName: 'api/auth/register',
         param: data,
-        callback: (response) {
+        callback: (response) async {
           try {
             isLoading.value = false;
             final decoded = response.response;
            
             final json = decoded is String ? jsonDecode(decoded) : decoded;
-            if (json['success'] == true) {
-              isSuccess.value = true;
-              userData.assignAll(json['user'] ?? {});
-
-              print('✅ Registration successful!');
-              print('📦 Full response: $json');
-              
-              // Save to shared prefs
+            
+            // Handle both response formats: with 'success' field or with 'user' and 'token' fields
+            final bool hasSuccess = json['success'] == true;
+            final bool hasUserAndToken = (json['user'] != null && json['token'] != null);
+            final bool isSuccessResponse = hasSuccess || hasUserAndToken;
+            
+            if (isSuccessResponse) {
+              // Extract user data
               final user = json['user'] ?? {};
               final token = json['token'] ?? '';
-              final refreshToken = token; // Use same token as refresh token if not provided separately
               
-              print('🔑 Extracted token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
-              print('👤 Extracted user ID: ${user['_id'] ?? user['id'] ?? 'NOT FOUND'}');
-              
-              // Create full name from firstName and lastName
-              final firstName = user['firstName'] ?? '';
-              final lastName = user['lastName'] ?? '';
-              final fullName = '$firstName $lastName'.trim();
-              
-              final userId = user['_id'] ?? user['id'] ?? '';
-              print('💾 Saving to SharedPreferences - ID: $userId');
-              
-              UserPrefs.saveUserData(
-                name: fullName.isNotEmpty ? fullName : user['email'] ?? '',
-                email: user['email'] ?? '',
-                token: token,
-                refreshToken: refreshToken,
-                id: userId,
-              );
+              // Only proceed if we have user data and token
+              if (user.isNotEmpty && token.isNotEmpty) {
+                isSuccess.value = true;
+                userData.assignAll(user);
 
-              AppConstants.userId = userId;
-              AppConstants.authToken = token;
-              
-              print('✅ AppConstants.userId set to: ${AppConstants.userId}');
-              print('✅ AppConstants.authToken set to: ${AppConstants.authToken.substring(0, AppConstants.authToken.length > 20 ? 20 : AppConstants.authToken.length)}...');
+                print('✅ Registration/Login successful!');
+                print('📦 Full response: $json');
+                
+                // Use same token as refresh token if not provided separately
+                final refreshToken = json['refreshToken'] ?? token;
+                
+                print('🔑 Extracted token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+                
+                // Try to extract user ID from multiple sources
+                String userId = '';
+                
+                // First, try to get from user object
+                final userObjectId = user['_id'] ?? user['id'];
+                if (userObjectId != null) {
+                  userId = userObjectId.toString();
+                }
+                
+                // If not found in user object, try to extract from JWT token
+                if (userId.isEmpty && token.isNotEmpty) {
+                  try {
+                    // JWT format: header.payload.signature
+                    final parts = token.split('.');
+                    if (parts.length == 3) {
+                      // Decode the payload (second part)
+                      String payload = parts[1];
+                      // Normalize base64url (same approach as user.prefs.dart)
+                      String normalized = base64Url.normalize(payload);
+                      final decodedBytes = base64Url.decode(normalized);
+                      final payloadJson = jsonDecode(utf8.decode(decodedBytes));
+                      if (payloadJson is Map<String, dynamic>) {
+                        final tokenId = payloadJson['id']?.toString();
+                        if (tokenId != null && tokenId.isNotEmpty) {
+                          userId = tokenId;
+                          print('🔍 Extracted user ID from JWT token: $userId');
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    print('⚠️ Could not extract ID from token: $e');
+                  }
+                }
+                
+                print('👤 Extracted user ID: ${userId.isNotEmpty ? userId : 'NOT FOUND'}');
+                
+                // Create full name from firstName and lastName
+                final firstName = user['firstName'] ?? '';
+                final lastName = user['lastName'] ?? '';
+                final fullName = '$firstName $lastName'.trim();
+                
+                print('💾 Saving to SharedPreferences - ID: $userId');
+                
+                // Save to shared prefs - AWAIT to ensure it completes
+                await UserPrefs.saveUserData(
+                  name: fullName.isNotEmpty ? fullName : (user['email'] ?? ''),
+                  email: user['email'] ?? '',
+                  token: token,
+                  refreshToken: refreshToken,
+                  id: userId,
+                );
+                
+                print('✅ Successfully saved user data to SharedPreferences');
 
-              // For new registrations, always navigate to home screen
-              Navigator.of(context).pushAndRemoveUntil(
-                CupertinoPageRoute(
-                  builder: (context) => HomeScreen(
-                    themeProvider: themeProvider, 
-                    languageProvider: languageProvider,
-                  ),
-                ),
-                (route) => false, // Remove all previous routes
-              );
+                // Set AppConstants
+                AppConstants.userId = userId;
+                AppConstants.authToken = token;
+                
+                print('✅ AppConstants.userId set to: ${AppConstants.userId}');
+                print('✅ AppConstants.authToken set to: ${AppConstants.authToken.substring(0, AppConstants.authToken.length > 20 ? 20 : AppConstants.authToken.length)}...');
+
+                // Check if this was a login or a new registration
+                final bool isLogin = json['isLogin'] == true;
+                print('🔐 isLogin flag: $isLogin');
+                
+                // If user is logging in, navigate directly to home screen (skip onboarding)
+                // If user is signing up, let onboarding continue (don't navigate here)
+                if (isLogin) {
+                  print('🔄 Redirecting to HomeScreen (existing user login)');
+                  Navigator.of(context).pushAndRemoveUntil(
+                    CupertinoPageRoute(
+                      builder: (context) => HomeScreen(
+                        themeProvider: themeProvider, 
+                        languageProvider: languageProvider,
+                      ),
+                    ),
+                    (route) => false, // Remove all previous routes
+                  );
+                } else {
+                  OnboardingController().goToNextPage();
+                  print('📝 New registration - continuing with onboarding');
+                }
+                // If isLogin is false, it's a new registration - onboarding will continue
+              } else {
+                errorMessage.value = 'Invalid response: missing user data or token.';
+                print('❌ Invalid response: user data or token is missing');
+              }
             } else {
               errorMessage.value = json['message'] ?? 'Registration failed.';
+              print('❌ Registration failed: ${errorMessage.value}');
             }
           } catch (e) {
             isLoading.value = false;

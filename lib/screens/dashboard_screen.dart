@@ -82,6 +82,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   final Set<String> _scheduledCardAnimations = <String>{};
   final Set<String> _visibleAnimatedCards = <String>{};
   
+  // Track last synced meal IDs to prevent unnecessary syncing
+  Set<String>? _lastSyncedMealIds;
+  DateTime? _lastSyncTime;
+  
   // Mock data - replace with real data from your backend
   final int dailyCalorieGoal = 2000;
   final int consumedCalories = 1000;
@@ -105,17 +109,25 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     }
     
     _initializeWeek();
-    _syncFromWidget();
+    _syncFromWidget(forceSyncMeals: true);
     _loadStreaksForWeek();
     _refreshProgressData();
     
-    // Animation setup removed as it's no longer needed
-
+    // Animation setup - delay to avoid blocking initial render
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      setState(() {
-        _cardAnimationsActivated = true;
+      // Batch animation activation to reduce setState calls
+      Future.microtask(() {
+        if (mounted) {
+          setState(() {
+            _cardAnimationsActivated = true;
+          });
+        }
       });
+      // Sync meals after first frame only if we have widget data
+      if (widget.todayMeals != null && widget.todayMeals!.isNotEmpty) {
+        _syncFromWidget(forceSyncMeals: true);
+      }
     });
   }
 
@@ -153,18 +165,18 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-      // This is called when returning to this screen
-      // Delay refresh to avoid clearing optimistic data immediately after creating food
+    // Only sync if significant time has passed (prevent excessive syncing)
+    // didChangeDependencies is called frequently, we need to throttle
+    final now = DateTime.now();
+    if (_lastSyncTime == null || now.difference(_lastSyncTime!).inSeconds > 2) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          // Small delay to allow optimistic update to settle
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              _refreshProgressData();
-            }
-          });
+        if (mounted && widget.todayMeals != null && widget.todayMeals!.isNotEmpty) {
+          // Only sync if meals actually exist and haven't been synced recently
+          _syncFromWidget(forceSyncMeals: false);
+          _lastSyncTime = DateTime.now();
         }
       });
+    }
   }
 
   void _initializeWeek() {
@@ -176,73 +188,121 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     weekDates = List.generate(7, (index) => monday.add(Duration(days: index)));
   }
 
-  void _syncFromWidget() {
-    // Don't sync if we already have local state - preserve existing content
-    // Only sync on first load when local state is empty
-    if (_localTodayMeals.isNotEmpty || _localTodayFoods.isNotEmpty) {
-      debugPrint('🔄 Dashboard: Skipping sync - local state already has data');
-      return;
+  void _syncFromWidget({bool forceSyncMeals = false}) {
+    // Check if we actually need to sync (optimization)
+    if (widget.todayMeals == null || widget.todayMeals!.isEmpty) {
+      if (_localTodayMeals.isEmpty) return; // Nothing to sync
+      if (!forceSyncMeals) return; // Don't clear if not forced
     }
     
-    // Remove duplicates when syncing from widget
-    final seenIds = <String>{};
-    final uniqueMeals = <Map<String, dynamic>>[];
-    
-    for (final meal in (widget.todayMeals ?? const [])) {
-      final mealCopy = Map<String, dynamic>.from(meal);
-      final mealId = _extractMealId(mealCopy);
+    // Check if meal IDs have changed (quick comparison before expensive sync)
+    if (!forceSyncMeals && _localTodayMeals.isNotEmpty) {
+      final currentMealIds = widget.todayMeals
+          ?.map((m) => _extractMealId(m))
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .toSet();
       
-      if (mealId != null && mealId.isNotEmpty) {
-        if (seenIds.contains(mealId)) {
-          // Skip duplicate with ID
-          continue;
+      if (currentMealIds != null && _lastSyncedMealIds != null) {
+        // If IDs haven't changed, skip sync
+        if (currentMealIds.length == _lastSyncedMealIds!.length &&
+            currentMealIds.every((id) => _lastSyncedMealIds!.contains(id))) {
+          return; // No changes detected
         }
-        seenIds.add(mealId);
       }
+    }
+    
+    // Always sync meals from widget if forceSyncMeals is true or if local state is empty
+    final shouldSyncMeals = forceSyncMeals || _localTodayMeals.isEmpty;
+    
+    if (shouldSyncMeals) {
+      // Remove duplicates when syncing from widget
+      final seenIds = <String>{};
+      final uniqueMeals = <Map<String, dynamic>>[];
       
-      // Also check for duplicates without IDs using timestamp and name
-      final createdAt = mealCopy['createdAt'] as String?;
-      final mealName = (mealCopy['mealName'] as String?)?.trim();
-      
-      if (createdAt != null && mealName != null && mealName.isNotEmpty) {
-        try {
-          final mealTime = DateTime.parse(createdAt);
-          final isDuplicate = uniqueMeals.any((existingMeal) {
-            final existingCreatedAt = existingMeal['createdAt'] as String?;
-            final existingMealName = (existingMeal['mealName'] as String?)?.trim();
-            
-            if (existingCreatedAt == null || existingMealName == null || existingMealName.isEmpty) {
-              return false;
-            }
-            
-            try {
-              final existingTime = DateTime.parse(existingCreatedAt);
-              final timeDiff = mealTime.difference(existingTime).abs().inSeconds;
-              return existingMealName == mealName && timeDiff <= 30;
-            } catch (_) {
-              return false;
-            }
-          });
+      if (widget.todayMeals != null && widget.todayMeals!.isNotEmpty) {
+        for (final meal in widget.todayMeals!) {
+          final mealCopy = Map<String, dynamic>.from(meal);
+          final mealId = _extractMealId(mealCopy);
           
-          if (isDuplicate) {
-            continue;
+          if (mealId != null && mealId.isNotEmpty) {
+            if (seenIds.contains(mealId)) {
+              // Skip duplicate with ID
+              continue;
+            }
+            seenIds.add(mealId);
           }
-        } catch (_) {
-          // If parsing fails, add it anyway
+          
+          // Also check for duplicates without IDs using timestamp and name
+          final createdAt = mealCopy['createdAt'] as String?;
+          final mealName = (mealCopy['mealName'] as String?)?.trim();
+          
+          if (createdAt != null && mealName != null && mealName.isNotEmpty) {
+            try {
+              final mealTime = DateTime.parse(createdAt);
+              final isDuplicate = uniqueMeals.any((existingMeal) {
+                final existingCreatedAt = existingMeal['createdAt'] as String?;
+                final existingMealName = (existingMeal['mealName'] as String?)?.trim();
+                
+                if (existingCreatedAt == null || existingMealName == null || existingMealName.isEmpty) {
+                  return false;
+                }
+                
+                try {
+                  final existingTime = DateTime.parse(existingCreatedAt);
+                  final timeDiff = mealTime.difference(existingTime).abs().inSeconds;
+                  return existingMealName == mealName && timeDiff <= 30;
+                } catch (_) {
+                  return false;
+                }
+              });
+              
+              if (isDuplicate) {
+                continue;
+              }
+            } catch (_) {
+              // If parsing fails, add it anyway
+            }
+          }
+          
+          uniqueMeals.add(mealCopy);
         }
       }
       
-      uniqueMeals.add(mealCopy);
+      // Only update if actually changed
+      final newMealIds = uniqueMeals
+          .map((m) => _extractMealId(m))
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .toSet();
+      
+      final hasChanged = _lastSyncedMealIds == null ||
+          _lastSyncedMealIds!.length != newMealIds.length ||
+          !newMealIds.every((id) => _lastSyncedMealIds!.contains(id));
+      
+      if (hasChanged && mounted) {
+        setState(() {
+          _localTodayMeals = uniqueMeals;
+          _lastSyncedMealIds = newMealIds;
+        });
+        debugPrint('🔄 Dashboard: Synced ${_localTodayMeals.length} meals from widget');
+      }
     }
     
-    _localTodayMeals = uniqueMeals;
-    _localTodayTotals = widget.todayTotals != null
-        ? Map<String, int>.from(widget.todayTotals!)
-        : null;
-    _localTodayExercises = (widget.todayExercises ?? const [])
-        .map((exercise) => Map<String, dynamic>.from(exercise))
-        .toList();
-    _recalculateLocalTotals(preferWidgetTotals: true);
+    // Only sync totals and exercises on first load
+    if (_localTodayTotals == null && widget.todayTotals != null) {
+      _localTodayTotals = Map<String, int>.from(widget.todayTotals!);
+    }
+    
+    if (_localTodayExercises.isEmpty && widget.todayExercises != null && widget.todayExercises!.isNotEmpty) {
+      _localTodayExercises = (widget.todayExercises ?? const [])
+          .map((exercise) => Map<String, dynamic>.from(exercise))
+          .toList();
+    }
+    
+    if (shouldSyncMeals) {
+      _recalculateLocalTotals(preferWidgetTotals: true);
+    }
   }
 
   void _applyLocalMealUpdate(Map<String, dynamic> updatedMeal) {
@@ -664,32 +724,54 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     required String id,
     required Widget child,
     int order = 0,
-    Duration duration = const Duration(milliseconds: 600),
+    Duration duration = const Duration(milliseconds: 400), // Reduced duration
   }) {
     final bool isVisible = _visibleAnimatedCards.contains(id);
 
     if (_cardAnimationsActivated && !isVisible && !_scheduledCardAnimations.contains(id)) {
       _scheduledCardAnimations.add(id);
-      Future<void>.delayed(Duration(milliseconds: 150 * order), () {
+      // Batch animations to reduce setState calls - group cards and animate together
+      final delay = order > 5 ? 0 : (order * 50); // Faster, batch after first few
+      Future<void>.delayed(Duration(milliseconds: delay), () {
         if (!mounted) return;
         if (_visibleAnimatedCards.contains(id)) return;
-        setState(() {
-          _visibleAnimatedCards.add(id);
-        });
+        
+        // Batch multiple card animations in a single setState
+        final cardsToShow = <String>[id];
+        // Find other scheduled cards that should animate at similar times
+        for (final cardId in _scheduledCardAnimations) {
+          if (cardId != id && !_visibleAnimatedCards.contains(cardId)) {
+            final cardOrder = int.tryParse(cardId.split('_').last) ?? 0;
+            if ((cardOrder - order).abs() <= 2) {
+              cardsToShow.add(cardId);
+            }
+          }
+        }
+        
+        if (mounted) {
+          setState(() {
+            _visibleAnimatedCards.addAll(cardsToShow);
+            _scheduledCardAnimations.removeAll(cardsToShow);
+          });
+        }
       });
     }
 
     final bool targetVisible = _visibleAnimatedCards.contains(id);
+
+    // Skip animation if not activated (better performance)
+    if (!_cardAnimationsActivated || targetVisible) {
+      return child;
+    }
 
     return AnimatedOpacity(
       key: ValueKey<String>('card_anim_$id'),
       opacity: targetVisible ? 1.0 : 0.0,
       duration: duration,
       curve: Curves.easeOut,
-      child: AnimatedSlide(
-        offset: targetVisible ? Offset.zero : const Offset(0, 0.15),
-        duration: duration,
-        curve: Curves.easeOut,
+      child: IgnorePointer(
+        // Disable interaction during animation
+        ignoring: !targetVisible,
         child: child,
       ),
     );
@@ -722,12 +804,43 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     } else if (!widget.isAnalyzing && oldWidget.isAnalyzing) {
       // Reset animation when analyzing stops
     }
-    // Only sync if we don't have local state - preserve existing content when switching tabs
-    if ((widget.todayMeals != oldWidget.todayMeals ||
-        widget.todayTotals != oldWidget.todayTotals ||
-        widget.todayExercises != oldWidget.todayExercises) &&
-        _localTodayMeals.isEmpty && _localTodayFoods.isEmpty) {
-      _syncFromWidget();
+    
+    // Sync meals only if list actually changed (check length and IDs, not reference)
+    bool mealsChanged = (widget.todayMeals?.length ?? 0) != (oldWidget.todayMeals?.length ?? 0);
+    if (!mealsChanged && widget.todayMeals != null && widget.todayMeals!.isNotEmpty) {
+      // Compare IDs to detect actual changes
+      final oldIds = oldWidget.todayMeals
+          ?.map((m) => _extractMealId(m))
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .toSet();
+      final newIds = widget.todayMeals
+          ?.map((m) => _extractMealId(m))
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .toSet();
+      if (oldIds != null && newIds != null) {
+        mealsChanged = oldIds.length != newIds.length ||
+            !oldIds.every((id) => newIds.contains(id));
+      }
+    }
+    
+    if (mealsChanged) {
+      _syncFromWidget(forceSyncMeals: true);
+    }
+    
+    // Sync totals and exercises only if they changed and we don't have local data
+    if (widget.todayTotals != oldWidget.todayTotals && _localTodayTotals == null) {
+      _localTodayTotals = widget.todayTotals != null
+          ? Map<String, int>.from(widget.todayTotals!)
+          : null;
+      _recalculateLocalTotals(preferWidgetTotals: true);
+    }
+    
+    if (widget.todayExercises != oldWidget.todayExercises && _localTodayExercises.isEmpty) {
+      _localTodayExercises = (widget.todayExercises ?? const [])
+          .map((exercise) => Map<String, dynamic>.from(exercise))
+          .toList();
     }
     
     // Only extract foods if progress data actually changed - avoid unnecessary updates
@@ -1326,8 +1439,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       // Removed optimistic scanned food card - only show after meal is saved
                       GetBuilder<ProgressService>(
                         builder: (progressService) {
-                          debugPrint('🔄 Dashboard GetBuilder: REBUILDING!');
-                          
                           // Extract foods directly from progress data for immediate rendering
                           final progressData = progressService.dailyProgressData;
                           List<Map<String, dynamic>> foodsFromProgress = [];
@@ -1342,6 +1453,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                               }).toList();
                               
                               // Update local state for totals calculation (async to avoid setState during build)
+                              // Only update if actually changed
                               if (_localTodayFoods.length != foodsFromProgress.length || 
                                   !_listEquals(_localTodayFoods, foodsFromProgress)) {
                                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1369,23 +1481,23 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             combined.addAll(_localTodayFoods);
                           }
                           
-                          debugPrint('🔍 Dashboard GetBuilder: Combined has ${combined.length} items (${_localTodayMeals.length} meals + ${combined.length - _localTodayMeals.length} foods)');
-                          
-                          // Sort by createdAt descending
-                          combined.sort((a, b) {
-                            final aCreated = a['createdAt'] as String?;
-                            final bCreated = b['createdAt'] as String?;
-                            if (aCreated == null && bCreated == null) return 0;
-                            if (aCreated == null) return 1;
-                            if (bCreated == null) return -1;
-                            try {
-                              final aDate = DateTime.parse(aCreated);
-                              final bDate = DateTime.parse(bCreated);
-                              return bDate.compareTo(aDate);
-                            } catch (_) {
-                              return 0;
-                            }
-                          });
+                          // Sort by createdAt descending (cached/computed once per build)
+                          if (combined.length > 1) {
+                            combined.sort((a, b) {
+                              final aCreated = a['createdAt'] as String?;
+                              final bCreated = b['createdAt'] as String?;
+                              if (aCreated == null && bCreated == null) return 0;
+                              if (aCreated == null) return 1;
+                              if (bCreated == null) return -1;
+                              try {
+                                final aDate = DateTime.parse(aCreated);
+                                final bDate = DateTime.parse(bCreated);
+                                return bDate.compareTo(aDate);
+                              } catch (_) {
+                                return 0;
+                              }
+                            });
+                          }
                           
                           if (combined.isNotEmpty) {
                             debugPrint('🍎 Dashboard GetBuilder: Rendering ${combined.length} cards');
@@ -1700,7 +1812,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       case 'fat':
         return Image.asset('assets/icons/fat.png', width: 16, height: 16);
       default:
-        return Icon(CupertinoIcons.circle_fill, size: 16, color: CupertinoColors.systemGrey);
+        return Image.asset('assets/icons/apple.png', width: 16, height: 16, color: ThemeHelper.textPrimary);
     }
   }
 
@@ -2274,6 +2386,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset(
+              color: iconPath == 'assets/icons/apple.png' ? ThemeHelper.textPrimary : null,
               iconPath,
               width: 12,
               height: 12,
@@ -2414,7 +2527,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     children: [
                       Column(
                         children: [
-                          _buildNutritionCard(calories.toString(), l10n.calories, 'assets/icons/carbs.png'),
+                          _buildNutritionCard(calories.toString(), l10n.calories, 'assets/icons/apple.png'),
                           const SizedBox(height: 4),
                           _buildNutritionCard(protein.toString(), l10n.protein, 'assets/icons/drumstick.png'),
                         ],
@@ -2576,7 +2689,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     children: [
                       Column(
                         children: [
-                          _buildNutritionCard(calories.toString(), l10n.calories, 'assets/icons/carbs.png'),
+                          _buildNutritionCard(calories.toString(), l10n.calories, 'assets/icons/apple.png'),
                           const SizedBox(height: 4),
                           _buildNutritionCard(protein.toString(), l10n.protein, 'assets/icons/drumstick.png'),
                         ],
