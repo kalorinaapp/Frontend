@@ -1391,19 +1391,21 @@ class _SettingsListCard extends StatelessWidget {
             onTap: _launchTermsAndConditions,
             child: _tile(AppLocalizations.of(context)!.termsAndConditions, 'assets/icons/terms.png'),
           ),
-          // Only show delete account and logout for non-guest users
+          // Only show delete account for non-guest users
           if (!isGuest) ...[
             GestureDetector(
               onTap: () => _showDeleteAccountConfirmation(context),
               child: _tile(AppLocalizations.of(context)!.deleteAccount, 'assets/icons/delete_account.png'),
             ),
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: () {
-                _handleLogout(context);
-              },
-              child: _tile(AppLocalizations.of(context)!.logout, 'assets/icons/logout.png', isLast: true)),
           ],
+          // Logout button is always visible for all users
+          const SizedBox(height: 20),
+          GestureDetector(
+            onTap: () {
+              _handleLogout(context);
+            },
+            child: _tile(AppLocalizations.of(context)!.logout, 'assets/icons/logout.png', isLast: true),
+          ),
         ],
       ),
     );

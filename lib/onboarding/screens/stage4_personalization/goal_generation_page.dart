@@ -30,6 +30,8 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
   late Animation<double> _fadeAnimation;
   late OnboardingController _controller;
 
+  bool _hasAutoNavigated = false;
+
   @override
   void initState() {
     super.initState();
@@ -59,20 +61,23 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
       ),
     );
 
-    // Hide navigation buttons
+    // Hide navigation buttons and start animations
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.showNavigation.value = false;
     });
 
     // Start animations
     Future.delayed(const Duration(milliseconds: 300), () {
-      _fadeController.forward();
-      _progressController.forward();
+      if (mounted) {
+        _fadeController.forward();
+        _progressController.forward();
+      }
     });
 
     // Navigate to next screen after completion
     Future.delayed(const Duration(milliseconds: 3500), () {
-      if (mounted) {
+      if (mounted && !_hasAutoNavigated) {
+        _hasAutoNavigated = true;
         _controller.showNavigation.value = true;
         _controller.goToNextPage();
       }

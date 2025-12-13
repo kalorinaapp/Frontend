@@ -30,7 +30,7 @@ class ThemeHelper {
       : const Color(0xFF1C1C1E); // Dark gray background like Cal AI
 
   static Color get cardBackground => isLightMode 
-      ? CupertinoColors.white 
+      ? CupertinoColors.extraLightBackgroundGray 
       : const Color(0xFF2C2C2E); // Elevated card color - sleek and modern
 
   static Color get textPrimary => isLightMode 

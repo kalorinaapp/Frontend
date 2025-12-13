@@ -388,7 +388,10 @@ class _AutomaticGenerationPageviewState extends State<AutomaticGenerationPagevie
       // If not logged in, navigate to CreateAccountPage
       Navigator.of(context).push(
         CupertinoPageRoute(
-          builder: (context) => CreateAccountPage(themeProvider: widget.themeProvider,),
+          builder: (context) => CreateAccountPage(
+            themeProvider: widget.themeProvider,
+            isAfterOnboardingCompletion: true, // Not part of initial onboarding flow
+          ),
         ),
       );
     }

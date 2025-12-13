@@ -62,42 +62,122 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // Build onboarding pages (rebuilt on theme changes)
   List<Widget> _buildPages() {
     return [
-      CreateAccountPage(themeProvider: widget.themeProvider),
-      CalorieTrackingExperiencePage(themeProvider: widget.themeProvider),
-      HowItWorksPage(themeProvider: widget.themeProvider),
+      CreateAccountPage(
+        key: const ValueKey('create_account'),
+        themeProvider: widget.themeProvider,
+        isAfterOnboardingCompletion: false, // First page of onboarding
+      ),
+      CalorieTrackingExperiencePage(
+        key: const ValueKey('calorie_tracking_experience'),
+        themeProvider: widget.themeProvider,
+      ),
+      HowItWorksPage(
+        key: const ValueKey('how_it_works'),
+        themeProvider: widget.themeProvider,
+      ),
       // GIFScreen(themeProvider: widget.themeProvider,),
-      GenderSelectionPage(themeProvider: widget.themeProvider),
-      WorkoutFrequencyPage(themeProvider: widget.themeProvider),
+      GenderSelectionPage(
+        key: const ValueKey('gender_selection'),
+        themeProvider: widget.themeProvider,
+      ),
+      WorkoutFrequencyPage(
+        key: const ValueKey('workout_frequency'),
+        themeProvider: widget.themeProvider,
+      ),
       // ScanMealsPage(themeProvider: widget.themeProvider),
-      HearAboutUsPage(themeProvider: widget.themeProvider),
-      CongratulationsPage(themeProvider: widget.themeProvider),
-      HeightWeightPage(themeProvider: widget.themeProvider),
-      BirthDatePage(themeProvider: widget.themeProvider),
-      GoalSelectionPage(themeProvider: widget.themeProvider),
-      DesiredWeightPage(themeProvider: widget.themeProvider),
-      WeightLossMotivationPage(themeProvider: widget.themeProvider),
-      WeightLossSpeedPage(themeProvider: widget.themeProvider),
-      DietaryPreferencePage(themeProvider: widget.themeProvider),
-      PersonalGoalsPage(themeProvider: widget.themeProvider),
-      ProgressMotivationPage(themeProvider: widget.themeProvider),
-      SupportMotivationPage(themeProvider: widget.themeProvider),
-      NotificationPermissionPage(themeProvider: widget.themeProvider),
-      CalorieCountingPage(themeProvider: widget.themeProvider),
-      CalorieTransferPage(themeProvider: widget.themeProvider),
-      ConsistencyHealthPage(themeProvider: widget.themeProvider),
-      RatingPage(themeProvider: widget.themeProvider),
-      ReferralPage(themeProvider: widget.themeProvider, userName: ''),
-      GoalGenerationPage(themeProvider: widget.themeProvider, userName: ''),
-      AllDonePage(themeProvider: widget.themeProvider),
+      HearAboutUsPage(
+        key: const ValueKey('hear_about_us'),
+        themeProvider: widget.themeProvider,
+      ),
+      CongratulationsPage(
+        key: const ValueKey('congratulations'),
+        themeProvider: widget.themeProvider,
+      ),
+      HeightWeightPage(
+        key: const ValueKey('height_weight'),
+        themeProvider: widget.themeProvider,
+      ),
+      BirthDatePage(
+        key: const ValueKey('birth_date'),
+        themeProvider: widget.themeProvider,
+      ),
+      GoalSelectionPage(
+        key: const ValueKey('goal_selection'),
+        themeProvider: widget.themeProvider,
+      ),
+      DesiredWeightPage(
+        key: const ValueKey('desired_weight'),
+        themeProvider: widget.themeProvider,
+      ),
+      WeightLossMotivationPage(
+        key: const ValueKey('weight_loss_motivation'),
+        themeProvider: widget.themeProvider,
+      ),
+      WeightLossSpeedPage(
+        key: const ValueKey('weight_loss_speed'),
+        themeProvider: widget.themeProvider,
+      ),
+      DietaryPreferencePage(
+        key: const ValueKey('dietary_preference'),
+        themeProvider: widget.themeProvider,
+      ),
+      PersonalGoalsPage(
+        key: const ValueKey('personal_goals'),
+        themeProvider: widget.themeProvider,
+      ),
+      ProgressMotivationPage(
+        key: const ValueKey('progress_motivation'),
+        themeProvider: widget.themeProvider,
+      ),
+      SupportMotivationPage(
+        key: const ValueKey('support_motivation'),
+        themeProvider: widget.themeProvider,
+      ),
+      NotificationPermissionPage(
+        key: const ValueKey('notification_permission'),
+        themeProvider: widget.themeProvider,
+      ),
+      CalorieCountingPage(
+        key: const ValueKey('calorie_counting'),
+        themeProvider: widget.themeProvider,
+      ),
+      CalorieTransferPage(
+        key: const ValueKey('calorie_transfer'),
+        themeProvider: widget.themeProvider,
+      ),
+      ConsistencyHealthPage(
+        key: const ValueKey('consistency_health'),
+        themeProvider: widget.themeProvider,
+      ),
+      RatingPage(
+        key: const ValueKey('rating'),
+        themeProvider: widget.themeProvider,
+      ),
+      ReferralPage(
+        key: const ValueKey('referral'),
+        themeProvider: widget.themeProvider,
+        userName: '',
+      ),
+      GoalGenerationPage(
+        key: const ValueKey('goal_generation'),
+        themeProvider: widget.themeProvider,
+        userName: '',
+      ),
+      AllDonePage(
+        key: const ValueKey('all_done'),
+        themeProvider: widget.themeProvider,
+      ),
     ];
   }
 
   void _handlePageLogic(int page) {
     // Add any special logic for specific pages here
     
-    // Hide navigation for goal generation page
+    // Hide navigation for goal generation page only on first visit
+    // Check if coming from AllDonePage (page 24) - if so, keep navigation visible
     if (page == 23) { // GoalGenerationPage index
-      _controller.showNavigation.value = false;
+      // Only hide navigation if we're progressing forward (not going back)
+      // This is handled inside GoalGenerationPage itself
     } else {
       _controller.showNavigation.value = true;
     }
@@ -320,8 +400,18 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       final int currentPage = _controller.currentPage.value;
       final String? goal = _controller.getStringData('goal');
       
+      // If on AllDonePage (24) or GoalGenerationPage (23), skip GoalGenerationPage and go directly to ReferralPage (22)
+      if (currentPage == 24 || currentPage == 23) {
+        // Jump back to ReferralPage (22), skipping GoalGenerationPage
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(22);
+        }
+        _controller.currentPage.value = 22;
+        _controller.validatePage(22);
+        _handlePageLogic(22);
+      }
       // If on dietary preference page (14) and came from goal selection (maintain_weight), go back to page 10
-      if (currentPage == 13 && goal == 'maintain_weight') {
+      else if (currentPage == 13 && goal == 'maintain_weight') {
         // Jump back to page 10, bypassing pages 13, 12, and 11
         if (_pageController.hasClients) {
           _pageController.jumpToPage(9);
@@ -521,7 +611,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       debugPrint('⚠️ User not authenticated: navigating to CreateAccountPage');
       Navigator.of(context).push(
         CupertinoPageRoute(
-          builder: (context) => CreateAccountPage(themeProvider: widget.themeProvider),
+          builder: (context) => CreateAccountPage(
+            themeProvider: widget.themeProvider,
+            isAfterOnboardingCompletion: true, // Shown after completing onboarding
+          ),
         ),
       );
       return;

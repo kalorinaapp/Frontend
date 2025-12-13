@@ -88,13 +88,110 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
     
     _animationController.forward();
     
+    // Load saved values AFTER build phase to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      
-      
-      // Initialize with default values
-      _controller.setDoubleData('desired_weight', _currentWeight);
-      _controller.setBoolData('weight_unit_lbs', _isLbs);
+      if (mounted) {
+        _loadSavedValues();
+      }
     });
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload values when navigating back to this page - use microtask to avoid build issues
+    Future.microtask(() {
+      if (mounted) {
+        _loadSavedValues();
+      }
+    });
+  }
+  
+  void _loadSavedValues() {
+    if (!mounted) return;
+    
+    // Get the main unit system (from height/weight page)
+    final bool isMetric = _controller.getBoolData('is_metric') ?? true;
+    
+    // Load saved desired weight if it exists
+    final double? savedDesiredWeight = _controller.getDoubleData('desired_weight');
+    final bool? savedUnitLbs = _controller.getBoolData('weight_unit_lbs');
+    
+    // Get current weight to set a sensible default
+    final int? currentWeightInt = _controller.getIntData('weight');
+    
+    bool needsUpdate = false;
+    
+    if (savedDesiredWeight != null && savedUnitLbs != null) {
+      // Load saved values
+      if (_currentWeight != savedDesiredWeight || _isLbs != savedUnitLbs) {
+        _currentWeight = savedDesiredWeight;
+        _isLbs = savedUnitLbs;
+        needsUpdate = true;
+      }
+    } else if (currentWeightInt != null) {
+      // No saved desired weight, set default based on current weight and unit system
+      _isLbs = !isMetric; // If metric, use kg; if imperial, use lbs
+      if (isMetric) {
+        // Current weight is in kg, set desired weight slightly less (for weight loss) or more (for gain)
+        _currentWeight = (currentWeightInt * 0.95).toDouble(); // 5% less as default
+      } else {
+        // Current weight is in lbs, convert to lbs for desired
+        _currentWeight = (currentWeightInt * 0.95).toDouble(); // 5% less as default
+      }
+      // Save the initialized values (defer to avoid build issues)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _controller.setDoubleData('desired_weight', _currentWeight);
+          _controller.setBoolData('weight_unit_lbs', _isLbs);
+        }
+      });
+      needsUpdate = true;
+    } else {
+      // No current weight either, use defaults
+      _isLbs = !isMetric;
+      _currentWeight = _isLbs ? 130.0 : 59.0;
+      // Save the defaults (defer to avoid build issues)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _controller.setDoubleData('desired_weight', _currentWeight);
+          _controller.setBoolData('weight_unit_lbs', _isLbs);
+        }
+      });
+      needsUpdate = true;
+    }
+    
+    // Sync unit with main unit system if different
+    if (_isLbs == isMetric) {
+      // Unit mismatch - convert desired weight to match main unit system
+      if (isMetric && _isLbs) {
+        // Main is metric (kg), but desired is in lbs - convert to kg
+        _currentWeight = _currentWeight * _lbsToKg;
+        _isLbs = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _controller.setDoubleData('desired_weight', _currentWeight);
+            _controller.setBoolData('weight_unit_lbs', false);
+          }
+        });
+        needsUpdate = true;
+      } else if (!isMetric && !_isLbs) {
+        // Main is imperial (lbs), but desired is in kg - convert to lbs
+        _currentWeight = _currentWeight * _kgToLbs;
+        _isLbs = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _controller.setDoubleData('desired_weight', _currentWeight);
+            _controller.setBoolData('weight_unit_lbs', true);
+          }
+        });
+        needsUpdate = true;
+      }
+    }
+    
+    if (needsUpdate && mounted) {
+      setState(() {});
+    }
   }
   
   @override
@@ -192,6 +289,235 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
       default:
         return localizations.whatIsDesiredWeight;
     }
+  }
+
+  void _showWeightInputBottomSheet(BuildContext context, AppLocalizations localizations) {
+    final TextEditingController textController = TextEditingController(
+      text: _currentWeight.toStringAsFixed(1),
+    );
+    final FocusNode focusNode = FocusNode();
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            bool isValid = true;
+            String errorMessage = '';
+
+            void _validateInput(String value) {
+              if (value.isEmpty) {
+                setModalState(() {
+                  isValid = false;
+                  errorMessage = 'Please enter a weight';
+                });
+                return;
+              }
+
+              final double? parsed = double.tryParse(value);
+              final double minWeight = _getMinWeight();
+              final double maxWeight = _getMaxWeight();
+              
+              if (parsed != null && parsed >= minWeight && parsed <= maxWeight) {
+                setModalState(() {
+                  isValid = true;
+                  errorMessage = '';
+                });
+                // Don't update parent state while typing - only validate
+                // This prevents the text field from being reset
+              } else {
+                setModalState(() {
+                  isValid = false;
+                  errorMessage = 'Please enter a value between ${minWeight.toStringAsFixed(1)} and ${maxWeight.toStringAsFixed(1)} ${_isLbs ? 'lbs' : 'kg'}';
+                });
+              }
+            }
+            
+            void _confirmWeight(double weight) {
+              _updateWeight(weight);
+              Navigator.of(context).pop();
+            }
+
+            // Focus the text field when bottom sheet appears (only once)
+            // Don't auto-select text to allow user to type freely
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (focusNode.canRequestFocus) {
+                focusNode.requestFocus();
+              }
+            });
+
+            return Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: ThemeHelper.cardBackground,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 24),
+                        decoration: BoxDecoration(
+                          color: ThemeHelper.divider,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    
+                    // Title
+                    Text(
+                      localizations.whatIsDesiredWeight,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    // Subtitle
+                    Text(
+                      _isLbs ? 'Enter weight in lbs' : 'Enter weight in kg',
+                      style: TextStyle(
+                        color: ThemeHelper.textSecondary,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Text Field
+                    CupertinoTextField(
+                      controller: textController,
+                      focusNode: focusNode,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: ThemeHelper.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isValid ? ThemeHelper.divider : CupertinoColors.systemRed,
+                          width: 2,
+                        ),
+                      ),
+                      suffix: Padding(
+                        padding: const EdgeInsets.only(left: 12, right: 16),
+                        child: Text(
+                          _isLbs ? 'lbs' : 'kg',
+                          style: TextStyle(
+                            color: ThemeHelper.textSecondary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        _validateInput(value);
+                      },
+                      onSubmitted: (value) {
+                        final double? parsed = double.tryParse(value);
+                        final double minWeight = _getMinWeight();
+                        final double maxWeight = _getMaxWeight();
+                        
+                        if (parsed != null && parsed >= minWeight && parsed <= maxWeight) {
+                          _confirmWeight(parsed);
+                        }
+                      },
+                    ),
+                    
+                    // Error message
+                    if (!isValid && errorMessage.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          errorMessage,
+                          style: TextStyle(
+                            color: CupertinoColors.systemRed,
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoButton(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            color: ThemeHelper.background,
+                            borderRadius: BorderRadius.circular(12),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              localizations.cancel,
+                              style: TextStyle(
+                                color: ThemeHelper.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CupertinoButton(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            color: isValid ? ThemeHelper.textPrimary : CupertinoColors.systemGrey,
+                            borderRadius: BorderRadius.circular(12),
+                            onPressed: isValid
+                                ? () {
+                                    final double? parsed = double.tryParse(textController.text);
+                                    final double minWeight = _getMinWeight();
+                                    final double maxWeight = _getMaxWeight();
+                                    
+                                    if (parsed != null && parsed >= minWeight && parsed <= maxWeight) {
+                                      _confirmWeight(parsed);
+                                    }
+                                  }
+                                : null,
+                            child: Text(
+                              localizations.ok,
+                              style: TextStyle(
+                                color: isValid ? ThemeHelper.background : CupertinoColors.systemGrey2,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    SizedBox(height: MediaQuery.of(context).padding.bottom),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -299,16 +625,19 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
         
         const SizedBox(height: 10),
         
-        // Current weight display
+        // Current weight display (tappable to open bottom sheet)
         PageAnimations.animatedContent(
           animation: _weightDisplayAnimation,
-          child: Center(
-            child: Text(
-              _formatWeight(_currentWeight),
-              style: ThemeHelper.title1.copyWith(
-                color: ThemeHelper.textPrimary,
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
+          child: GestureDetector(
+            onTap: () => _showWeightInputBottomSheet(context, localizations),
+            child: Center(
+              child: Text(
+                _formatWeight(_currentWeight),
+                style: ThemeHelper.title1.copyWith(
+                  color: ThemeHelper.textPrimary,
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

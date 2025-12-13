@@ -46,6 +46,12 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
     super.initState();
     _controller = Get.find<OnboardingController>();
     
+    // Load saved speed if it exists
+    final double? savedSpeed = _controller.getDoubleData('weight_loss_speed');
+    if (savedSpeed != null && savedSpeed >= _minSpeed && savedSpeed <= _maxSpeed) {
+      _currentSpeed = savedSpeed;
+    }
+    
     // Initialize animations
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1100),
@@ -80,10 +86,26 @@ class _WeightLossSpeedPageState extends State<WeightLossSpeedPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.setDoubleData('weight_loss_speed', _currentSpeed);
       debugPrint('========== Weight Loss Speed Page Initialized ==========');
-      debugPrint('Default Speed: $_currentSpeed kg/week');
+      debugPrint('Current Speed: $_currentSpeed kg/week');
       debugPrint('==========================================');
     });
-   
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload speed when navigating back to this page - use microtask to avoid build issues
+    Future.microtask(() {
+      if (!mounted) return;
+      final double? savedSpeed = _controller.getDoubleData('weight_loss_speed');
+      if (savedSpeed != null && savedSpeed >= _minSpeed && savedSpeed <= _maxSpeed) {
+        if (_currentSpeed != savedSpeed) {
+          setState(() {
+            _currentSpeed = savedSpeed;
+          });
+        }
+      }
+    });
   }
   
   @override

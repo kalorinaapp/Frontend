@@ -16,7 +16,10 @@ class GoalSelectionPage extends StatefulWidget {
 }
 
 class _GoalSelectionPageState extends State<GoalSelectionPage> 
-    with SingleTickerProviderStateMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
+  @override
+  bool get wantKeepAlive => true;
+  
   late OnboardingController _controller;
   late AnimationController _animationController;
   late Animation<double> _titleAnimation;
@@ -65,6 +68,7 @@ class _GoalSelectionPageState extends State<GoalSelectionPage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     final localizations = AppLocalizations.of(context)!;
     
     return Container(

@@ -84,7 +84,15 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
     final bool isDesiredLbs = _controller.getBoolData('weight_unit_lbs') ?? true;
     final String? goal = _controller.getStringData('goal');
     
+    debugPrint('🔍 Weight Change Calculation:');
+    debugPrint('   Current Weight (int): $currentWeightInt');
+    debugPrint('   Desired Weight (double): $desiredWeight');
+    debugPrint('   Current Unit (isMetric): $isCurrentMetric');
+    debugPrint('   Desired Unit (isLbs): $isDesiredLbs');
+    debugPrint('   Goal: $goal');
+    
     if (currentWeightInt == null || desiredWeight == null) {
+      debugPrint('   ⚠️ Missing weight data, returning default');
       return isDesiredLbs ? 5.0 : 2.3; // Default fallback based on unit
     }
     
@@ -92,29 +100,46 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
     double currentWeight = currentWeightInt.toDouble();
     double desiredWeightNormalized = desiredWeight;
     
-    // Ensure both weights are in the same unit (let's use the desired weight's unit)
-    // If current is metric (kg) but desired is lbs, convert current to lbs
-    // If current is imperial (lbs) but desired is kg, convert current to kg
-    if (isCurrentMetric && isDesiredLbs) {
-      // Current is in kg, desired is in lbs - convert current to lbs
-      currentWeight = currentWeight * 2.20462;
-    } else if (!isCurrentMetric && !isDesiredLbs) {
-      // Current is in lbs, desired is in kg - convert current to kg
+    // Convert both weights to kg for consistent calculation, then convert back to desired unit
+    // Step 1: Convert current weight to kg
+    if (!isCurrentMetric) {
+      // Current weight is in lbs, convert to kg
       currentWeight = currentWeight * 0.453592;
+      debugPrint('   Converted current weight from lbs to kg: $currentWeight kg');
     }
-    // If both are in the same unit system, no conversion needed
     
-    // For lose_weight: positive number (current - desired)
-    // For gain_weight: positive number (desired - current)
+    // Step 2: Convert desired weight to kg
+    if (isDesiredLbs) {
+      // Desired weight is in lbs, convert to kg
+      desiredWeightNormalized = desiredWeightNormalized * 0.453592;
+      debugPrint('   Converted desired weight from lbs to kg: $desiredWeightNormalized kg');
+    }
+    
+    // Step 3: Calculate difference in kg
+    double weightChangeKg = 0.0;
     if (goal == 'lose_weight') {
-      final double weightLoss = currentWeight - desiredWeightNormalized;
-      return weightLoss > 0 ? weightLoss : 0.0;
+      weightChangeKg = currentWeight - desiredWeightNormalized;
+      debugPrint('   Weight loss (kg): $weightChangeKg kg');
     } else if (goal == 'gain_weight') {
-      final double weightGain = desiredWeightNormalized - currentWeight;
-      return weightGain > 0 ? weightGain : 0.0;
+      weightChangeKg = desiredWeightNormalized - currentWeight;
+      debugPrint('   Weight gain (kg): $weightChangeKg kg');
+    } else {
+      // maintain_weight - should be 0
+      weightChangeKg = 0.0;
+      debugPrint('   Maintaining weight: 0 kg');
     }
     
-    return isDesiredLbs ? 5.0 : 2.3; // Default fallback based on unit
+    // Step 4: Convert result back to desired unit system if needed
+    double result = weightChangeKg > 0 ? weightChangeKg : 0.0;
+    if (isDesiredLbs) {
+      // Convert kg back to lbs for display
+      result = result * 2.20462;
+      debugPrint('   Final result (lbs): $result lbs');
+    } else {
+      debugPrint('   Final result (kg): $result kg');
+    }
+    
+    return result;
   }
   
   String _getWeightChangeSign() {

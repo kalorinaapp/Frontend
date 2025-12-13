@@ -205,10 +205,10 @@ class _RatingPageState extends State<RatingPage>
                         ),
                         // Reviewer image - positioned below, appears in front
                         Positioned(
-                          top: 80,
+                          top: 68,
                           child: SizedBox(
-                            width: 200,
-                            height: 200,
+                            width: 210,
+                            height: 300,
                             child: Image.asset(
                               "assets/images/reviewer_1.png",
                               fit: BoxFit.cover,
@@ -218,7 +218,7 @@ class _RatingPageState extends State<RatingPage>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 72),
                   // Headline under image
                   Text(
                     l10n.joinOver10000People,

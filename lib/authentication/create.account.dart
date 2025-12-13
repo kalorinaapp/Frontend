@@ -27,11 +27,13 @@ import '../../providers/language_provider.dart';
 class CreateAccountPage extends StatefulWidget {
   final ThemeProvider themeProvider;
   final bool isLogin;
+  final bool isAfterOnboardingCompletion; // True when shown after completing onboarding
 
   const CreateAccountPage({
     super.key, 
     required this.themeProvider,
     this.isLogin = false,
+    this.isAfterOnboardingCompletion = false, // Default to false (first page of onboarding)
   });
 
   @override
@@ -58,6 +60,9 @@ class _CreateAccountPageState extends State<CreateAccountPage>
   @override
   void initState() {
     super.initState();
+    
+    // Ensure loading state is false when page initializes
+    _isLoading = false;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _onboardingController = Get.find<OnboardingController>();
@@ -75,6 +80,11 @@ class _CreateAccountPageState extends State<CreateAccountPage>
 
     _controller = Get.find<OnboardingController>();
     _userController = Get.put(UserController());
+    
+    // Reset UserController loading state if it's stuck in loading
+    if (_userController.isLoading.value) {
+      _userController.isLoading.value = false;
+    }
 
     _fadeController = AnimationController(
       vsync: this,
@@ -87,8 +97,25 @@ class _CreateAccountPageState extends State<CreateAccountPage>
 
     // Start animation when page loads
     Future.delayed(const Duration(milliseconds: 100), () {
-      _fadeController.forward();
+      if (mounted) {
+        _fadeController.forward();
+      }
     });
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reset loading state when page becomes visible (handles PageView reuse)
+    if (_isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      });
+    }
   }
 
 
@@ -695,10 +722,14 @@ class _CreateAccountPageState extends State<CreateAccountPage>
                          onTap: () async {
                            if (widget.isLogin) {
                              // For login screen, navigate to home screen without authentication
-                             _onboardingController.goToNextPage();
-                           } else {
-                             // For sign up screen, register as guest
+                             _controller.goToNextPage();
+                           } else if (widget.isAfterOnboardingCompletion) {
+                             // Only register as guest if this page is shown AFTER completing onboarding
+                             // (not when it's the first page of onboarding)
                              await _handleGuestRegistration();
+                           } else {
+                             // For first page of onboarding, just go to next page
+                             _controller.goToNextPage();
                            }
                          },
                          child: Text(
@@ -973,8 +1004,14 @@ class _CreateAccountPageState extends State<CreateAccountPage>
       
       print('✅ Guest registration API call completed');
       
-      // Hide loading on success
+      // Hide loading
       _setLoading(false);
+      
+      // Navigate to next page of onboarding after guest registration (regardless of success)
+      // Guest mode should allow continuing even if registration has issues
+      if (mounted) {
+        _controller.goToNextPage();
+      }
     } catch (e, stackTrace) {
       // Hide loading on error
       _setLoading(false);
