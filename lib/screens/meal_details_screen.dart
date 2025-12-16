@@ -2,8 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart' show SvgPicture;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
+import 'package:get/get.dart';
 import '../constants/app_constants.dart' show AppConstants;
 import '../services/meals_service.dart';
+import '../controllers/home_screen_controller.dart';
 import 'ingredient_details_screen.dart';
 import 'edit_meal_name_screen.dart';
 import 'edit_macro_screen.dart';
@@ -28,6 +30,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
   int _servingAmount = 1;
   bool _isSaving = false;
   bool _isScannedMeal = false;
+  bool _isBookmarked = false;
   static const String _manualAdjustmentLabel = 'Manual Adjustment';
 
   @override
@@ -35,12 +38,19 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     super.initState();
     _currentMealData = Map<String, dynamic>.from(widget.mealData);
     
-    // Check if this is a scanned meal that needs to be saved
+    // Check if this is a scanned meal that could be saved
     final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
     final isScanned = _currentMealData['isScanned'] ?? false;
     _isScannedMeal = (mealId == null && isScanned);
-    
-    // Auto-save scanned meals in the background
+
+    // Determine initial bookmark state:
+    // - Prefer explicit isBookmarked from backend if present
+    // - Default to false for all meals unless backend explicitly sets it to true
+    // - This ensures meals only appear on dashboard when user explicitly bookmarks them
+    _isBookmarked = (_currentMealData['isBookmarked'] as bool?) ?? false;
+
+    // Auto-save newly scanned meals once on init so they are persisted,
+    // while the bookmark flag only controls whether they are shown on dashboard.
     if (_isScannedMeal) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _saveScannedMeal();
@@ -50,6 +60,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
 
   Future<Map<String, dynamic>?> _saveScannedMeal() async {
     if (_isSaving) return null; // Prevent multiple saves
+    
+    if (!mounted) return null; // Widget already disposed
     
     setState(() {
       _isSaving = true;
@@ -110,7 +122,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
         debugPrint('MealDetailsScreen: Scanned meal saved successfully - Response: $response');
         
         // Update local meal data with the response from server, but preserve entries and image
-        if (response['meal'] != null) {
+        if (response['meal'] != null && mounted) {
           setState(() {
             final serverMeal = Map<String, dynamic>.from(response['meal'] as Map<String, dynamic>);
             // Preserve original entries and image before merging
@@ -143,9 +155,118 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       debugPrint('MealDetailsScreen: Error saving scanned meal: $e');
       return null;
     } finally {
-      setState(() {
-        _isSaving = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleBookmark() async {
+    if (_isSaving) return;
+
+    final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+    final bool wasBookmarked = _isBookmarked;
+
+    // Optimistically toggle bookmark UI and local data
+    setState(() {
+      _isBookmarked = !wasBookmarked;
+      _currentMealData['isBookmarked'] = _isBookmarked;
+    });
+
+    // Helper to get controller if available
+    HomeScreenController? controller;
+    if (Get.isRegistered<HomeScreenController>()) {
+      controller = Get.find<HomeScreenController>();
+    }
+
+    // Turning bookmark ON: add to dashboard immediately
+    if (!wasBookmarked) {
+      // Add to dashboard optimistically
+      if (controller != null) {
+        // Use direct add to avoid API call - we already have all the data
+        final mealToAdd = Map<String, dynamic>.from(_currentMealData);
+        
+        // Check if meal is already in the dashboard to avoid duplicates
+        final existingIndex = controller.todayMeals.indexWhere((m) {
+          if (mealId != null) {
+            final mId = m['id'] ?? m['_id'];
+            return mId != null && mId.toString() == mealId.toString();
+          }
+          // For meals without ID, match by createdAt and mealName
+          final mCreatedAt = m['createdAt'] as String?;
+          final mName = (m['mealName'] as String?)?.trim();
+          final thisCreatedAt = _currentMealData['createdAt'] as String?;
+          final thisName = (_currentMealData['mealName'] as String?)?.trim();
+          return mCreatedAt == thisCreatedAt && mName == thisName;
+        });
+        
+        if (existingIndex >= 0) {
+          // Update existing entry
+          controller.todayMeals[existingIndex] = mealToAdd;
+          controller.todayMeals.refresh();
+        } else {
+          // Add new entry at the beginning (most recent first)
+          controller.todayMeals.insert(0, mealToAdd);
+          controller.todayMeals.refresh();
+        }
+      }
+
+      // Save to backend
+      if (mealId == null) {
+        // New meal without ID - save it first
+        final savedMeal = await _saveScannedMeal();
+        if (savedMeal != null && mounted) {
+          setState(() {
+            // Merge saved meal data (including ID) into current meal
+            _currentMealData
+              ..addAll(savedMeal)
+              ..['isScanned'] = (_currentMealData['isScanned'] as bool?) ?? true;
+          });
+          
+          // Update the dashboard entry with the saved meal data (now has ID)
+          if (controller != null) {
+            final index = controller.todayMeals.indexWhere((m) {
+              // Find the meal we just added (no ID yet)
+              final mId = m['id'] ?? m['_id'];
+              if (mId != null) return false;
+              final mCreatedAt = m['createdAt'] as String?;
+              final mName = (m['mealName'] as String?)?.trim();
+              final thisCreatedAt = _currentMealData['createdAt'] as String?;
+              final thisName = (_currentMealData['mealName'] as String?)?.trim();
+              return mCreatedAt == thisCreatedAt && mName == thisName;
+            });
+            if (index >= 0) {
+              controller.todayMeals[index] = Map<String, dynamic>.from(_currentMealData);
+              controller.todayMeals.refresh();
+            }
+          }
+        }
+      } else {
+        // Existing meal with ID - just update backend
+        await _updateMeal();
+      }
+    } else {
+      // Turning bookmark OFF: remove from dashboard immediately
+      if (controller != null) {
+        controller.todayMeals.removeWhere((m) {
+          if (mealId != null) {
+            final mId = m['id'] ?? m['_id'];
+            return mId != null && mId.toString() == mealId.toString();
+          }
+          // For meals without ID, match by createdAt and mealName
+          final mCreatedAt = m['createdAt'] as String?;
+          final mName = (m['mealName'] as String?)?.trim();
+          final thisCreatedAt = _currentMealData['createdAt'] as String?;
+          final thisName = (_currentMealData['mealName'] as String?)?.trim();
+          return mCreatedAt == thisCreatedAt && mName == thisName;
+        });
+        controller.todayMeals.refresh();
+      }
+      
+      // Update backend
+      await _updateMeal();
     }
   }
 
@@ -157,6 +278,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       final mealType = _currentMealData['mealType'] ?? '';
       final mealName = _currentMealData['mealName'] ?? '';
       final isScanned = _currentMealData['isScanned'] ?? false;
+      final isBookmarked = _currentMealData['isBookmarked'] ?? _isBookmarked;
       
       // For scanned meals, only save when explicitly requested (Save button pressed)
       if (isScanned && mealId == null) {
@@ -241,6 +363,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           entries: entries,
           notes: _currentMealData['notes'] ?? '',
           isScanned: isScanned,
+          isBookmarked: isBookmarked,
           totalCalories: totals['calories'],
           totalProtein: totals['protein'],
           totalCarbs: totals['carbs'],
@@ -550,48 +673,65 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 // Amount badge
-                                GestureDetector(
-                                  onTap: () => _showEditAmountSheet(context),
-                                  child: Container(
-                                    height: 30,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: ThemeHelper.background,
-                                      borderRadius: BorderRadius.circular(13),
-                                      boxShadow: isDark
-                                          ? []
-                                          : [
-                                              BoxShadow(
-                                                color: ThemeHelper.textPrimary.withOpacity(0.25),
-                                                blurRadius: 5,
-                                                offset: Offset(0, 0),
-                                                spreadRadius: 1,
+                                Column(
+                                  children: [
+                                    const SizedBox(height: 12),
+                                    GestureDetector(
+                                      onTap: () => _showEditAmountSheet(context),
+                                      child: Container(
+                                        height: 30,
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: ThemeHelper.background,
+                                          borderRadius: BorderRadius.circular(13),
+                                          boxShadow: isDark
+                                              ? []
+                                              : [
+                                                  BoxShadow(
+                                                    color: ThemeHelper.textPrimary.withOpacity(0.25),
+                                                    blurRadius: 5,
+                                                    offset: Offset(0, 0),
+                                                    spreadRadius: 1,
+                                                  ),
+                                                ],
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              '$_servingAmount',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: ThemeHelper.textPrimary,
                                               ),
-                                            ],
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Icon(
+                                              CupertinoIcons.pencil,
+                                              size: 14,
+                                              color: ThemeHelper.textPrimary,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          '$_servingAmount',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: ThemeHelper.textPrimary,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Icon(
-                                          CupertinoIcons.pencil,
-                                          size: 14,
-                                          color: ThemeHelper.textPrimary,
-                                        ),
-                                      ],
+                                  ],
+                                ),
+                                const Spacer(),
+                                
+                                Align(
+                                  alignment: Alignment.topRight,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 12.0),
+                                    child: GestureDetector(
+                                      onTap: _toggleBookmark,
+                                      child: Icon( _isBookmarked ? CupertinoIcons.bookmark_fill : CupertinoIcons.bookmark, size: 18, color: _isBookmarked ? const Color(0xFFFACC15) : ThemeHelper.textPrimary),
                                     ),
                                   ),
                                 ),
-                                const Spacer(),
+                                const SizedBox(width: 12),
                               ],
                             ),
                           ),

@@ -91,13 +91,13 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                   Text(
                     AppLocalizations.of(context)!.setYourGoals,
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: ThemeHelper.textPrimary,
                     ),
                   ),
                   
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 19),
                   
                   // Kalorije Goal Card
                   _isLoading 
@@ -109,7 +109,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                         CupertinoColors.systemGrey2,
                       ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   
                   // Ugljikohidrati Goal Card
                   _isLoading 
@@ -121,7 +121,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                         CupertinoColors.systemOrange,
                       ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   
                   // Proteini Goal Card
                   _isLoading 
@@ -133,7 +133,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                         CupertinoColors.systemBlue,
                       ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   
                   // Masti Goal Card
                   _isLoading 
@@ -221,36 +221,36 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: const EdgeInsets.fromLTRB(10, 7, 10, 5),
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 8,
               fontWeight: FontWeight.w500,
               color: ThemeHelper.textSecondary,
             ),
           ),
         ),
         Container(
-          width: MediaQuery.of(context).size.width * 0.55,
+          width: MediaQuery.of(context).size.width * 0.33,
           decoration: BoxDecoration(
             color: ThemeHelper.cardBackground,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(7),
           ),
           child: Shimmer.fromColors(
             baseColor: ThemeHelper.divider,
             highlightColor: ThemeHelper.cardBackground,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
               child: Row(
                 children: [
                   // Shimmer placeholder for value
                   Expanded(
                     child: Container(
-                      height: 32,
+                      height: 19,
                       decoration: BoxDecoration(
                         color: ThemeHelper.background,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
@@ -259,8 +259,8 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                   Center(
                     child: Image.asset(
                       assetName, 
-                      width: assetName == 'assets/icons/apple.png' ? 25 : 24, 
-                      height: assetName == 'assets/icons/apple.png' ? 25 : 24,
+                      width: assetName == 'assets/icons/apple.png' ? 15 : 14, 
+                      height: assetName == 'assets/icons/apple.png' ? 15 : 14,
                       color: assetName == 'assets/icons/apple.png' ? ThemeHelper.textPrimary : null,
                     ),
                   ),
@@ -278,11 +278,11 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(10, 7, 10, 5),
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 8,
                 fontWeight: FontWeight.w500,
                 color: ThemeHelper.textSecondary,
               ),
@@ -291,17 +291,17 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
         GestureDetector(
           onTap: () => _navigateToEditMacro(label, assetName, dataKey, color),
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.55,
+            width: MediaQuery.of(context).size.width * 0.33,
             decoration: BoxDecoration(
               color: ThemeHelper.cardBackground,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(7),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Value and icon section
                 Container(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                   child: Row(
                     children: [
                       // Value display using GetBuilder with null safety
@@ -329,7 +329,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                             return Text(
                               value.toString(),
                               style: TextStyle(
-                                fontSize: 32,
+                                fontSize: 19,
                                 fontWeight: FontWeight.normal,
                                 color: ThemeHelper.textPrimary,
                               ),
@@ -340,7 +340,7 @@ class _SetGoalsScreenState extends State<SetGoalsScreen> {
                       
                       // Icon
                       Center(
-                        child: Image.asset(assetName, width: assetName == 'assets/icons/apple.png' ? 25 : 24, height: assetName == 'assets/icons/apple.png' ? 25 : 24, color: assetName == 'assets/icons/apple.png' ? ThemeHelper.textPrimary : null),
+                        child: Image.asset(assetName, width: assetName == 'assets/icons/apple.png' ? 15 : 14, height: assetName == 'assets/icons/apple.png' ? 15 : 14, color: assetName == 'assets/icons/apple.png' ? ThemeHelper.textPrimary : null),
                       ),
                     ],
                   ),

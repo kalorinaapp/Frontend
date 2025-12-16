@@ -195,7 +195,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       if (!forceSyncMeals) return; // Don't clear if not forced
     }
     
-    // Check if meal IDs have changed (quick comparison before expensive sync)
+    // Check if meal IDs have changed OR if meals without IDs (optimistic) have changed
     if (!forceSyncMeals && _localTodayMeals.isNotEmpty) {
       final currentMealIds = widget.todayMeals
           ?.map((m) => _extractMealId(m))
@@ -203,17 +203,34 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           .where((id) => id.isNotEmpty)
           .toSet();
       
+      // Also count meals without IDs (optimistic meals)
+      final currentMealsWithoutIds = widget.todayMeals
+          ?.where((m) {
+            final id = _extractMealId(m);
+            return id == null || id.isEmpty;
+          })
+          .length ?? 0;
+      
+      final localMealsWithoutIds = _localTodayMeals
+          .where((m) {
+            final id = _extractMealId(m);
+            return id == null || id.isEmpty;
+          })
+          .length;
+      
       if (currentMealIds != null && _lastSyncedMealIds != null) {
-        // If IDs haven't changed, skip sync
+        // If IDs haven't changed AND meals without IDs count hasn't changed, skip sync
         if (currentMealIds.length == _lastSyncedMealIds!.length &&
-            currentMealIds.every((id) => _lastSyncedMealIds!.contains(id))) {
+            currentMealIds.every((id) => _lastSyncedMealIds!.contains(id)) &&
+            currentMealsWithoutIds == localMealsWithoutIds) {
           return; // No changes detected
         }
       }
     }
     
-    // Always sync meals from widget if forceSyncMeals is true or if local state is empty
-    final shouldSyncMeals = forceSyncMeals || _localTodayMeals.isEmpty;
+    // Always sync meals from widget since we've gotten past the early return check
+    // (meaning changes were detected, or forceSyncMeals is true, or local state is empty)
+    final shouldSyncMeals = true;
     
     if (shouldSyncMeals) {
       // Remove duplicates when syncing from widget
@@ -294,7 +311,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       _localTodayTotals = Map<String, int>.from(widget.todayTotals!);
     }
     
-    if (_localTodayExercises.isEmpty && widget.todayExercises != null && widget.todayExercises!.isNotEmpty) {
+    // Always sync exercises from widget when available to ensure new logs appear
+    if (widget.todayExercises != null) {
       _localTodayExercises = (widget.todayExercises ?? const [])
           .map((exercise) => Map<String, dynamic>.from(exercise))
           .toList();
@@ -805,7 +823,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       // Reset animation when analyzing stops
     }
     
-    // Sync meals only if list actually changed (check length and IDs, not reference)
+    // Sync meals only if list actually changed (check length, IDs, and meals without IDs)
     bool mealsChanged = (widget.todayMeals?.length ?? 0) != (oldWidget.todayMeals?.length ?? 0);
     if (!mealsChanged && widget.todayMeals != null && widget.todayMeals!.isNotEmpty) {
       // Compare IDs to detect actual changes
@@ -819,9 +837,30 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           .whereType<String>()
           .where((id) => id.isNotEmpty)
           .toSet();
+      
+      // Also check for meals without IDs (optimistic meals)
+      final oldMealsWithoutIds = oldWidget.todayMeals
+          ?.where((m) {
+            final id = _extractMealId(m);
+            return id == null || id.isEmpty;
+          })
+          .map((m) => '${m['createdAt']}_${m['mealName']}')
+          .toSet() ?? <String>{};
+      
+      final newMealsWithoutIds = widget.todayMeals
+          ?.where((m) {
+            final id = _extractMealId(m);
+            return id == null || id.isEmpty;
+          })
+          .map((m) => '${m['createdAt']}_${m['mealName']}')
+          .toSet() ?? <String>{};
+      
       if (oldIds != null && newIds != null) {
+        // Check if IDs changed OR if meals without IDs changed
         mealsChanged = oldIds.length != newIds.length ||
-            !oldIds.every((id) => newIds.contains(id));
+            !oldIds.every((id) => newIds.contains(id)) ||
+            oldMealsWithoutIds.length != newMealsWithoutIds.length ||
+            !oldMealsWithoutIds.every((key) => newMealsWithoutIds.contains(key));
       }
     }
     
@@ -837,7 +876,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       _recalculateLocalTotals(preferWidgetTotals: true);
     }
     
-    if (widget.todayExercises != oldWidget.todayExercises && _localTodayExercises.isEmpty) {
+    // Always keep local exercises in sync with widget's exercises so new
+    // logs fetched by HomeScreenController are reflected on the dashboard.
+    if (widget.todayExercises != oldWidget.todayExercises) {
       _localTodayExercises = (widget.todayExercises ?? const [])
           .map((exercise) => Map<String, dynamic>.from(exercise))
           .toList();
@@ -2620,16 +2661,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     ? Colors.white 
                     : const Color(0xFF1A1A1A),
                 child: imageUrl != null && imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Center(
-                          child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
-                        ),
-                        errorWidget: (context, url, error) => Center(
-                          child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
-                        ),
-                      )
+                    ? _buildMealImage(imageUrl)
                     : Center(
                         child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
                       ),
@@ -2719,6 +2751,46 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMealImage(String imageUrl) {
+    // Check if it's a local file path
+    if (imageUrl.startsWith('/') || imageUrl.startsWith('file://')) {
+      try {
+        final file = File(imageUrl);
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Center(
+            child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
+          ),
+        );
+      } catch (e) {
+        debugPrint('Error loading local image: $e');
+        return Center(
+          child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
+        );
+      }
+    }
+    
+    // Check if it's a network URL
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Center(
+          child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
+        ),
+        errorWidget: (context, url, error) => Center(
+          child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
+        ),
+      );
+    }
+    
+    // Fallback to default icon
+    return Center(
+      child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
     );
   }
 

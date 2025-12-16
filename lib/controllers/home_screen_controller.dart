@@ -313,12 +313,35 @@ class HomeScreenController extends GetxController {
             todayEntries.value = ((first['entries'] as List?) ?? [])
                 .whereType<Map<String, dynamic>>()
                 .toList();
-            todayMeals.value = meals;
+            
+            // Preserve optimistic meals (meals without IDs) when merging with server data
+            final optimisticMeals = todayMeals.where((m) {
+              final mId = m['id'] ?? m['_id'];
+              return mId == null;
+            }).toList();
+            
+            // Merge server meals with optimistic meals
+            final mergedMeals = <Map<String, dynamic>>[];
+            mergedMeals.addAll(meals);
+            mergedMeals.addAll(optimisticMeals);
+            
+            todayMeals.value = mergedMeals;
           } else {
-            todayTotals.value = null;
-            todayCreatedAt.value = null;
-            todayEntries.value = [];
-            todayMeals.value = [];
+            // Even if server returns no meals, preserve optimistic meals
+            final optimisticMeals = todayMeals.where((m) {
+              final mId = m['id'] ?? m['_id'];
+              return mId == null;
+            }).toList();
+            
+            if (optimisticMeals.isEmpty) {
+              todayTotals.value = null;
+              todayCreatedAt.value = null;
+              todayEntries.value = [];
+              todayMeals.value = [];
+            } else {
+              // Keep optimistic meals even if server has no meals
+              todayMeals.value = optimisticMeals;
+            }
           }
           
           todayExercises.value = exercises;
@@ -442,8 +465,8 @@ class HomeScreenController extends GetxController {
           scanResult.value = result;
           hasScanError.value = result['scanResult'] == null;
           
-          // Refresh today totals after scanning
-          fetchTodayTotals();
+          // Don't call fetchTodayTotals() here - we'll add the meal directly from scan data
+          // This avoids waiting for API call when we already have all the data
           
           // Navigate to meal details screen with scan result data
           debugPrint('Message: ${result['message']}');
@@ -480,6 +503,7 @@ class HomeScreenController extends GetxController {
               'totalCarbs': totalCarbs,
               'totalFat': totalFat,
               'isScanned': true,
+              'isBookmarked': false, // Default to false, user can bookmark in MealDetailsScreen
               'entries': items.map((item) => {
                 'userId': AppConstants.userId,
                 'mealType': 'lunch',
@@ -503,10 +527,21 @@ class HomeScreenController extends GetxController {
             };
             
             debugPrint('Created meal data: $mealData');
-            debugPrint('Navigating to MealDetailsScreen');
+            
+            // Optimistically add meal to dashboard immediately from scan result
+            // Use local data directly without waiting for API call
+            _addMealDirectly(Map<String, dynamic>.from(mealData));
+            
+            debugPrint('Optimistically added meal to dashboard');
             
             // Clear selected image before navigating
             selectedImage.value = null;
+            
+            // Use microtask to ensure observable update propagates before navigation
+            // This ensures the dashboard rebuilds with the new meal immediately
+            await Future.microtask(() {});
+            
+            debugPrint('Navigating to MealDetailsScreen');
             
             // Navigate if context is available
             if (context != null && context.mounted) {
@@ -524,10 +559,48 @@ class HomeScreenController extends GetxController {
                 // User backed out without saving: revert scan state
                 revertScanState();
               } else if (savedMeal != null) {
-                // If meal was saved, add it optimistically
-                addMealOptimistically(savedMeal);
+                // Meal was saved - update the optimistic meal with server response
+                // Find and replace the specific optimistic meal we added
+                final savedMealId = savedMeal['id'] ?? savedMeal['_id'];
+                final mealCreatedAt = mealData['createdAt'] as String?;
+                final mealName = (mealData['mealName'] as String?)?.trim();
+                
+                // Find the optimistic meal by matching createdAt and mealName (since it has no ID)
+                final optimisticIndex = todayMeals.indexWhere((m) {
+                  final mId = m['id'] ?? m['_id'];
+                  if (mId != null) return false; // Skip meals that already have IDs
+                  
+                  final mCreatedAt = m['createdAt'] as String?;
+                  final mName = (m['mealName'] as String?)?.trim();
+                  return mCreatedAt == mealCreatedAt && mName == mealName;
+                });
+                
+                if (optimisticIndex >= 0) {
+                  // Replace the optimistic meal with the saved meal data
+                  todayMeals[optimisticIndex] = Map<String, dynamic>.from(savedMeal);
+                  
+                  // Update progress optimistically with the saved meal
+                  _updateProgressOptimistically(savedMeal);
+                } else if (savedMealId != null) {
+                  // If we couldn't find the optimistic meal, just add the saved one
+                  // (might have been removed or never added)
+                  addMealOptimistically(savedMeal);
+                }
               } else {
-                // User backed out without saving: revert scan state
+                // User backed out without saving: remove optimistic meal and revert scan state
+                // Match by createdAt and mealName to find the specific optimistic meal
+                final mealCreatedAt = mealData['createdAt'] as String?;
+                final mealName = (mealData['mealName'] as String?)?.trim();
+                
+                todayMeals.removeWhere((m) {
+                  final mId = m['id'] ?? m['_id'];
+                  if (mId != null) return false; // Skip meals that have IDs
+                  
+                  final mCreatedAt = m['createdAt'] as String?;
+                  final mName = (m['mealName'] as String?)?.trim();
+                  return mCreatedAt == mealCreatedAt && mName == mealName;
+                });
+                
                 revertScanState();
               }
             }
@@ -544,6 +617,21 @@ class HomeScreenController extends GetxController {
     }
   }
   
+  // Add meal directly using local data without API call (for scan results)
+  void _addMealDirectly(Map<String, dynamic> meal) {
+    // Insert at the beginning (most recent first) for immediate visibility
+    todayMeals.insert(0, meal);
+    
+    // Explicitly refresh the observable to trigger immediate UI update
+    todayMeals.refresh();
+    
+    // Optimistically update progress data immediately
+    _updateProgressOptimistically(meal);
+    
+    // Don't call fetchTodayTotals() - we already have all the data locally
+    debugPrint('✅ Added meal directly to dashboard: ${meal['mealName']}');
+  }
+
   void addMealOptimistically(Map<String, dynamic> savedMeal) {
     todayMeals.add(savedMeal);
     
