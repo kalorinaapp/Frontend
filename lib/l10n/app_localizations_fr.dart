@@ -1419,4 +1419,7 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get takePictureStraight =>
       'Take the picture straight, not at an angle';
+
+  @override
+  String get successfullyAddedToDashboard => 'Successfully added to dashboard';
 }

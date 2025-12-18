@@ -97,160 +97,62 @@ class _LogFoodView extends StatelessWidget {
     
     return CupertinoPageScaffold(
       backgroundColor: ThemeHelper.background,
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Header with back button and title
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: SvgPicture.asset(
-                      'assets/icons/back.svg',
-                      width: 24,
-                      height: 24,
-                      color: ThemeHelper.textPrimary,
-                    ),
+      child: Column(
+        children: [
+          const SizedBox(height: 60),
+          // Header with back button and title
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: SvgPicture.asset(
+                    'assets/icons/back.svg',
+                    width: 24,
+                    height: 24,
+                    color: ThemeHelper.textPrimary,
                   ),
-                  const Spacer(),
-                  Text(
-                    l10n.logFood,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: ThemeHelper.textPrimary,
-                    ),
+                ),
+                const Spacer(),
+                Text(
+                  l10n.logFood,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: ThemeHelper.textPrimary,
                   ),
-                  const Spacer(),
-                  const SizedBox(width: 24), // Balance the back button
-                ],
-              ),
+                ),
+                const Spacer(),
+                const SizedBox(width: 24), // Balance the back button
+              ],
             ),
-            
-            // Custom Tab Bar
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              child: Column(
-                children: [
-                  _buildCustomTabBar(context),
-                  // Full horizontal line below all tabs
-                  Container(
-                    height: 1,
-                    width: double.infinity,
-                    color: ThemeHelper.divider,
-                  ),
-                ],
-              ),
+          ),
+          
+          // Custom Tab Bar
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              children: [
+                _buildCustomTabBar(context),
+                // Full horizontal line below all tabs
+                Container(
+                  height: 1,
+                  width: double.infinity,
+                  color: ThemeHelper.divider,
+                ),
+              ],
             ),
-            
-            // Search Bar (only show for non-Direct Input tabs)
-            Obx(() {
-              final currentTab = controller.selectedTabIndex.value;
-              if (currentTab == 2) {
-                return const SizedBox(height: 20);
-              }
-              
-              // Use different controller based on tab
-              final isMyFoodsTab = currentTab == 0;
-              final isSavedScansTab = currentTab == 1;
-              
-              final searchCtrl = isMyFoodsTab 
-                  ? controller.foodsSearchController 
-                  : controller.scannedMealsSearchController;
-              
-              final placeholder = isMyFoodsTab 
-                  ? l10n.searchFoods 
-                  : l10n.searchScannedMeals;
-              
-              final showClearButton = isMyFoodsTab || isSavedScansTab;
-              
-              return Column(
-                children: [
-                  const SizedBox(height: 20),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                    color: ThemeHelper.cardBackground,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: ThemeHelper.divider,
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: ThemeHelper.textPrimary.withOpacity(0.06),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                          spreadRadius: 0,
-                        ),
-                        BoxShadow(
-                          color: ThemeHelper.textPrimary.withOpacity(0.03),
-                          blurRadius: 5,
-                          offset: const Offset(0, 1),
-                          spreadRadius: 0,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          CupertinoIcons.search,
-                          size: 20,
-                          color: ThemeHelper.textSecondary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: CupertinoTextField(
-                            controller: searchCtrl,
-                            placeholder: placeholder,
-                            placeholderStyle: TextStyle(
-                              color: ThemeHelper.textSecondary,
-                              fontSize: 16,
-                            ),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: ThemeHelper.textPrimary,
-                            ),
-                            decoration: const BoxDecoration(),
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                        if (showClearButton)
-                          ValueListenableBuilder<TextEditingValue>(
-                            valueListenable: searchCtrl,
-                            builder: (context, value, child) {
-                              if (value.text.isEmpty) return const SizedBox.shrink();
-                              return GestureDetector(
-                                onTap: () {
-                                  searchCtrl.clear();
-                                },
-                                child: Padding(
-                                  padding: EdgeInsets.only(left: 8),
-                                  child: Icon(
-                                    CupertinoIcons.clear_circled_solid,
-                                    size: 20,
-                                    color: ThemeHelper.textSecondary,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            }),
-            
-            // Tab Content
-            Expanded(
-              child: _buildTabContent(context),
-            ),
-          ],
-        ),
+          ),
+          
+          // Spacing
+          // const SizedBox(height: 20),
+          
+          // Tab Content
+          Expanded(
+            child: _buildTabContent(context),
+          ),
+        ],
       ),
     );
   }
@@ -613,7 +515,7 @@ class _LogFoodView extends StatelessWidget {
         if (controller.isLoadingScannedMeals.value) {
           // Loading state
           return Container(
-            margin: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: ListView.separated(
               itemCount: 4,
               separatorBuilder: (context, index) => const SizedBox(height: 12),
@@ -653,18 +555,16 @@ class _LogFoodView extends StatelessWidget {
           );
         } else {
           // Display scanned meals
-          return Container(
-            margin: const EdgeInsets.all(20),
-            child: ListView.separated(
-              itemCount: controller.scannedMeals.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final meal = controller.scannedMeals[index];
-                return Builder(
-                  builder: (context) => _buildScannedMealCard(context, meal),
-                );
-              },
-            ),
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            itemCount: controller.scannedMeals.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final meal = controller.scannedMeals[index];
+              return Builder(
+                builder: (context) => _buildScannedMealCard(context, meal),
+              );
+            },
           );
         }
       });
@@ -1124,6 +1024,7 @@ class _LogFoodView extends StatelessWidget {
     final carbs = (meal['totalCarbs'] as num).toInt();
     final mealName = (meal['mealName'] as String?)?.trim();
     final imageUrl = (meal['mealImage'] as String?)?.trim();
+    final mealId = (meal['id'] ?? meal['_id'])?.toString() ?? '';
     
     String timeString = '';
     final createdAtStr = meal['createdAt'] as String?;
@@ -1182,34 +1083,30 @@ class _LogFoodView extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Meal image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: Container(
-                width: 96,
-                height: 96,
-                color: ThemeHelper.background,
-                child: imageUrl != null && imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(
-                          child: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CupertinoActivityIndicator(),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Center(
-                          child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
-                        ),
-                      )
-                    : Center(
-                        child: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+            // Meal image (hide entirely if missing)
+            if (imageUrl != null && imageUrl.isNotEmpty) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  color: ThemeHelper.background,
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CupertinoActivityIndicator(),
                       ),
+                    ),
+                    errorWidget: (context, url, error) => const SizedBox.shrink(),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
+            ],
             // Meal details
             Expanded(
               child: Column(
@@ -1279,16 +1176,51 @@ class _LogFoodView extends StatelessWidget {
                 ],
               ),
             ),
-            // Arrow icon
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: Icon(
-                CupertinoIcons.chevron_right,
-                size: 16,
-                color: CupertinoColors.systemGrey,
-              ),
-            ),
+            // Add-to-dashboard (+) circular button
+           if (meal['renderOnDashboard'] == false)
+              Obx(() {
+                final isAdding = controller.addingToDashboardMealIds.contains(mealId);
+                return GestureDetector(
+                  onTap: isAdding
+                      ? null
+                      : () async {
+                          final ok = await controller.addSavedScanToDashboard(meal);
+                          if (ok) {
+                            Get.snackbar(l10n.success, l10n.successfullyAddedToDashboard);
+                          } else {
+                            Get.snackbar(l10n.error, l10n.unexpectedErrorDescription);
+                          }
+                        },
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: CupertinoColors.black.withOpacity(0.06),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: isAdding
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CupertinoActivityIndicator(),
+                            )
+                          : const Icon(
+                              CupertinoIcons.add,
+                              size: 18,
+                              color: CupertinoColors.black,
+                            ),
+                    ),
+                  ),
+                );
+              }),
           ],
         ),
       ),

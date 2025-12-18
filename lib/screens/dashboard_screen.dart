@@ -2502,21 +2502,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Placeholder image area for consistency in layout
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: widget.themeProvider.isLightMode 
-                    ? Colors.white 
-                    : const Color(0xFF1A1A1A),
-              ),
-              child: Center(
-                child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
-              ),
-            ),
-            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2652,22 +2637,20 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: Container(
-                width: 96,
-                height: 96,
-                color: widget.themeProvider.isLightMode 
-                    ? Colors.white 
-                    : const Color(0xFF1A1A1A),
-                child: imageUrl != null && imageUrl.isNotEmpty
-                    ? _buildMealImage(imageUrl)
-                    : Center(
-                        child: Image.asset('assets/icons/apple.png', width: 24, height: 24, color: ThemeHelper.textPrimary),
-                      ),
+            if (imageUrl != null && imageUrl.isNotEmpty) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  color: widget.themeProvider.isLightMode
+                      ? Colors.white
+                      : const Color(0xFF1A1A1A),
+                  child: _buildMealImage(imageUrl),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

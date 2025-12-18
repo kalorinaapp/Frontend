@@ -705,46 +705,45 @@ class _CreateAccountPageState extends State<CreateAccountPage>
                     ),
                   ),
               
-                   // Show "Want to sign in later? Skip" on both login and sign up screens
-                   const SizedBox(height: 12),
-                   Row(
-                     mainAxisAlignment: MainAxisAlignment.center,
-                     children: [
-                       Text(
-                         l10n.wantToSignInLater,
-                         style: ThemeHelper.textStyleWithColorAndSize(
-                           ThemeHelper.caption1,
-                           ThemeHelper.textSecondary,
-                           12,
-                         ),
-                       ),
-                       GestureDetector(
-                         onTap: () async {
-                           if (widget.isLogin) {
-                             // For login screen, navigate to home screen without authentication
-                             _controller.goToNextPage();
-                           } else if (widget.isAfterOnboardingCompletion) {
-                             // Only register as guest if this page is shown AFTER completing onboarding
-                             // (not when it's the first page of onboarding)
-                             await _handleGuestRegistration();
-                           } else {
-                             // For first page of onboarding, just go to next page
-                             _controller.goToNextPage();
-                           }
-                         },
-                         child: Text(
-                           l10n.skip,
+                   // Show "Want to sign in later? Skip" ONLY when this page is not
+                   // the first onboarding step (i.e. login screen or post-onboarding auth).
+                   if (widget.isLogin || widget.isAfterOnboardingCompletion) ...[
+                     const SizedBox(height: 12),
+                     Row(
+                       mainAxisAlignment: MainAxisAlignment.center,
+                       children: [
+                         Text(
+                           l10n.wantToSignInLater,
                            style: ThemeHelper.textStyleWithColorAndSize(
                              ThemeHelper.caption1,
                              ThemeHelper.textSecondary,
                              12,
-                           ).copyWith(
-                             decoration: TextDecoration.underline,
                            ),
                          ),
-                       ),
-                     ],
-                   ),
+                         GestureDetector(
+                           onTap: () async {
+                             if (widget.isLogin) {
+                               // For login screen, navigate to home screen without authentication
+                               _controller.goToNextPage();
+                             } else if (widget.isAfterOnboardingCompletion) {
+                               // Only register as guest if this page is shown AFTER completing onboarding
+                               await _handleGuestRegistration();
+                             }
+                           },
+                           child: Text(
+                             l10n.skip,
+                             style: ThemeHelper.textStyleWithColorAndSize(
+                               ThemeHelper.caption1,
+                               ThemeHelper.textSecondary,
+                               12,
+                             ).copyWith(
+                               decoration: TextDecoration.underline,
+                             ),
+                           ),
+                         ),
+                       ],
+                     ),
+                   ],
           
                    const SizedBox(height: 24),
               

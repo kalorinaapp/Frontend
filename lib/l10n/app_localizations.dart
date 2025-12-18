@@ -2759,6 +2759,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Take the picture straight, not at an angle'**
   String get takePictureStraight;
+
+  /// No description provided for @successfullyAddedToDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully added to dashboard'**
+  String get successfullyAddedToDashboard;
 }
 
 class _AppLocalizationsDelegate

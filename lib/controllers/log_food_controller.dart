@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../services/food_service.dart';
 import '../services/meals_service.dart';
+import '../controllers/home_screen_controller.dart';
 import '../constants/app_constants.dart';
 
 class LogFoodController extends GetxController {
@@ -60,6 +61,7 @@ class LogFoodController extends GetxController {
   final isLoadingMyFoods = false.obs;
   final isLoadingScannedMeals = false.obs;
   final isSavingDirectInput = false.obs;
+  final addingToDashboardMealIds = <String>{}.obs;
 
   @override
   void onInit() {
@@ -427,6 +429,7 @@ class LogFoodController extends GetxController {
               'date': item['date'] ?? '',
               'createdAt': item['createdAt'] ?? '',
               'entries': item['entries'] ?? [],
+              'renderOnDashboard': item['renderOnDashboard'] ?? false,
             };
           }).toList();
         }
@@ -472,6 +475,7 @@ class LogFoodController extends GetxController {
               'date': item['date'] ?? '',
               'createdAt': item['createdAt'] ?? '',
               'entries': item['entries'] ?? [],
+              'renderOnDashboard': item['renderOnDashboard'] ?? false,
             };
           }).toList();
         } else {
@@ -554,6 +558,52 @@ class LogFoodController extends GetxController {
     isSavingDirectInput.value = true;
 
     try {
+      // Optimistically add to Saved Scans tab immediately (no waiting for API).
+      // Use a local temp id so we can update/replace it after the API returns.
+      final optimisticId = 'local_${DateTime.now().millisecondsSinceEpoch}';
+      final optimisticMeal = <String, dynamic>{
+        'id': optimisticId,
+        'mealName': mealName,
+        'mealImage': null,
+        'totalCalories': calories,
+        'totalProtein': proteinValue.value,
+        'totalCarbs': carbsValue.value,
+        'totalFat': fatsValue.value,
+        'entriesCount': entries.length,
+        'mealType': currentMealType,
+        'date': date,
+        'createdAt': DateTime.now().toIso8601String(),
+        'entries': entries,
+        // Helpful flags (safe even if backend ignores)
+        'isScanned': true,
+        'isBookmarked': false,
+        'isOptimistic': true,
+      };
+
+      // Insert at top for instant visibility
+      scannedMeals.insert(0, optimisticMeal);
+      debugPrint('✅ saveDirectInputFood: Optimistically added meal to Saved Scans with id=$optimisticId');
+
+      // Clear and switch tab immediately (user sees it right away)
+      debugPrint('✅ saveDirectInputFood: Clearing form + switching to Saved Scans tab');
+      foodNameController.clear();
+      caloriesController.clear();
+      carbsValue.value = 10;
+      proteinValue.value = 41;
+      fatsValue.value = 16;
+      amountValue.value = 1;
+      directInputIngredients.clear();
+      selectedTabIndex.value = 1;
+
+      // Also optimistically add to Dashboard immediately (HomeScreenController.todayMeals)
+      HomeScreenController? homeController;
+      if (Get.isRegistered<HomeScreenController>()) {
+        homeController = Get.find<HomeScreenController>();
+        homeController.todayMeals.insert(0, Map<String, dynamic>.from(optimisticMeal));
+        homeController.todayMeals.refresh();
+        debugPrint('✅ saveDirectInputFood: Optimistically added meal to Dashboard todayMeals');
+      }
+
       final service = MealsService();
       debugPrint('🌐 saveDirectInputFood: Calling MealsService.saveCompleteMeal...');
       
@@ -589,47 +639,87 @@ class LogFoodController extends GetxController {
         final mealData = response['meal'] as Map<String, dynamic>;
         debugPrint('✅ saveDirectInputFood: Meal data: $mealData');
         
-        // Add to scanned meals list
-        addOrUpdateScannedMeal({
-          'id': mealData['id'] ?? mealData['_id'] ?? '',
+        // Replace the optimistic card with the real saved meal (preserve ordering).
+        final savedId = (mealData['id'] ?? mealData['_id'])?.toString() ?? '';
+        final serverMeal = <String, dynamic>{
+          'id': savedId,
           'mealName': mealData['mealName'] ?? mealName,
           'mealImage': mealData['mealImage'],
           'totalCalories': mealData['totalCalories'] ?? calories,
           'totalProtein': mealData['totalProtein'] ?? proteinValue.value,
           'totalCarbs': mealData['totalCarbs'] ?? carbsValue.value,
           'totalFat': mealData['totalFat'] ?? fatsValue.value,
-          'entriesCount': mealData['entriesCount'] ?? 1,
+          'entriesCount': mealData['entriesCount'] ?? entries.length,
           'mealType': mealData['mealType'] ?? currentMealType,
           'date': mealData['date'] ?? date,
           'createdAt': mealData['createdAt'] ?? DateTime.now().toIso8601String(),
           'entries': mealData['entries'] ?? entries,
-        });
+          'isScanned': mealData['isScanned'] ?? true,
+          'isBookmarked': mealData['isBookmarked'] ?? false,
+        };
+
+        final idx = scannedMeals.indexWhere((m) => (m['id']?.toString() ?? '') == optimisticId);
+        if (idx >= 0) {
+          scannedMeals[idx] = serverMeal;
+          debugPrint('✅ saveDirectInputFood: Replaced optimistic meal with server meal id=$savedId');
+        } else {
+          // Fallback: just add/update by server id
+          addOrUpdateScannedMeal(serverMeal);
+          debugPrint('✅ saveDirectInputFood: Optimistic meal not found; added/updated by server id');
+        }
+
+        // Update Dashboard optimistic meal too
+        if (homeController != null) {
+          final dashIdx = homeController.todayMeals.indexWhere((m) => (m['id']?.toString() ?? '') == optimisticId);
+          if (dashIdx >= 0) {
+            homeController.todayMeals[dashIdx] = Map<String, dynamic>.from(serverMeal);
+            homeController.todayMeals.refresh();
+            debugPrint('✅ saveDirectInputFood: Replaced optimistic meal on Dashboard with server meal');
+          } else {
+            // If not found, insert server meal at top
+            homeController.todayMeals.insert(0, Map<String, dynamic>.from(serverMeal));
+            homeController.todayMeals.refresh();
+            debugPrint('✅ saveDirectInputFood: Inserted server meal on Dashboard (optimistic missing)');
+          }
+        }
 
         debugPrint('✅ saveDirectInputFood: Meal added to scanned meals list');
-        debugPrint('✅ saveDirectInputFood: Clearing form...');
-
-        // Clear the form
-        foodNameController.clear();
-        caloriesController.clear();
-        carbsValue.value = 10;
-        proteinValue.value = 41;
-        fatsValue.value = 16;
-        amountValue.value = 1;
-        directInputIngredients.clear();
-
-        debugPrint('✅ saveDirectInputFood: Switching to Saved Scans tab (index 1)');
-        // Switch to Saved Scans tab
-        selectedTabIndex.value = 1;
         debugPrint('✅ saveDirectInputFood: Successfully completed');
       } else {
         debugPrint('❌ saveDirectInputFood: Failed - response is null or missing meal data');
         debugPrint('❌ saveDirectInputFood: Response: $response');
+        // Remove optimistic card if server save failed
+        scannedMeals.removeWhere((m) => (m['id']?.toString() ?? '') == optimisticId);
+        if (homeController != null) {
+          homeController.todayMeals.removeWhere((m) => (m['id']?.toString() ?? '') == optimisticId);
+          homeController.todayMeals.refresh();
+        }
         showErrorDialog('Failed to save meal');
       }
     } catch (e, stackTrace) {
       debugPrint('❌ saveDirectInputFood: Exception caught');
       debugPrint('❌ saveDirectInputFood: Error: $e');
       debugPrint('❌ saveDirectInputFood: Stack trace: $stackTrace');
+      // Remove optimistic card if we errored
+      // (search by local id prefix and current meal name/date as a best-effort)
+      scannedMeals.removeWhere((m) {
+        final id = (m['id']?.toString() ?? '');
+        if (!id.startsWith('local_')) return false;
+        final n = (m['mealName'] as String?)?.trim();
+        final d = (m['date'] as String?)?.trim();
+        return n == mealName && d == date;
+      });
+      if (Get.isRegistered<HomeScreenController>()) {
+        final homeController = Get.find<HomeScreenController>();
+        homeController.todayMeals.removeWhere((m) {
+          final id = (m['id']?.toString() ?? '');
+          if (!id.startsWith('local_')) return false;
+          final n = (m['mealName'] as String?)?.trim();
+          final d = (m['date'] as String?)?.trim();
+          return n == mealName && d == date;
+        });
+        homeController.todayMeals.refresh();
+      }
       showErrorDialog('Error saving meal: $e');
     } finally {
       isSavingDirectInput.value = false;
@@ -692,6 +782,7 @@ class LogFoodController extends GetxController {
         'date': mealData['date'] ?? existingMeal['date'] ?? '',
         'createdAt': mealData['createdAt'] ?? existingMeal['createdAt'] ?? '',
         'entries': mealData['entries'] ?? existingMeal['entries'] ?? [],
+        'renderOnDashboard': mealData['renderOnDashboard'] ?? existingMeal['renderOnDashboard'] ?? false,
       };
     } else {
       // Add new scanned meal (shouldn't happen often, but handle it)
@@ -708,6 +799,7 @@ class LogFoodController extends GetxController {
         'date': mealData['date'] ?? '',
         'createdAt': mealData['createdAt'] ?? '',
         'entries': mealData['entries'] ?? [],
+        'renderOnDashboard': mealData['renderOnDashboard'] ?? false,
       });
     }
   }
@@ -765,6 +857,116 @@ class LogFoodController extends GetxController {
         ],
       ),
     );
+  }
+
+  Future<bool> addSavedScanToDashboard(Map<String, dynamic> meal) async {
+    final mealId = (meal['id'] ?? meal['_id'])?.toString() ?? '';
+    if (mealId.isEmpty) return false;
+
+    if (userId == null || userId!.isEmpty) return false;
+
+    // prevent double taps
+    if (addingToDashboardMealIds.contains(mealId)) return false;
+    addingToDashboardMealIds.add(mealId);
+
+    // Optimistically add to Dashboard immediately (like Direct Input does)
+    HomeScreenController? homeController;
+    bool addedToDashboardOptimistically = false;
+    if (Get.isRegistered<HomeScreenController>()) {
+      homeController = Get.find<HomeScreenController>();
+      final alreadyOnDashboard = homeController.todayMeals.any((m) {
+        final id = (m['id'] ?? m['_id'])?.toString() ?? '';
+        return id == mealId;
+      });
+      if (!alreadyOnDashboard) {
+        final optimisticMeal = Map<String, dynamic>.from(meal);
+        optimisticMeal['renderOnDashboard'] = true;
+        homeController.todayMeals.insert(0, optimisticMeal);
+        homeController.todayMeals.refresh();
+        addedToDashboardOptimistically = true;
+      }
+    }
+
+    try {
+      final service = MealsService();
+
+      final date = (meal['date'] as String?)?.trim() ?? '';
+      final mealType = (meal['mealType'] as String?)?.trim() ?? '';
+      final mealName = (meal['mealName'] as String?)?.trim() ?? '';
+
+      final rawEntries = meal['entries'];
+      final entries = (rawEntries is List)
+          ? rawEntries
+              .whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList()
+          : <Map<String, dynamic>>[];
+
+      final response = await service.updateMeal(
+        mealId: mealId,
+        userId: userId!,
+        date: date,
+        mealType: mealType,
+        mealName: mealName,
+        entries: entries,
+        renderOnDashboard: true,
+      );
+
+      final ok = response != null && response['success'] == true;
+      if (!ok && addedToDashboardOptimistically && homeController != null) {
+        homeController.todayMeals.removeWhere((m) {
+          final id = (m['id'] ?? m['_id'])?.toString() ?? '';
+          return id == mealId;
+        });
+        homeController.todayMeals.refresh();
+      }
+
+      // If backend returns updated meal payload, reconcile local copies.
+      final mealData = (response != null && response['meal'] is Map)
+          ? Map<String, dynamic>.from(response['meal'] as Map)
+          : null;
+      if (ok && mealData != null) {
+        final updatedId = (mealData['id'] ?? mealData['_id'])?.toString() ?? mealId;
+        // Update dashboard item
+        if (homeController != null) {
+          final idx = homeController.todayMeals.indexWhere((m) {
+            final id = (m['id'] ?? m['_id'])?.toString() ?? '';
+            return id == updatedId;
+          });
+          if (idx >= 0) {
+            final merged = Map<String, dynamic>.from(homeController.todayMeals[idx]);
+            merged.addAll(mealData);
+            merged['renderOnDashboard'] = true;
+            homeController.todayMeals[idx] = merged;
+            homeController.todayMeals.refresh();
+          }
+        }
+        // Update scanned meals item (so list reflects the new flag too)
+        final sIdx = scannedMeals.indexWhere((m) {
+          final id = (m['id'] ?? m['_id'])?.toString() ?? '';
+          return id == updatedId;
+        });
+        if (sIdx >= 0) {
+          final merged = Map<String, dynamic>.from(scannedMeals[sIdx]);
+          merged.addAll(mealData);
+          merged['renderOnDashboard'] = true;
+          scannedMeals[sIdx] = merged;
+        }
+      }
+
+      return ok;
+    } catch (_) {
+      if (addedToDashboardOptimistically && homeController != null) {
+        homeController.todayMeals.removeWhere((m) {
+          final id = (m['id'] ?? m['_id'])?.toString() ?? '';
+          return id == mealId;
+        });
+        homeController.todayMeals.refresh();
+      }
+      return false;
+    } finally {
+      addingToDashboardMealIds.remove(mealId);
+    }
   }
 }
 

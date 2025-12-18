@@ -737,72 +737,77 @@ class _CreateFoodView extends StatelessWidget {
     
     showCupertinoModalPopup(
       context: context,
-      builder: (BuildContext context) => Container(
-        height: 300,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: ThemeHelper.cardBackground,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
+      builder: (BuildContext context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: Column(
-          children: [
-            Text(
-              'Edit Name',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: ThemeHelper.textPrimary,
-              ),
+        child: Container(
+          height: 300,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: ThemeHelper.cardBackground,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
             ),
-            const SizedBox(height: 20),
-            
-            CupertinoTextField(
-              controller: tempController,
-              placeholder: 'Enter food name',
-              style: TextStyle(fontSize: 16, color: ThemeHelper.textPrimary),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: ThemeHelper.divider,
-                  width: 1.5,
+          ),
+          child: Column(
+            children: [
+              Text(
+                'Edit Name',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: ThemeHelper.textPrimary,
                 ),
-                borderRadius: BorderRadius.circular(8),
               ),
-              padding: const EdgeInsets.all(12),
-              autofocus: true,
-            ),
-            
-            const Spacer(),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: CupertinoButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(color: ThemeHelper.textSecondary),
+              const SizedBox(height: 20),
+              
+              CupertinoTextField(
+                controller: tempController,
+                placeholder: 'Enter food name',
+                style: TextStyle(fontSize: 16, color: ThemeHelper.textPrimary),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: ThemeHelper.divider,
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.all(12),
+                autofocus: true,
+              ),
+              
+              const Spacer(),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: CupertinoButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: ThemeHelper.textSecondary),
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: CupertinoButton(
-                    color: ThemeHelper.textPrimary,
-                    onPressed: () {
-                      controller.updateControllerText(controller.nameController, tempController.text);
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      'Save',
-                      style: TextStyle(color: ThemeHelper.background),
+                  Expanded(
+                    child: CupertinoButton(
+                      color: ThemeHelper.textPrimary,
+                      onPressed: () {
+                        controller.updateControllerText(controller.nameController, tempController.text);
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        'Save',
+                        style: TextStyle(color: ThemeHelper.background),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

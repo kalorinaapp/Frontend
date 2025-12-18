@@ -1406,4 +1406,8 @@ class AppLocalizationsBs extends AppLocalizations {
 
   @override
   String get takePictureStraight => 'Fotografirajte ravno, ne pod uglom';
+
+  @override
+  String get successfullyAddedToDashboard =>
+      'Uspješno dodano na nadzornu ploču';
 }

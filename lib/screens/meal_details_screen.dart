@@ -634,6 +634,27 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                       ),
                     ),
                   ), 
+
+                  // If there is NO image, still show bookmark button here (right aligned).
+                  if (imageUrl == null || imageUrl.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: _toggleBookmark,
+                          child: Icon(
+                            _isBookmarked
+                                ? CupertinoIcons.bookmark_fill
+                                : CupertinoIcons.bookmark,
+                            size: 18,
+                            color: _isBookmarked
+                                ? const Color(0xFFFACC15)
+                                : ThemeHelper.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
                   
                   // Meal Image with Amount Badge
                   if (imageUrl != null && imageUrl.isNotEmpty)
@@ -833,104 +854,81 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                   const SizedBox(height: 16),
                   
                   // Ingredients Section
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: ThemeHelper.cardBackground,
-                      borderRadius: BorderRadius.circular(13),
-                      boxShadow: isDark
-                          ? []
-                          : [
-                              BoxShadow(
-                                color: ThemeHelper.textPrimary.withOpacity(0.25),
-                                blurRadius: 5,
-                                offset: Offset(0, 0),
-                                spreadRadius: 1,
-                              ),
-                            ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header row with title and buttons
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Ingredients',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: ThemeHelper.textPrimary,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                // Fix Issue button
-                                const SizedBox(width: 0),
-                                // Add More button
-                                GestureDetector(
-                                  onTap: () => _showAddIngredientSheet(context),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: ThemeHelper.background,
-                                      borderRadius: BorderRadius.circular(13),
-                                      boxShadow: [
-                                        // BoxShadow(
-                                        //   color: ThemeHelper.textPrimary.withOpacity(0.25),
-                                        //   blurRadius: 5,
-                                        //   offset: Offset(0, 0),
-                                        //   spreadRadius: 1,
-                                        // ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          'Add More',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            color: ThemeHelper.textPrimary,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
-                                      ],
-                                    ),
-                                  ),
+                  // Only show Ingredients for scanned meals that actually have entries.
+                  if ((_currentMealData['isScanned'] == true) && entries.isNotEmpty)
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: ThemeHelper.cardBackground,
+                        borderRadius: BorderRadius.circular(13),
+                        boxShadow: isDark
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: ThemeHelper.textPrimary.withOpacity(0.25),
+                                  blurRadius: 5,
+                                  offset: Offset(0, 0),
+                                  spreadRadius: 1,
                                 ),
                               ],
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        // Ingredients list
-                        if (entries.isEmpty)
-                          Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(20),
-                              child: Text(
-                                'No ingredients available',
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header row with title and buttons
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Ingredients',
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  color: ThemeHelper.textSecondary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: ThemeHelper.textPrimary,
                                 ),
                               ),
-                            ),
-                          )
-                        else
+                              Row(
+                                children: [
+                                  const SizedBox(width: 0),
+                                  GestureDetector(
+                                    onTap: () => _showAddIngredientSheet(context),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: ThemeHelper.background,
+                                        borderRadius: BorderRadius.circular(13),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            'Add More',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              color: ThemeHelper.textPrimary,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Icon(CupertinoIcons.pencil, size: 14, color: ThemeHelper.textPrimary),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
                           ...entries.asMap().entries.map((entry) {
                             final index = entry.key;
                             final ingredient = entry.value;
                             final showDivider = index < entries.length - 1;
-                            
+
                             return Column(
                               children: [
                                 _buildIngredientRow(ingredient),
@@ -952,9 +950,9 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                               ],
                             );
                           }).toList(),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                   
                   SizedBox(height: _isScannedMeal ? 40 : 100), // Less space if button is hidden
                 ],

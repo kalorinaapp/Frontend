@@ -468,5 +468,6 @@
   "howToScanProperly": "How to scan properly",
   "keepFoodInsideFrame": "Keep food fully inside the frame",
   "holdPhoneSteady": "Hold your phone steady for a clear photo",
-  "takePictureStraight": "Take the picture straight, not at an angle"
+  "takePictureStraight": "Take the picture straight, not at an angle",
+  "successfullyAddedToDashboard": "Successfully added to dashboard"
 }
