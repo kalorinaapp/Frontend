@@ -48,9 +48,16 @@ class StreakService extends GetxController {
             if (data['success'] == true && data['streak'] != null) {
               result = data['streak'];
               streakData.value = data['streak'];
-              // Update local map
+              // Update local map with normalized streakType
               final dateKey = _formatDate(date);
-              streaksMap[dateKey] = data['streak'];
+              final normalizedStreak = Map<String, dynamic>.from(data['streak']);
+              if (normalizedStreak.containsKey('streakType')) {
+                final normalizedType = _normalizeStreakType(normalizedStreak['streakType']);
+                if (normalizedType != null) {
+                  normalizedStreak['streakType'] = normalizedType;
+                }
+              }
+              streaksMap[dateKey] = normalizedStreak;
             } else {
               errorMessage.value = data['message'] ?? 'Failed to create streak';
             }
@@ -145,9 +152,16 @@ class StreakService extends GetxController {
             if (data['success'] == true && data['streak'] != null) {
               result = data['streak'];
               streakData.value = data['streak'];
-              // Update local map for this date
+              // Update local map for this date with normalized streakType
               final dateKey = _formatDate(date);
-              streaksMap[dateKey] = data['streak'];
+              final normalizedStreak = Map<String, dynamic>.from(data['streak']);
+              if (normalizedStreak.containsKey('streakType')) {
+                final normalizedType = _normalizeStreakType(normalizedStreak['streakType']);
+                if (normalizedType != null) {
+                  normalizedStreak['streakType'] = normalizedType;
+                }
+              }
+              streaksMap[dateKey] = normalizedStreak;
             } else {
               errorMessage.value = data['message'] ?? 'Failed to update streak';
             }
@@ -248,6 +262,19 @@ class StreakService extends GetxController {
     }
   }
 
+  // Helper to normalize streak type from API response
+  String? _normalizeStreakType(dynamic raw) {
+    if (raw is! String) return raw?.toString();
+    final s = raw.toLowerCase().trim();
+    if (s.startsWith('succ')) return 'Successful';
+    if (s.startsWith('pass')) return 'Successful';
+    if (s.startsWith('win')) return 'Successful';
+    if (s.startsWith('fail')) return 'Failed';
+    if (s.startsWith('miss')) return 'Failed';
+    if (s.startsWith('lose')) return 'Failed';
+    return raw; // Return original if no match
+  }
+
   // Get streaks for a date range (month view)
   Future<List<Map<String, dynamic>>?> getStreaksForDateRange({
     required DateTime startDate,
@@ -275,14 +302,50 @@ class StreakService extends GetxController {
             if (data['success'] == true && data['streaks'] != null) {
               result = List<Map<String, dynamic>>.from(data['streaks']);
               
-              // Update local map with all streaks
-              streaksMap.clear();
+              // Merge date range data into existing map (don't clear to preserve history data)
               for (var streak in result!) {
-                if (streak['date'] != null) {
-                  final dateKey = streak['date'] as String;
-                  streaksMap[dateKey] = streak;
+                // Handle different possible date field names and formats
+                dynamic dateValue = streak['date'] ?? streak['dateKey'] ?? streak['streakDate'];
+                if (dateValue == null) continue;
+                
+                // Convert to string and normalize format
+                String dateKey;
+                if (dateValue is DateTime) {
+                  dateKey = _formatDate(dateValue);
+                } else if (dateValue is String) {
+                  // Try to parse and reformat if needed
+                  final parsed = DateTime.tryParse(dateValue);
+                  if (parsed != null) {
+                    dateKey = _formatDate(parsed);
+                  } else {
+                    // Assume it's already in YYYY-MM-DD format
+                    dateKey = dateValue.trim();
+                  }
+                } else {
+                  continue;
                 }
+                
+                // Merge with existing data if any
+                final existing = streaksMap[dateKey] ?? <String, dynamic>{};
+                final normalizedStreak = Map<String, dynamic>.from(streak);
+                // Normalize streakType to ensure consistent format
+                if (normalizedStreak.containsKey('streakType')) {
+                  final normalizedType = _normalizeStreakType(normalizedStreak['streakType']);
+                  if (normalizedType != null) {
+                    normalizedStreak['streakType'] = normalizedType;
+                  }
+                }
+                // Ensure date field is set correctly
+                normalizedStreak['date'] = dateKey;
+                // Merge with existing to preserve any additional fields
+                streaksMap[dateKey] = {
+                  ...existing,
+                  ...normalizedStreak,
+                };
               }
+              
+              // Trigger reactive update
+              streaksMap.refresh();
              
             } else {
               errorMessage.value = data['message'] ?? 'Failed to get streaks';
@@ -342,6 +405,7 @@ class StreakService extends GetxController {
             final data = jsonDecode(response.response);
             if (data['success'] == true && data['history'] != null) {
               result = data['history'];
+              print("Streak History $result");
               streakHistory.value = data['history'];
               // Merge any available logged dates from history into streaksMap
               try {

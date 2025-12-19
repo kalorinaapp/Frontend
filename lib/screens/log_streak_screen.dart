@@ -391,11 +391,17 @@ class _MonthGrid extends StatelessWidget {
               if (streakType == null) {
                 // No entry - neutral/not logged
                 status = _DayStatus.neutral;
-              } else if (streakType == 'Successful') {
-                status = _DayStatus.completed;
               } else {
-                // Failed
-                status = _DayStatus.missed;
+                // Normalize streakType for comparison (case-insensitive)
+                final normalizedType = streakType.toString().trim().toLowerCase();
+                if (normalizedType.startsWith('succ') || normalizedType.startsWith('pass') || normalizedType.startsWith('win')) {
+                  status = _DayStatus.completed;
+                } else if (normalizedType.startsWith('fail') || normalizedType.startsWith('miss') || normalizedType.startsWith('lose')) {
+                  status = _DayStatus.missed;
+                } else {
+                  // Unknown type, default to neutral
+                  status = _DayStatus.neutral;
+                }
               }
             }
 

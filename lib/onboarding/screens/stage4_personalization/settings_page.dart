@@ -1003,15 +1003,21 @@ class _SettingsListCard extends StatelessWidget {
       AppConstants.refreshToken = '';
       
       // Navigate to onboarding screen and remove all previous routes
+      // Use rootNavigator to ensure we navigate from the root context
+      // Use post-frame callback to ensure navigation happens after current frame
       if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          CupertinoPageRoute(
-            builder: (context) => OnboardingScreen(
-              themeProvider: Get.find<ThemeProvider>(),
-            ),
-          ),
-          (route) => false, // Remove all previous routes
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+              CupertinoPageRoute(
+                builder: (context) => OnboardingScreen(
+                  themeProvider: Get.find<ThemeProvider>(),
+                ),
+              ),
+              (route) => false, // Remove all previous routes
+            );
+          }
+        });
       }
     } else {
       // Show error dialog if deletion failed
@@ -1035,138 +1041,174 @@ class _SettingsListCard extends StatelessWidget {
   }
 
   void _showDeleteAccountConfirmation(BuildContext context) {
+    // Store the original context before showing dialog
+    final originalContext = context;
+    
     // Show confirmation dialog
     showCupertinoDialog(
       context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return Center(
-          child: Container(
-            width: 320,
-            margin: const EdgeInsets.symmetric(horizontal: 30),
-            decoration: BoxDecoration(
-              color: ThemeHelper.cardBackground,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  // Header with title and close button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+      barrierDismissible: false, // Prevent dismissing while deleting
+      builder: (BuildContext dialogContext) {
+        bool isDeleting = false;
+        
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Center(
+              child: Container(
+                width: 320,
+                margin: const EdgeInsets.symmetric(horizontal: 30),
+                decoration: BoxDecoration(
+                  color: ThemeHelper.cardBackground,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        AppLocalizations.of(context)!.deleteAccountTitle,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: ThemeHelper.textPrimary,
-                        ),
-                      ),
-                      CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: ThemeHelper.background,
-                          shape: BoxShape.circle,
-                        ),
-                        child:                           Icon(
-                            weight: 30.0,
-                            CupertinoIcons.xmark_circle,
-                            color: ThemeHelper.textPrimary,
-                            size: 24,
-                          ),
-                      ),
-                    ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // Subtitle
-                  Text(
-                    AppLocalizations.of(context)!.accountWillBePermanentlyDeleted,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: ThemeHelper.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  // Buttons
-                  Row(
-                    children: [
-                      // No button
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Container(
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: ThemeHelper.cardBackground,
-                              border: Border.all(
-                                color: ThemeHelper.divider,
-                                width: 1,
-                              ),
-                              borderRadius: BorderRadius.circular(24),
+                      // Header with title and close button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.deleteAccountTitle,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: ThemeHelper.textPrimary,
                             ),
-                            child: Center(
-                              child: Text(
-                                'No',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
+                          ),
+                          if (!isDeleting)
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () => Navigator.of(dialogContext).pop(),
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: ThemeHelper.background,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  CupertinoIcons.xmark_circle,
                                   color: ThemeHelper.textPrimary,
+                                  size: 24,
                                 ),
                               ),
-                            ),
-                          ),
+                            )
+                          else
+                            const SizedBox(width: 36, height: 36),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Subtitle
+                      Text(
+                        AppLocalizations.of(context)!.accountWillBePermanentlyDeleted,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: ThemeHelper.textSecondary,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      // Yes button
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () async {
-                            Navigator.of(context).pop();
-                            await _handleDeleteAccount(context);
-                          },
-                          child: Container(
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFCD5C5C), // Matching the red color from screenshot
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'Yes',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.white,
+                      const SizedBox(height: 40),
+                      // Buttons
+                      Row(
+                        children: [
+                          // No button
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: isDeleting
+                                  ? null
+                                  : () => Navigator.of(dialogContext).pop(),
+                              child: Container(
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: isDeleting
+                                      ? ThemeHelper.cardBackground.withOpacity(0.5)
+                                      : ThemeHelper.cardBackground,
+                                  border: Border.all(
+                                    color: ThemeHelper.divider,
+                                    width: 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'No',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDeleting
+                                          ? ThemeHelper.textSecondary
+                                          : ThemeHelper.textPrimary,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          // Yes button
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: isDeleting
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        isDeleting = true;
+                                      });
+                                      
+                                      // Call delete account
+                                      await _handleDeleteAccount(originalContext);
+                                      
+                                      // Close dialog after deletion (navigation happens in _handleDeleteAccount)
+                                      if (dialogContext.mounted) {
+                                        Navigator.of(dialogContext).pop();
+                                      }
+                                    },
+                              child: Container(
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: isDeleting
+                                      ? const Color(0xFFCD5C5C).withOpacity(0.7)
+                                      : const Color(0xFFCD5C5C),
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Center(
+                                  child: isDeleting
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CupertinoActivityIndicator(
+                                            color: CupertinoColors.white,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Yes',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: CupertinoColors.white,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
-     
-  });
-
-// ... existing code ...
+      },
+    );
   }
 
 

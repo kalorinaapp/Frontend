@@ -175,22 +175,16 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
                     
                     const SizedBox(height: 24),
                     
-                    // Title - Dynamic based on progress
-                    AnimatedBuilder(
-                      animation: _progressAnimation,
-                      builder: (context, child) {
-                        final percentage = (_progressAnimation.value * 100).round();
-                        return Text(
-                          _getProgressLabel(percentage),
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: ThemeHelper.textPrimary,
-                            height: 1.2,
-                          ),
-                          textAlign: TextAlign.center,
-                        );
-                      },
+                    // Static title
+                    Text(
+                      "Generating Your Custom Plan",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: ThemeHelper.textPrimary,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                     
                     const SizedBox(height: 60),
@@ -228,6 +222,26 @@ class _GoalGenerationPageState extends State<GoalGenerationPage>
                           );
                         },
                       ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Changing text below progress bar - smaller font
+                    AnimatedBuilder(
+                      animation: _progressAnimation,
+                      builder: (context, child) {
+                        final percentage = (_progressAnimation.value * 100).round();
+                        return Text(
+                          _getProgressLabel(percentage),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: ThemeHelper.textSecondary,
+                            height: 1.2,
+                          ),
+                          textAlign: TextAlign.center,
+                        );
+                      },
                     ),
                     
                     SizedBox(height: MediaQuery.of(context).size.height * 0.1),

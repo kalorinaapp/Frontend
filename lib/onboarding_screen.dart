@@ -373,29 +373,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
 
   void _previousPage() {
-    // If registration is complete, redirect to home screen instead of going back
-    if (_controller.isRegistrationComplete.value) {
-      // Get LanguageProvider if available
-      LanguageProvider? languageProvider;
-      try {
-        languageProvider = Get.find<LanguageProvider>();
-      } catch (e) {
-        // LanguageProvider not available, that's okay
-      }
-      
-      // Navigate to home screen and remove all previous routes
-      Navigator.of(context).pushAndRemoveUntil(
-        CupertinoPageRoute(
-          builder: (context) => HomeScreen(
-            themeProvider: widget.themeProvider,
-            languageProvider: languageProvider ?? LanguageProvider(),
-          ),
-        ),
-        (route) => false, // Remove all previous routes
-      );
-      return;
-    }
-    
     if (_controller.currentPage.value > 0) {
       final int currentPage = _controller.currentPage.value;
       final String? goal = _controller.getStringData('goal');
@@ -824,8 +801,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         ),
                         child: Row(
                           children: [
-                            // Back button (hidden on first page)
-                            _controller.currentPage.value > 0
+                            // Back button (hidden on first page, and hidden on second page if user just registered)
+                            _controller.currentPage.value > 0 && 
+                            !(_controller.currentPage.value == 1 && _controller.isRegistrationComplete.value)
                                 ? GestureDetector(
                                     onTap: () {
                                       HapticFeedback.mediumImpact();

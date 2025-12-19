@@ -85,12 +85,13 @@ class UserPrefs {
     await prefs.remove(keyEmail);
     await prefs.remove(keyToken);
     await prefs.remove(keyRefreshToken);
-    await prefs.remove(keyId);
+    await prefs.remove(keyId); // userId is removed here
     // Note: We don't remove deviceId here as it should persist across logouts
     await prefs.remove(keyLastWeighInIso);
     await prefs.remove(keyHealthPermsGranted);
     await prefs.remove(keyLastStepsDate);
     await prefs.remove(keyLastStepsValue);
+    await prefs.remove(keyScanTutorialShown);
   }
 
   static bool isTokenInvalid(String? token) {
