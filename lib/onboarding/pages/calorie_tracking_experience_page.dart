@@ -6,8 +6,6 @@ import '../../utils/theme_helper.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/page_animations.dart';
 import '../../providers/language_provider.dart';
-import '../../screens/language_selection_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class CalorieTrackingExperiencePage extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -30,10 +28,8 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
   late Animation<double> _titleAnimation;
   late List<Animation<double>> _cardAnimations;
   
-  // Language state
+  // Language provider for listening to language changes
   LanguageProvider? _languageProvider;
-  String _currentLanguageCode = 'en';
-  String _currentLanguageFlag = '🇬🇧';
 
   List<Map<String, String>> _getOptions(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -60,14 +56,13 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
     // Load previously saved selection if any
     _selectedOption = _controller.getStringData('calorie_tracking_experience');
     
-    // Load language provider and current language
+    // Load language provider for listening to language changes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         _languageProvider = Get.find<LanguageProvider>();
       } catch (e) {
         debugPrint('LanguageProvider not found: $e');
       }
-      _loadCurrentLanguage();
     });
     
     // Setup animations using global animations helper
@@ -85,110 +80,6 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
     
     // Start animations
     _animationController.forward();
-  }
-  
-  // Load current language from shared preferences
-  Future<void> _loadCurrentLanguage() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      String savedLanguage = prefs.getString('selected_language') ?? 'hr';
-      
-      final languageInfo = _getLanguageInfo(savedLanguage);
-      
-      setState(() {
-        _currentLanguageCode = savedLanguage;
-        _currentLanguageFlag = languageInfo['flag'] ?? '🇬🇧';
-      });
-    } catch (e) {
-      debugPrint('Error loading language: $e');
-      setState(() {
-        _currentLanguageCode = 'hr';
-        _currentLanguageFlag = '🇭🇷';
-      });
-    }
-  }
-
-  // Get language information by code
-  Map<String, String> _getLanguageInfo(String code) {
-    const languages = {
-      'en': {'code': 'en', 'name': 'English', 'flag': '🇬🇧'},
-      'hr': {'code': 'hr', 'name': 'Hrvatski', 'flag': '🇭🇷'},
-      'sr': {'code': 'sr', 'name': 'Srpski', 'flag': '🇷🇸'},
-      'bs': {'code': 'bs', 'name': 'Bosanski', 'flag': '🇧🇦'},
-      'sl': {'code': 'sl', 'name': 'Slovenščina', 'flag': '🇸🇮'},
-      'cg': {'code': 'cg', 'name': 'Crnogorski', 'flag': '🇲🇪'},
-      'mk': {'code': 'mk', 'name': 'Македонски', 'flag': '🇲🇰'},
-      'bg': {'code': 'bg', 'name': 'Български', 'flag': '🇧🇬'},
-      'ro': {'code': 'ro', 'name': 'Română', 'flag': '🇷🇴'},
-      'hu': {'code': 'hu', 'name': 'Magyar', 'flag': '🇭🇺'},
-    };
-    
-    return languages[code] ?? {'code': 'en', 'name': 'English', 'flag': '🇬🇧'};
-  }
-
-  // Language changer widget
-  Widget _buildLanguageChanger() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () async {
-        try {
-          final result = await Navigator.push(
-            context,
-            CupertinoPageRoute(builder: (context) => LanguageSelectionScreen()),
-          );
-          
-          // Reload language after returning from selection screen
-          if (result != null || mounted) {
-            await _loadCurrentLanguage();
-            _controller.validateCurrentPage();
-          }
-        } catch (e) {
-          debugPrint('Error navigating to language selection: $e');
-        }
-      },
-      child: Container(
-        width: 64,
-        height: 32,
-        decoration: BoxDecoration(
-          color: ThemeHelper.cardBackground,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: ThemeHelper.divider,
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: ThemeHelper.isLightMode 
-                  ? CupertinoColors.black.withOpacity(0.1)
-                  : CupertinoColors.black.withOpacity(0.3),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _currentLanguageFlag,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              _currentLanguageCode.toUpperCase(),
-              style: ThemeHelper.textStyleWithColorAndSize(
-                ThemeHelper.caption1,
-                ThemeHelper.textPrimary,
-                10,
-              ).copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
   
   @override
@@ -272,12 +163,6 @@ class _CalorieTrackingExperiencePageState extends State<CalorieTrackingExperienc
                     ],
                   ),
                 ),
-              ),
-              // Language changer positioned in top-right
-              Positioned(
-                top: 20,
-                right: 16,
-                child: _buildLanguageChanger(),
               ),
             ],
           ),

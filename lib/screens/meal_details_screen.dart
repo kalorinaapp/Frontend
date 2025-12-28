@@ -143,6 +143,36 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               ..['totalFat'] = totals['fat'];
             // Keep _isScannedMeal true so button stays hidden (it's auto-saved)
           });
+          
+          // Immediately update HomeScreenController to add meal to dashboard dynamically
+          if (Get.isRegistered<HomeScreenController>()) {
+            final controller = Get.find<HomeScreenController>();
+            final savedMeal = Map<String, dynamic>.from(_currentMealData);
+            
+            // Find and replace the optimistic meal (the one without ID) with the saved meal
+            final mealCreatedAt = _currentMealData['createdAt'] as String?;
+            final mealName = (_currentMealData['mealName'] as String?)?.trim();
+            
+            final optimisticIndex = controller.todayMeals.indexWhere((m) {
+              final mId = m['id'] ?? m['_id'];
+              if (mId != null) return false; // Skip meals that already have IDs
+              
+              final mCreatedAt = m['createdAt'] as String?;
+              final mName = (m['mealName'] as String?)?.trim();
+              return mCreatedAt == mealCreatedAt && mName == mealName;
+            });
+            
+            if (optimisticIndex >= 0) {
+              // Replace the optimistic meal with the saved meal data
+              // Use addMealOptimistically which handles updates correctly (subtracts old, adds new)
+              controller.addMealOptimistically(savedMeal);
+              debugPrint('✅ MealDetailsScreen: Updated optimistic meal in dashboard at index $optimisticIndex');
+            } else {
+              // If we couldn't find the optimistic meal, add the saved one
+              controller.addMealOptimistically(savedMeal);
+              debugPrint('✅ MealDetailsScreen: Added saved meal to dashboard');
+            }
+          }
         }
         
         // Return the saved meal data for optimistic update
@@ -342,6 +372,19 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
             setState(() {
               _currentMealData = Map<String, dynamic>.from(response!['meal'] as Map<String, dynamic>);
             });
+            
+            // Immediately add the newly created meal to dashboard
+            if (Get.isRegistered<HomeScreenController>()) {
+              final controller = Get.find<HomeScreenController>();
+              final newMeal = Map<String, dynamic>.from(_currentMealData);
+              
+              // Add to dashboard if bookmarked, otherwise it won't show
+              if (newMeal['isBookmarked'] == true) {
+                // Use addMealOptimistically which handles duplicates correctly
+                controller.addMealOptimistically(newMeal);
+                debugPrint('✅ MealDetailsScreen: Added newly created meal to dashboard');
+              }
+            }
           }
         } else {
           debugPrint('MealDetailsScreen: Failed to create meal - Response: $response');
@@ -384,6 +427,36 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               _currentMealData['totalCarbs'] = totals['carbs'];
               _currentMealData['totalFat'] = totals['fat'];
             });
+            
+            // Immediately update HomeScreenController to reflect changes on dashboard
+            if (Get.isRegistered<HomeScreenController>()) {
+              final controller = Get.find<HomeScreenController>();
+              final updatedMeal = Map<String, dynamic>.from(_currentMealData);
+              final mealId = updatedMeal['id'] ?? updatedMeal['_id'];
+              
+              if (mealId != null) {
+                // Find and update the meal in the dashboard
+                final mealIndex = controller.todayMeals.indexWhere((m) {
+                  final mId = m['id'] ?? m['_id'];
+                  return mId != null && mId.toString() == mealId.toString();
+                });
+                
+                if (mealIndex >= 0) {
+                  // Update existing meal in dashboard
+                  controller.todayMeals[mealIndex] = updatedMeal;
+                  controller.todayMeals.refresh();
+                  debugPrint('✅ MealDetailsScreen: Updated meal in dashboard at index $mealIndex');
+                } else {
+                  // Meal not found in dashboard, add it (might be a new meal or not bookmarked)
+                  controller.todayMeals.insert(0, updatedMeal);
+                  controller.todayMeals.refresh();
+                  debugPrint('✅ MealDetailsScreen: Added updated meal to dashboard');
+                }
+                
+                // Refresh progress data to sync with server
+                controller.fetchTodayTotals();
+              }
+            }
           }
         } else {
           debugPrint('MealDetailsScreen: Failed to update meal - Response: $response');

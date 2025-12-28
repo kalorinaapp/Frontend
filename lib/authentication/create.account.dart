@@ -765,8 +765,8 @@ class _CreateAccountPageState extends State<CreateAccountPage>
                     ],
                   ),
                 ),
-                 // Language changer positioned in top-right, manually offset by status bar (only shown on login screen)
-                 if (widget.isLogin)
+                 // Language changer positioned in top-right, manually offset by status bar (shown on login screen and first page of onboarding)
+                 if (widget.isLogin || !widget.isAfterOnboardingCompletion)
                    Positioned(
                      // Just below the status bar so it stays fully tappable
                      top: MediaQuery.of(context).padding.top + 4,

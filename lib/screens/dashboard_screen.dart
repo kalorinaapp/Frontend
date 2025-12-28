@@ -301,6 +301,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         setState(() {
           _localTodayMeals = uniqueMeals;
           _lastSyncedMealIds = newMealIds;
+          _sortMealsByDate(); // Ensure meals are sorted by date
         });
         debugPrint('🔄 Dashboard: Synced ${_localTodayMeals.length} meals from widget');
       }
@@ -316,11 +317,46 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       _localTodayExercises = (widget.todayExercises ?? const [])
           .map((exercise) => Map<String, dynamic>.from(exercise))
           .toList();
+      _sortExercisesByDate(); // Ensure exercises are sorted by date
     }
     
     if (shouldSyncMeals) {
       _recalculateLocalTotals(preferWidgetTotals: true);
     }
+  }
+
+  void _sortMealsByDate() {
+    _localTodayMeals.sort((a, b) {
+      final aCreated = a['createdAt'] as String?;
+      final bCreated = b['createdAt'] as String?;
+      if (aCreated == null && bCreated == null) return 0;
+      if (aCreated == null) return 1;
+      if (bCreated == null) return -1;
+      try {
+        final aDate = DateTime.parse(aCreated);
+        final bDate = DateTime.parse(bCreated);
+        return bDate.compareTo(aDate); // Descending order (newest first)
+      } catch (_) {
+        return 0;
+      }
+    });
+  }
+  
+  void _sortExercisesByDate() {
+    _localTodayExercises.sort((a, b) {
+      final aLoggedAt = a['loggedAt'] as String? ?? a['createdAt'] as String?;
+      final bLoggedAt = b['loggedAt'] as String? ?? b['createdAt'] as String?;
+      if (aLoggedAt == null && bLoggedAt == null) return 0;
+      if (aLoggedAt == null) return 1;
+      if (bLoggedAt == null) return -1;
+      try {
+        final aDate = DateTime.parse(aLoggedAt);
+        final bDate = DateTime.parse(bLoggedAt);
+        return bDate.compareTo(aDate); // Descending order (newest first)
+      } catch (_) {
+        return 0;
+      }
+    });
   }
 
   void _applyLocalMealUpdate(Map<String, dynamic> updatedMeal) {
@@ -434,6 +470,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     // Add as new meal
     _localTodayMeals.insert(0, copy);
     widget.todayMeals?.insert(0, copy);
+    _sortMealsByDate(); // Ensure meals stay sorted by date
   }
 
   void _applyLocalExerciseUpdate(Map<String, dynamic> updatedExercise) {
@@ -454,6 +491,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         _localTodayExercises.insert(0, copy);
       }
     }
+    
+    _sortExercisesByDate(); // Ensure exercises are sorted by date
 
     if (widget.todayExercises != null) {
       widget.todayExercises!
@@ -882,6 +921,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       _localTodayExercises = (widget.todayExercises ?? const [])
           .map((exercise) => Map<String, dynamic>.from(exercise))
           .toList();
+      _sortExercisesByDate(); // Ensure exercises are sorted by date
     }
     
     // Only extract foods if progress data actually changed - avoid unnecessary updates
@@ -1103,15 +1143,19 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                           builder: (progressService) {
                                             final progressData = progressService.dailyProgressData;
                                             
-                                            int consumed = _getLocalTotal('totalCalories') ?? 0;
+                                            int consumed = 0;
                                             int goal = 0;
                                             
+                                            // Prioritize backend progress data (source of truth)
                                             if (progressData != null && progressData['progress'] != null) {
                                               final progress = progressData['progress'] as Map<String, dynamic>;
+                                              consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
                                               goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
-                                              if (consumed == 0) {
-                                                consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
-                                              }
+                                            }
+                                            
+                                            // Fall back to local totals only if backend data is not available
+                                            if (consumed == 0) {
+                                              consumed = _getLocalTotal('totalCalories') ?? 0;
                                             }
                                             
                                             final double progressValue = goal > 0 ? consumed / goal : 0.0;
@@ -1154,16 +1198,19 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                     builder: (progressService) {
                                       final progressData = progressService.dailyProgressData;
                                       
-                                      final localConsumed = _getLocalTotal('totalCalories');
-                                      int consumed = localConsumed ?? 0;
+                                      int consumed = 0;
                                       int goal = 0;
                                       
+                                      // Prioritize backend progress data (source of truth)
                                       if (progressData != null && progressData['progress'] != null) {
                                         final progress = progressData['progress'] as Map<String, dynamic>;
-                                        if (consumed == 0) {
-                                          consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
-                                        }
+                                        consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
                                         goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
+                                      }
+                                      
+                                      // Fall back to local totals only if backend data is not available
+                                      if (consumed == 0) {
+                                        consumed = _getLocalTotal('totalCalories') ?? 0;
                                       }
                                       
                                       return RichText(
@@ -1172,7 +1219,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                             TextSpan(
                                               text: '$consumed',
                                               style: TextStyle(
-                                                fontSize: 24,
+                                                fontSize: 20,
                                                 fontWeight: FontWeight.bold,
                                                 color: ThemeHelper.textPrimary,
                                               ),
@@ -1198,20 +1245,22 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                   builder: (progressService) {
                                     final progressData = progressService.dailyProgressData;
                                     
-                                    final localConsumed = _getLocalTotal('totalCalories');
-                                    int consumed = localConsumed ?? 0;
+                                    int consumed = 0;
                                     int goal = 0;
-                                    int remaining;
                                     
+                                    // Prioritize backend progress data (source of truth)
                                     if (progressData != null && progressData['progress'] != null) {
                                       final progress = progressData['progress'] as Map<String, dynamic>;
-                                      if (consumed == 0) {
-                                        consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
-                                      }
+                                      consumed = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
                                       goal = ((progress['calories']?['goal'] ?? 0) as num).toInt();
                                     }
+                                    
+                                    // Fall back to local totals only if backend data is not available
+                                    if (consumed == 0) {
+                                      consumed = _getLocalTotal('totalCalories') ?? 0;
+                                    }
                                 
-                                    remaining = goal > 0 ? (goal - consumed).clamp(0, goal) : 0;
+                                    final int remaining = goal > 0 ? (goal - consumed).clamp(0, goal) : 0;
                                     
                                     return Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -1314,7 +1363,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                   ),
                                 ),
                               ),
-                              // Exercise cards
+                              // Exercise cards (already sorted by date descending)
                               ..._localTodayExercises.asMap().entries.map((entry) {
                                 final index = entry.key;
                                 final exercise = entry.value;
@@ -1896,19 +1945,22 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                       builder: (progressService) {
                         final progressData = progressService.dailyProgressData;
                         
-                        final localConsumed = _getLocalMacro(dataKey);
-                        int consumed = localConsumed ?? 0;
+                        int consumed = 0;
                         int goal = 0;
                         
+                        // Prioritize backend progress data (source of truth)
                         if (progressData != null && progressData['progress'] != null) {
                           final progress = progressData['progress'] as Map<String, dynamic>;
                           if (progress['macros'] != null) {
                             final macros = progress['macros'] as Map<String, dynamic>;
-                            if (consumed == 0) {
-                              consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
-                            }
+                            consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
                             goal = ((macros[dataKey]?['goal'] ?? 0) as num).toInt();
                           }
+                        }
+                        
+                        // Fall back to local totals only if backend data is not available
+                        if (consumed == 0) {
+                          consumed = _getLocalMacro(dataKey) ?? 0;
                         }
                         
                         double progressValue = goal > 0 ? consumed / goal : 0.0;
@@ -1999,19 +2051,22 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             builder: (progressService) {
                               final progressData = progressService.dailyProgressData;
                               
-                              final localConsumed = _getLocalMacro(dataKey);
-                              int consumed = localConsumed ?? 0;
+                              int consumed = 0;
                               int goal = 0;
                               
+                              // Prioritize backend progress data (source of truth)
                               if (progressData != null && progressData['progress'] != null) {
                                 final progress = progressData['progress'] as Map<String, dynamic>;
                                 if (progress['macros'] != null) {
                                   final macros = progress['macros'] as Map<String, dynamic>;
-                                  if (consumed == 0) {
-                                    consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
-                                  }
+                                  consumed = ((macros[dataKey]?['consumed'] ?? 0) as num).toInt();
                                   goal = ((macros[dataKey]?['goal'] ?? 0) as num).toInt();
                                 }
+                              }
+                              
+                              // Fall back to local totals only if backend data is not available
+                              if (consumed == 0) {
+                                consumed = _getLocalMacro(dataKey) ?? 0;
                               }
                               
                               return RichText(
@@ -2780,13 +2835,15 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   Widget _buildExerciseCard(Map<String, dynamic> exercise, AppLocalizations l10n) {
     final caloriesBurned = ((exercise['caloriesBurned'] ?? 0) as num).toInt();
     final exerciseType = exercise['type'] as String? ?? 'Exercise';
-    final loggedAt = exercise['loggedAt'] as String?;
     final notes = exercise['notes'] as String?;
 
     String timeString = '';
-    if (loggedAt != null) {
+    // Use exact same pattern as meal card: check loggedAt first, then createdAt as fallback
+    final loggedAtStr = exercise['loggedAt'] as String? ?? exercise['createdAt'] as String?;
+    if (loggedAtStr != null) {
       try {
-        final loggedDateTime = DateTime.parse(loggedAt).toLocal();
+        // Exact same code as meal card: parse and convert to local timezone
+        final loggedDateTime = DateTime.parse(loggedAtStr).toLocal();
         timeString = DateFormat('HH:mm', Localizations.localeOf(context).toString()).format(loggedDateTime);
       } catch (_) {}
     }

@@ -224,12 +224,13 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
     final String weightUnit = isLbs ? 'lbs' : 'kg';
     final String weightSign = _getWeightChangeSign();
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 40),
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
           
           // Weight change goal circle
           PageAnimations.animatedContent(
@@ -273,7 +274,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
             ),
           ),
           
-          const SizedBox(height: 40),
+          const SizedBox(height: 30),
           
           // Main motivational message
           PageAnimations.animatedContent(
@@ -319,7 +320,7 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
             ),
           ),
           
-          const SizedBox(height: 60),
+          const SizedBox(height: 40),
           
           // Statistics box
           PageAnimations.animatedContent(
@@ -360,8 +361,9 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
             ),
           ),
           
-          const SizedBox(height: 32),
-        ],
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+          ],
+        ),
       ),
     );
   }

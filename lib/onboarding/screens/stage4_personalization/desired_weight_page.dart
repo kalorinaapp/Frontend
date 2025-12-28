@@ -617,13 +617,12 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
               _getGoalText(localizations),
               style: ThemeHelper.body1.copyWith(
                 color: ThemeHelper.textSecondary,
-                fontSize: 16,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
         ),
-        
-        const SizedBox(height: 10),
         
         // Current weight display (tappable to open bottom sheet)
         PageAnimations.animatedContent(
@@ -643,15 +642,14 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
           ),
         ),
         
-        const SizedBox(height: 40),
+        const SizedBox(height: 30),
         
         // Weight slider
         Expanded(
           child: PageAnimations.animatedContent(
             animation: _sliderAnimation,
-            child: Center(
-              child: SizedBox(
-                height: 100,
+            child: SizedBox(
+                height: 150,
                 width: double.infinity,
                 child: GestureDetector(
                 onPanStart: (details) {
@@ -677,18 +675,18 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
                       
                       double tickHeight = 0;
                       if (isMajorTick) {
-                        tickHeight = 35;
+                        tickHeight = 55;
                       } else if (isMediumTick) {
-                        tickHeight = 25;
+                        tickHeight = 40;
                       } else if (isMinorTick) {
-                        tickHeight = 15;
+                        tickHeight = 25;
                       }
                       
                       return Positioned(
                         left: position + 20,
-                        top: 50 - tickHeight,
+                        top: 75 - tickHeight,
                         child: Container(
-                          width: 1,
+                          width: 1.5,
                           height: tickHeight,
                           color: ThemeHelper.textPrimary,
                         ),
@@ -697,33 +695,33 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
                     // Grayish gradient shade overlay covering full ruler height
                     Positioned(
                       left: 20,
-                      top: 15, // Start from major tick head
+                      top: 20, // Start from major tick head
                       child: Container(
                         width: _getSliderWidth(),
-                        height: 35, // From major tick head to feet
+                        height: 55, // From major tick head to feet
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              ThemeHelper.textSecondary.withOpacity(0.8), // Darker at top
-                              ThemeHelper.textSecondary.withOpacity(0.5), // Lighter at bottom
+                              const Color(0xFF6B6B6B).withOpacity(0.75), // Dark grey at top with transparency
+                              const Color(0xFFD3D3D3).withOpacity(0.3), // Light grey at bottom with transparency
                             ],
                           ),
-                          borderRadius: BorderRadius.circular(1.5),
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
                     // Pointer (tall black line positioned higher)
                     Positioned(
                       left: _getPointerPosition(),
-                      top: -25, // Moved higher
+                      top: -35, // Moved higher
                       child: Container(
-                        width: 2,
-                        height: 75, // Extended height
+                        width: 3,
+                        height: 110, // Extended height
                         decoration: BoxDecoration(
                           color: ThemeHelper.textPrimary,
-                          borderRadius: BorderRadius.circular(1),
+                          borderRadius: BorderRadius.circular(1.5),
                         ),
                       ),
                     ),
@@ -731,7 +729,6 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
                 ),
               ),
             ),
-          ),
           ),
         ),
         

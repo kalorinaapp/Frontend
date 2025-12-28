@@ -559,33 +559,9 @@ class HomeScreenController extends GetxController {
                 // User backed out without saving: revert scan state
                 revertScanState();
               } else if (savedMeal != null) {
-                // Meal was saved - update the optimistic meal with server response
-                // Find and replace the specific optimistic meal we added
-                final savedMealId = savedMeal['id'] ?? savedMeal['_id'];
-                final mealCreatedAt = mealData['createdAt'] as String?;
-                final mealName = (mealData['mealName'] as String?)?.trim();
-                
-                // Find the optimistic meal by matching createdAt and mealName (since it has no ID)
-                final optimisticIndex = todayMeals.indexWhere((m) {
-                  final mId = m['id'] ?? m['_id'];
-                  if (mId != null) return false; // Skip meals that already have IDs
-                  
-                  final mCreatedAt = m['createdAt'] as String?;
-                  final mName = (m['mealName'] as String?)?.trim();
-                  return mCreatedAt == mealCreatedAt && mName == mealName;
-                });
-                
-                if (optimisticIndex >= 0) {
-                  // Replace the optimistic meal with the saved meal data
-                  todayMeals[optimisticIndex] = Map<String, dynamic>.from(savedMeal);
-                  
-                  // Update progress optimistically with the saved meal
-                  _updateProgressOptimistically(savedMeal);
-                } else if (savedMealId != null) {
-                  // If we couldn't find the optimistic meal, just add the saved one
-                  // (might have been removed or never added)
-                  addMealOptimistically(savedMeal);
-                }
+                // Meal was saved - use addMealOptimistically which handles updates correctly
+                // (it will find the existing optimistic meal and update it with delta calculation)
+                addMealOptimistically(savedMeal);
               } else {
                 // User backed out without saving: remove optimistic meal and revert scan state
                 // Match by createdAt and mealName to find the specific optimistic meal
@@ -633,10 +609,75 @@ class HomeScreenController extends GetxController {
   }
 
   void addMealOptimistically(Map<String, dynamic> savedMeal) {
-    todayMeals.add(savedMeal);
+    // Check if meal already exists to avoid duplicates
+    final savedMealId = savedMeal['id'] ?? savedMeal['_id'];
+    final mealCreatedAt = savedMeal['createdAt'] as String?;
+    final mealName = (savedMeal['mealName'] as String?)?.trim();
     
-    // Optimistically update progress data immediately
-    _updateProgressOptimistically(savedMeal);
+    // Check if meal already exists (by ID or by createdAt + mealName for optimistic meals)
+    final exists = todayMeals.any((m) {
+      final mId = m['id'] ?? m['_id'];
+      if (savedMealId != null && mId != null && mId.toString() == savedMealId.toString()) {
+        return true; // Same ID
+      }
+      // For meals without IDs, match by createdAt and mealName
+      if (savedMealId == null && mId == null && mealCreatedAt != null && mealName != null) {
+        final mCreatedAt = m['createdAt'] as String?;
+        final mName = (m['mealName'] as String?)?.trim();
+        return mCreatedAt == mealCreatedAt && mName == mealName;
+      }
+      return false;
+    });
+    
+    if (!exists) {
+      todayMeals.add(savedMeal);
+      
+      // Optimistically update progress data immediately (only if meal is new)
+      _updateProgressOptimistically(savedMeal);
+    } else {
+      // Meal already exists - just update it without double-counting progress
+      final index = todayMeals.indexWhere((m) {
+        final mId = m['id'] ?? m['_id'];
+        if (savedMealId != null && mId != null && mId.toString() == savedMealId.toString()) {
+          return true;
+        }
+        if (savedMealId == null && mId == null && mealCreatedAt != null && mealName != null) {
+          final mCreatedAt = m['createdAt'] as String?;
+          final mName = (m['mealName'] as String?)?.trim();
+          return mCreatedAt == mealCreatedAt && mName == mealName;
+        }
+        return false;
+      });
+      
+      if (index >= 0) {
+        // Get old meal values to subtract before adding new ones
+        final oldMeal = todayMeals[index];
+        final oldCalories = ((oldMeal['totalCalories'] ?? 0) as num).toInt();
+        final oldProtein = ((oldMeal['totalProtein'] ?? 0) as num).toInt();
+        final oldCarbs = ((oldMeal['totalCarbs'] ?? 0) as num).toInt();
+        final oldFat = ((oldMeal['totalFat'] ?? 0) as num).toInt();
+        
+        // Get new meal values
+        final newCalories = ((savedMeal['totalCalories'] ?? 0) as num).toInt();
+        final newProtein = ((savedMeal['totalProtein'] ?? 0) as num).toInt();
+        final newCarbs = ((savedMeal['totalCarbs'] ?? 0) as num).toInt();
+        final newFat = ((savedMeal['totalFat'] ?? 0) as num).toInt();
+        
+        // Calculate delta (difference)
+        final deltaCalories = newCalories - oldCalories;
+        final deltaProtein = newProtein - oldProtein;
+        final deltaCarbs = newCarbs - oldCarbs;
+        final deltaFat = newFat - oldFat;
+        
+        // Update the meal in the list
+        todayMeals[index] = Map<String, dynamic>.from(savedMeal);
+        
+        // Update progress with delta only (not full values)
+        if (deltaCalories != 0 || deltaProtein != 0 || deltaCarbs != 0 || deltaFat != 0) {
+          _updateProgressWithDelta(deltaCalories, deltaProtein, deltaCarbs, deltaFat);
+        }
+      }
+    }
     
     // Also fetch from server to ensure consistency (this will update progress too)
     fetchTodayTotals();
@@ -662,6 +703,16 @@ class HomeScreenController extends GetxController {
   }
 
   void removeMeal(Map<String, dynamic> mealToRemove) {
+    // Extract meal values BEFORE removing (so we can subtract from progress)
+    final mealCalories = ((mealToRemove['totalCalories'] ?? 0) as num).toInt();
+    final mealProtein = ((mealToRemove['totalProtein'] ?? 0) as num).toInt();
+    final mealCarbs = ((mealToRemove['totalCarbs'] ?? 0) as num).toInt();
+    final mealFat = ((mealToRemove['totalFat'] ?? 0) as num).toInt();
+    
+    // Optimistically subtract meal values from progress immediately
+    _updateProgressWithDelta(-mealCalories, -mealProtein, -mealCarbs, -mealFat);
+    
+    // Remove meal from list
     final mealId = mealToRemove['id'] ?? mealToRemove['_id'];
     if (mealId != null && mealId.toString().isNotEmpty) {
       todayMeals.removeWhere((m) {
@@ -685,8 +736,89 @@ class HomeScreenController extends GetxController {
       });
     }
     
-    // Recalculate totals after removal
-    fetchTodayTotals();
+    // Refresh the observable to trigger UI update
+    todayMeals.refresh();
+    
+    // Store the optimistic progress values before server fetch
+    final progressService = Get.find<ProgressService>();
+    final currentProgress = progressService.dailyProgressData;
+    int? optimisticCalories;
+    int? optimisticProtein;
+    int? optimisticCarbs;
+    int? optimisticFat;
+    
+    if (currentProgress != null && currentProgress['progress'] != null) {
+      final progress = currentProgress['progress'] as Map<String, dynamic>;
+      if (progress['calories'] != null) {
+        optimisticCalories = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
+      }
+      if (progress['macros'] != null) {
+        final macros = progress['macros'] as Map<String, dynamic>;
+        optimisticProtein = ((macros['protein']?['consumed'] ?? 0) as num).toInt();
+        optimisticCarbs = ((macros['carbs']?['consumed'] ?? 0) as num).toInt();
+        optimisticFat = ((macros['fat']?['consumed'] ?? 0) as num).toInt();
+      }
+    }
+    
+    // Delay server fetch to allow deletion API to complete first
+    // This prevents stale server data from overwriting our optimistic update
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      // Fetch from server to sync (runs in background)
+      fetchTodayTotals();
+      
+      // Also refresh progress data to sync with server
+      final now = DateTime.now();
+      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      
+      // Get steps from Apple Health if includeStepCaloriesInGoal is true
+      int? steps;
+      try {
+        final userController = Get.find<UserController>();
+        final includeStepCalories = userController.userData['includeStepCaloriesInGoal'] ?? false;
+        if (includeStepCalories && healthProvider.hasPermissions) {
+          steps = healthProvider.stepsToday;
+        }
+      } catch (_) {
+        // Silently handle if UserController not available
+      }
+      
+      // Fetch progress data to sync with server (runs in background)
+      // After fetch completes, check if server data matches our optimistic update
+      // If server still has old data (higher values), don't overwrite our optimistic update
+      progressService.fetchDailyProgress(dateYYYYMMDD: dateStr, steps: steps).then((_) {
+        // Check if server returned stale data (still has the deleted meal)
+        final updatedProgress = progressService.dailyProgressData;
+        if (updatedProgress != null && updatedProgress['progress'] != null && 
+            optimisticCalories != null && optimisticProtein != null && 
+            optimisticCarbs != null && optimisticFat != null) {
+          final progress = updatedProgress['progress'] as Map<String, dynamic>;
+          if (progress['calories'] != null) {
+            final serverCalories = ((progress['calories']?['consumed'] ?? 0) as num).toInt();
+            // If server calories are higher than our optimistic (deleted) value,
+            // it means server hasn't processed deletion yet - restore optimistic value
+            if (serverCalories > optimisticCalories) {
+              debugPrint('⚠️ Server still has deleted meal, restoring optimistic update');
+              final serverProtein = progress['macros']?['protein'] != null
+                  ? ((progress['macros']?['protein']?['consumed'] ?? 0) as num).toInt()
+                  : 0;
+              final serverCarbs = progress['macros']?['carbs'] != null
+                  ? ((progress['macros']?['carbs']?['consumed'] ?? 0) as num).toInt()
+                  : 0;
+              final serverFat = progress['macros']?['fat'] != null
+                  ? ((progress['macros']?['fat']?['consumed'] ?? 0) as num).toInt()
+                  : 0;
+              
+              _updateProgressWithDelta(
+                optimisticCalories - serverCalories,
+                optimisticProtein - serverProtein,
+                optimisticCarbs - serverCarbs,
+                optimisticFat - serverFat,
+              );
+            }
+          }
+        }
+      });
+    });
   }
   
   void _updateProgressOptimistically(Map<String, dynamic> meal) {
@@ -708,6 +840,22 @@ class HomeScreenController extends GetxController {
       final mealCarbs = ((meal['totalCarbs'] ?? 0) as num).toInt();
       final mealFat = ((meal['totalFat'] ?? 0) as num).toInt();
       
+      // Update progress with these values
+      _updateProgressWithDelta(mealCalories, mealProtein, mealCarbs, mealFat);
+    } catch (e) {
+      debugPrint('Error updating progress optimistically: $e');
+    }
+  }
+  
+  void _updateProgressWithDelta(int deltaCalories, int deltaProtein, int deltaCarbs, int deltaFat) {
+    try {
+      final progressService = Get.find<ProgressService>();
+      final currentProgress = progressService.dailyProgressData;
+      
+      if (currentProgress == null) {
+        return;
+      }
+      
       // Clone the current progress data
       final updatedProgress = Map<String, dynamic>.from(currentProgress);
       
@@ -721,8 +869,10 @@ class HomeScreenController extends GetxController {
           final currentConsumed = ((calories['consumed'] ?? 0) as num).toInt();
           final goal = ((calories['goal'] ?? 0) as num).toInt();
           
-          calories['consumed'] = currentConsumed + mealCalories;
-          calories['remaining'] = goal - (currentConsumed + mealCalories);
+          // Calculate new consumed value (clamp to 0 minimum to prevent negative values)
+          final newConsumed = (currentConsumed + deltaCalories).clamp(0, double.infinity).toInt();
+          calories['consumed'] = newConsumed;
+          calories['remaining'] = (goal - newConsumed).clamp(0, goal);
           progress['calories'] = calories;
         }
         
@@ -734,7 +884,8 @@ class HomeScreenController extends GetxController {
           if (macros['protein'] != null) {
             final protein = Map<String, dynamic>.from(macros['protein'] as Map<String, dynamic>);
             final currentConsumed = ((protein['consumed'] ?? 0) as num).toInt();
-            protein['consumed'] = currentConsumed + mealProtein;
+            // Clamp to 0 minimum to prevent negative values
+            protein['consumed'] = (currentConsumed + deltaProtein).clamp(0, double.infinity).toInt();
             macros['protein'] = protein;
           }
           
@@ -742,7 +893,8 @@ class HomeScreenController extends GetxController {
           if (macros['carbs'] != null) {
             final carbs = Map<String, dynamic>.from(macros['carbs'] as Map<String, dynamic>);
             final currentConsumed = ((carbs['consumed'] ?? 0) as num).toInt();
-            carbs['consumed'] = currentConsumed + mealCarbs;
+            // Clamp to 0 minimum to prevent negative values
+            carbs['consumed'] = (currentConsumed + deltaCarbs).clamp(0, double.infinity).toInt();
             macros['carbs'] = carbs;
           }
           
@@ -750,7 +902,8 @@ class HomeScreenController extends GetxController {
           if (macros['fat'] != null) {
             final fat = Map<String, dynamic>.from(macros['fat'] as Map<String, dynamic>);
             final currentConsumed = ((fat['consumed'] ?? 0) as num).toInt();
-            fat['consumed'] = currentConsumed + mealFat;
+            // Clamp to 0 minimum to prevent negative values
+            fat['consumed'] = (currentConsumed + deltaFat).clamp(0, double.infinity).toInt();
             macros['fat'] = fat;
           }
           
@@ -763,7 +916,7 @@ class HomeScreenController extends GetxController {
       // Update the progress service with optimistic data
       progressService.updateProgressData(updatedProgress);
     } catch (e) {
-      debugPrint('Error updating progress optimistically: $e');
+      debugPrint('Error updating progress with delta: $e');
     }
   }
   
