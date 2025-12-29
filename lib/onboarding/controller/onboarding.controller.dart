@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'dart:developer' as developer;
+import '../../utils/user.prefs.dart' show UserPrefs;
 
 enum ValidationType {
   multipleChoice,
@@ -60,12 +61,61 @@ class OnboardingController extends GetxController {
     super.onInit();
     developer.log('OnboardingController initialized', name: 'OnboardingController');
     _initializePageValidation();
+    
+    // Load saved onboarding data
+    _loadOnboardingData();
 
     // Listen to current page changes to update next button state
     currentPage.listen((page) {
       developer.log('Page changed to: $page', name: 'OnboardingController');
       _updateNextButtonState();
     });
+    
+    // Listen to page data changes to save progress
+    _pageData.listen((_) {
+      _saveOnboardingData();
+    });
+  }
+  
+  Future<void> _loadOnboardingData() async {
+    try {
+      final savedData = await UserPrefs.getOnboardingData();
+      if (savedData.isNotEmpty) {
+        developer.log('Loading saved onboarding data: ${savedData.keys.length} entries', name: 'OnboardingController');
+        _pageData.addAll(savedData);
+        // Re-validate all pages after loading data (only if configs are registered)
+        _pageValidationConfigs.keys.forEach((pageIndex) {
+          final config = _pageValidationConfigs[pageIndex];
+          if (config != null) {
+            final isValid = _validatePageData(config);
+            _pageValidation[pageIndex.toString()] = isValid;
+          }
+        });
+        _updateNextButtonState();
+        developer.log('✅ Onboarding data loaded successfully', name: 'OnboardingController');
+      }
+    } catch (e) {
+      developer.log('⚠️ Error loading onboarding data: $e', name: 'OnboardingController');
+    }
+  }
+  
+  Future<void> _saveOnboardingData() async {
+    try {
+      final dataToSave = Map<String, dynamic>.from(_pageData);
+      // Convert DateTime objects to ISO strings for JSON serialization
+      final Map<String, dynamic> serializableData = {};
+      for (final entry in dataToSave.entries) {
+        if (entry.value is DateTime) {
+          serializableData[entry.key] = (entry.value as DateTime).toIso8601String();
+        } else {
+          serializableData[entry.key] = entry.value;
+        }
+      }
+      await UserPrefs.setOnboardingData(serializableData);
+      developer.log('💾 Saved onboarding data: ${serializableData.keys.length} entries', name: 'OnboardingController');
+    } catch (e) {
+      developer.log('⚠️ Error saving onboarding data: $e', name: 'OnboardingController');
+    }
   }
 
   // Initialize validation state for all pages
@@ -84,7 +134,9 @@ class OnboardingController extends GetxController {
   ) async {
     developer.log('Registering page validation for page $pageIndex with type: ${config.validationType}', name: 'OnboardingController');
     _pageValidationConfigs[pageIndex] = config;
-    _pageValidation[pageIndex.toString()] = false;
+    // If data already exists (from saved progress), validate it now
+    final isValid = _validatePageData(config);
+    _pageValidation[pageIndex.toString()] = isValid;
     _updateNextButtonState();
   }
 
@@ -320,11 +372,13 @@ class OnboardingController extends GetxController {
   }
 
   // Clear all data
-  void clearAllData() {
+  void clearAllData() async {
     developer.log('Clearing all onboarding data', name: 'OnboardingController');
     _pageData.clear();
     _pageValidation.clear();
     _initializePageValidation();
+    // Also clear from persistent storage
+    await UserPrefs.clearOnboardingProgress();
   }
 
   // Reset to specific page

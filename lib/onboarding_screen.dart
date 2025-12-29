@@ -40,6 +40,7 @@ import 'onboarding/screens/stage4_personalization/dietary_preference_page.dart';
 import 'onboarding/screens/stage4_personalization/personal_goals_page.dart';
 import 'onboarding/screens/stage4_personalization/notification_permission_page.dart';
 import 'utils/theme_helper.dart' show ThemeHelper;
+import 'utils/user.prefs.dart' show UserPrefs;
 
 class OnboardingScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -58,6 +59,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   final PageController _pageController = PageController();
   late AnimationController _animationController;
   late OnboardingController _controller;
+  bool _isLoadingProgress = false; // Flag to prevent saving during initial load
 
   // Build onboarding pages (rebuilt on theme changes)
   List<Widget> _buildPages() {
@@ -197,7 +199,60 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
         // final InAppReview inAppReview = InAppReview.instance;
 
+  Future<void> _loadOnboardingProgress() async {
+    try {
+      _isLoadingProgress = true; // Prevent saving during load
+      
+      final savedPage = await UserPrefs.getOnboardingCurrentPage();
+      if (savedPage != null && savedPage >= 0) {
+        final totalPages = _buildPages().length;
+        if (savedPage < totalPages) {
+          debugPrint('📖 Loading saved onboarding progress: page $savedPage');
+          
+          // Wait for PageController to be ready
+          await Future.delayed(const Duration(milliseconds: 100));
+          
+          // Set the page on the controller
+          _controller.currentPage.value = savedPage;
+          
+          // Validate the loaded page
+          _controller.validatePage(savedPage);
+          
+          // Sync PageController after frame is built
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _pageController.hasClients) {
+              _pageController.jumpToPage(savedPage);
+              debugPrint('✅ PageController synced to saved page: $savedPage');
+            } else {
+              // If PageController not ready, try again after a delay
+              Future.delayed(const Duration(milliseconds: 200), () {
+                if (mounted && _pageController.hasClients) {
+                  _pageController.jumpToPage(savedPage);
+                  debugPrint('✅ PageController synced to saved page (retry): $savedPage');
+                }
+              });
+            }
+          });
+        }
+      }
+      
+      // Allow saving again after a short delay to ensure PageController is synced
+      await Future.delayed(const Duration(milliseconds: 300));
+      _isLoadingProgress = false;
+    } catch (e) {
+      debugPrint('⚠️ Error loading onboarding progress: $e');
+      _isLoadingProgress = false;
+    }
+  }
 
+  void _saveOnboardingProgress(int page) async {
+    try {
+      await UserPrefs.setOnboardingCurrentPage(page);
+      debugPrint('💾 Saved onboarding progress: page $page');
+    } catch (e) {
+      debugPrint('⚠️ Error saving onboarding progress: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -209,10 +264,20 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     // Set total pages
     _controller.setTotalPages(_buildPages().length);
     
-    // Sync PageController to current page after frame is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_pageController.hasClients) {
-        _pageController.jumpToPage(_controller.currentPage.value);
+    // Load saved onboarding progress (this will also sync PageController)
+    _loadOnboardingProgress();
+    
+    // Fallback: Sync PageController to current page after frame is built (in case no saved page)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Wait a bit to ensure saved page is loaded first
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (mounted && _pageController.hasClients) {
+        final currentPage = _controller.currentPage.value;
+        // Only sync if we haven't already synced to a saved page
+        final savedPage = await UserPrefs.getOnboardingCurrentPage();
+        if (savedPage == null || savedPage == currentPage) {
+          _pageController.jumpToPage(currentPage);
+        }
       }
     });
 
@@ -329,6 +394,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         );
       }
       _handlePageLogic(page);
+      // Save progress whenever page changes (but not during initial load)
+      if (!_isLoadingProgress) {
+        _saveOnboardingProgress(page);
+      }
     });
 
     //   WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -581,7 +650,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     return _filterOnboardingDataForUpdate(onboardingData);
   }
 
-  void _startApp() {
+  void _startApp() async {
+    // Mark onboarding as completed
+    await UserPrefs.setOnboardingCompleted(true);
+    // Clear saved progress since onboarding is complete
+    await UserPrefs.clearOnboardingProgress();
+    debugPrint('✅ Onboarding marked as completed');
+    
     // Check if user is authenticated (has token and userId)
     if (AppConstants.authToken.isEmpty || AppConstants.userId.isEmpty) {
       // If not authenticated, navigate to CreateAccountPage

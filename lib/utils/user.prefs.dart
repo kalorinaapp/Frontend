@@ -14,6 +14,9 @@ class UserPrefs {
   static const String keyLastStepsDate = 'last_steps_date';
   static const String keyLastStepsValue = 'last_steps_value';
   static const String keyScanTutorialShown = 'scan_tutorial_shown';
+  static const String keyOnboardingCompleted = 'onboarding_completed';
+  static const String keyOnboardingCurrentPage = 'onboarding_current_page';
+  static const String keyOnboardingData = 'onboarding_data';
 
   static Future<void> saveUserData({
     required String name,
@@ -92,6 +95,7 @@ class UserPrefs {
     await prefs.remove(keyLastStepsDate);
     await prefs.remove(keyLastStepsValue);
     await prefs.remove(keyScanTutorialShown);
+    await clearAllOnboardingData(); // Clear everything including completion status on logout
   }
 
   static bool isTokenInvalid(String? token) {
@@ -179,5 +183,80 @@ class UserPrefs {
   static Future<void> setScanTutorialShown(bool shown) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(keyScanTutorialShown, shown);
+  }
+
+  // Onboarding progress helpers
+  static Future<void> setOnboardingCompleted(bool completed) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(keyOnboardingCompleted, completed);
+  }
+
+  static Future<bool> getOnboardingCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(keyOnboardingCompleted) ?? false;
+  }
+
+  static Future<void> setOnboardingCurrentPage(int page) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(keyOnboardingCurrentPage, page);
+  }
+
+  static Future<int?> getOnboardingCurrentPage() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(keyOnboardingCurrentPage);
+  }
+
+  static Future<void> setOnboardingData(Map<String, dynamic> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = jsonEncode(data);
+    await prefs.setString(keyOnboardingData, jsonString);
+  }
+
+  static Future<Map<String, dynamic>> getOnboardingData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(keyOnboardingData);
+    if (jsonString == null || jsonString.isEmpty) {
+      return {};
+    }
+    try {
+      final decoded = jsonDecode(jsonString);
+      if (decoded is Map<String, dynamic>) {
+        // Convert DateTime strings back to DateTime objects
+        final Map<String, dynamic> result = {};
+        for (final entry in decoded.entries) {
+          final value = entry.value;
+          // Check if it's a DateTime string (ISO 8601 format)
+          if (value is String && value.contains('T') && value.contains('Z')) {
+            try {
+              result[entry.key] = DateTime.parse(value);
+            } catch (_) {
+              result[entry.key] = value;
+            }
+          } else {
+            result[entry.key] = value;
+          }
+        }
+        return result;
+      }
+      return {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  static Future<void> clearOnboardingProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Don't remove keyOnboardingCompleted - we want to keep that!
+    // Only clear the current page and data since onboarding is complete
+    await prefs.remove(keyOnboardingCurrentPage);
+    await prefs.remove(keyOnboardingData);
+  }
+  
+  static Future<void> clearAllOnboardingData() async {
+    final prefs = await SharedPreferences.getInstance();
+    // This clears everything including completion status (for logout/reset scenarios)
+    await prefs.remove(keyOnboardingCompleted);
+    await prefs.remove(keyOnboardingCurrentPage);
+    await prefs.remove(keyOnboardingData);
   }
 }

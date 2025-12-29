@@ -43,11 +43,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     final isScanned = _currentMealData['isScanned'] ?? false;
     _isScannedMeal = (mealId == null && isScanned);
 
-    // Determine initial bookmark state:
-    // - Prefer explicit isBookmarked from backend if present
-    // - Default to false for all meals unless backend explicitly sets it to true
-    // - This ensures meals only appear on dashboard when user explicitly bookmarks them
-    _isBookmarked = (_currentMealData['isBookmarked'] as bool?) ?? false;
+    // Initialize bookmark state from renderOnDashboard (just check if true or false)
+    _isBookmarked = (_currentMealData['renderOnDashboard'] as bool?) ?? false;
 
     // Auto-save newly scanned meals once on init so they are persisted,
     // while the bookmark flag only controls whether they are shown on dashboard.
@@ -141,6 +138,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               ..['totalProtein'] = totals['protein']
               ..['totalCarbs'] = totals['carbs']
               ..['totalFat'] = totals['fat'];
+            // Sync bookmark state with server response (use renderOnDashboard)
+            _isBookmarked = (_currentMealData['renderOnDashboard'] as bool?) ?? false;
             // Keep _isScannedMeal true so button stays hidden (it's auto-saved)
           });
           
@@ -202,7 +201,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     // Optimistically toggle bookmark UI and local data
     setState(() {
       _isBookmarked = !wasBookmarked;
-      _currentMealData['isBookmarked'] = _isBookmarked;
+      _currentMealData['renderOnDashboard'] = _isBookmarked;
     });
 
     // Helper to get controller if available
@@ -253,6 +252,10 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
             _currentMealData
               ..addAll(savedMeal)
               ..['isScanned'] = (_currentMealData['isScanned'] as bool?) ?? true;
+            // Ensure renderOnDashboard is set to true since we're bookmarking
+            _currentMealData['renderOnDashboard'] = true;
+            // Sync bookmark state
+            _isBookmarked = true;
           });
           
           // Update the dashboard entry with the saved meal data (now has ID)
@@ -272,6 +275,9 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               controller.todayMeals.refresh();
             }
           }
+          
+          // Now update the meal to persist renderOnDashboard: true to backend
+          await _updateMeal();
         }
       } else {
         // Existing meal with ID - just update backend
@@ -308,7 +314,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       final mealType = _currentMealData['mealType'] ?? '';
       final mealName = _currentMealData['mealName'] ?? '';
       final isScanned = _currentMealData['isScanned'] ?? false;
-      final isBookmarked = _currentMealData['isBookmarked'] ?? _isBookmarked;
+      final renderOnDashboard = _currentMealData['renderOnDashboard'] ?? _isBookmarked;
       
       // For scanned meals, only save when explicitly requested (Save button pressed)
       if (isScanned && mealId == null) {
@@ -371,6 +377,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           if (response['meal'] != null) {
             setState(() {
               _currentMealData = Map<String, dynamic>.from(response!['meal'] as Map<String, dynamic>);
+              // Sync bookmark state with server response (use renderOnDashboard)
+              _isBookmarked = (_currentMealData['renderOnDashboard'] as bool?) ?? false;
             });
             
             // Immediately add the newly created meal to dashboard
@@ -378,8 +386,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               final controller = Get.find<HomeScreenController>();
               final newMeal = Map<String, dynamic>.from(_currentMealData);
               
-              // Add to dashboard if bookmarked, otherwise it won't show
-              if (newMeal['isBookmarked'] == true) {
+              // Add to dashboard if bookmarked (renderOnDashboard), otherwise it won't show
+              if (newMeal['renderOnDashboard'] == true) {
                 // Use addMealOptimistically which handles duplicates correctly
                 controller.addMealOptimistically(newMeal);
                 debugPrint('✅ MealDetailsScreen: Added newly created meal to dashboard');
@@ -406,7 +414,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           entries: entries,
           notes: _currentMealData['notes'] ?? '',
           isScanned: isScanned,
-          isBookmarked: isBookmarked,
+          renderOnDashboard: renderOnDashboard,
           totalCalories: totals['calories'],
           totalProtein: totals['protein'],
           totalCarbs: totals['carbs'],
@@ -426,6 +434,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               _currentMealData['totalProtein'] = totals['protein'];
               _currentMealData['totalCarbs'] = totals['carbs'];
               _currentMealData['totalFat'] = totals['fat'];
+              // Sync bookmark state with server response (use renderOnDashboard)
+              _isBookmarked = (_currentMealData['renderOnDashboard'] as bool?) ?? false;
             });
             
             // Immediately update HomeScreenController to reflect changes on dashboard
@@ -874,7 +884,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                   
                   // Calories Card
                   GestureDetector(
-                    onTap: () => _showEditCaloriesSheet(context),
+                    onTap: () => _navigateToEditCalories(context),
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       width: double.infinity,
@@ -927,8 +937,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
                   const SizedBox(height: 16),
                   
                   // Ingredients Section
-                  // Only show Ingredients for scanned meals that actually have entries.
-                  if ((_currentMealData['isScanned'] == true) && entries.isNotEmpty)
+                  if (entries.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       width: double.infinity,
@@ -1417,94 +1426,6 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     );
   }
 
-  void _showEditCaloriesSheet(BuildContext context) {
-    final calories = (_currentMealData['totalCalories'] as num?)?.toInt() ?? 0;
-    final TextEditingController controller = TextEditingController(text: calories.toString());
-    
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) => Container(
-        height: 300,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: ThemeHelper.cardBackground,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              'Enter Calories',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: ThemeHelper.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            
-            CupertinoTextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              placeholder: 'Enter calories',
-              style: TextStyle(fontSize: 16, color: ThemeHelper.textPrimary),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: ThemeHelper.divider,
-                  width: 1.5,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.all(12),
-              autofocus: true,
-            ),
-            
-            const Spacer(),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: CupertinoButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(color: ThemeHelper.textSecondary),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: CupertinoButton(
-                    color: ThemeHelper.textPrimary,
-                    onPressed: () async {
-                      final newCalories = int.tryParse(controller.text) ?? 0;
-                      setState(() {
-                        final updatedEntries = _applyCaloriesDeltaToEntries(newCalories);
-                        _applyEntriesUpdate(updatedEntries);
-                      });
-                      Navigator.of(context).pop();
-                      // Skip auto-save for scanned meals
-                      final isScanned = _currentMealData['isScanned'] ?? false;
-                      final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
-                      if (!isScanned || mealId != null) {
-                        await _updateMeal();
-                      }
-                    },
-                    child: Text(
-                      'Save',
-                      style: TextStyle(color: ThemeHelper.background),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _navigateToEditMacro(BuildContext context, String label, String currentValue, String iconAsset) {
     final int initialValue = int.tryParse(currentValue.replaceAll(' g', '')) ?? 0;
     
@@ -1531,6 +1452,33 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
             final macroKey = _macroLabelToKey(label);
             setState(() {
               final updatedEntries = _applyMacroDeltaToEntries(macroKey, newValue);
+              _applyEntriesUpdate(updatedEntries);
+            });
+            // Skip auto-save for scanned meals
+            final isScanned = _currentMealData['isScanned'] ?? false;
+            final mealId = _currentMealData['id'] ?? _currentMealData['_id'];
+            if (!isScanned || mealId != null) {
+              await _updateMeal();
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToEditCalories(BuildContext context) {
+    final calories = (_currentMealData['totalCalories'] as num?)?.toInt() ?? 0;
+    
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) => EditMacroScreen(
+          macroName: 'Calories',
+          iconAsset: 'assets/icons/apple.png',
+          color: CupertinoColors.systemYellow,
+          initialValue: calories,
+          onValueChanged: (newValue) async {
+            setState(() {
+              final updatedEntries = _applyCaloriesDeltaToEntries(newValue);
               _applyEntriesUpdate(updatedEntries);
             });
             // Skip auto-save for scanned meals

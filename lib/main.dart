@@ -125,15 +125,18 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
       final userId = await UserPrefs.getId();
       final email = await UserPrefs.getEmail();
       final name = await UserPrefs.getName();
+      final onboardingCompleted = await UserPrefs.getOnboardingCompleted();
       print('token: $token');
       print('userId: $userId');
       print('email: $email');
       print('name: $name');
+      print('onboardingCompleted: $onboardingCompleted');
       return {
         'userId': userId ?? '',
         'email': email ?? '',
         'name': name ?? '',
         'isAuthenticated': token != null && token.isNotEmpty,
+        'onboardingCompleted': onboardingCompleted,
       };
     } catch (e) {
       return {
@@ -141,6 +144,7 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
         'email': '',
         'name': '',
         'isAuthenticated': false,
+        'onboardingCompleted': false,
       };
     }
   }
@@ -158,12 +162,17 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
     final Map<String, dynamic> data = _initialScreenData ?? const {};
     final String userId = (data['userId'] as String?) ?? '';
     final bool isAuthenticated = (data['isAuthenticated'] as bool?) ?? false;
+    final bool onboardingCompleted = (data['onboardingCompleted'] as bool?) ?? false;
 
     return ListenableBuilder(
       listenable: Listenable.merge([themeProvider, languageProvider]),
       builder: (context, child) {
         // Update ThemeHelper with current theme state
         ThemeHelper.setLightMode(themeProvider.isLightMode);
+
+        // Show HomeScreen only if user is authenticated AND onboarding is completed
+        // Otherwise, show OnboardingScreen (even if authenticated but onboarding not complete)
+        final shouldShowHome = isAuthenticated && userId.isNotEmpty && onboardingCompleted;
 
         return GetCupertinoApp(
           initialBinding: InitialBindings(),
@@ -183,7 +192,7 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
                 ? Brightness.light 
                 : Brightness.dark,
           ),
-          home: isAuthenticated && userId.isNotEmpty
+          home: shouldShowHome
               ? HomeScreen(
                   themeProvider: themeProvider,
                   languageProvider: languageProvider,
@@ -195,7 +204,7 @@ class _CalorieAIAppState extends State<CalorieAIApp> {
             return CupertinoPageRoute(
               settings: settings,
               builder: (context) {
-                if (isAuthenticated && userId.isNotEmpty) {
+                if (shouldShowHome) {
                   return HomeScreen(
                     themeProvider: themeProvider,
                     languageProvider: languageProvider,

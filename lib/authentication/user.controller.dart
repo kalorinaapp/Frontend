@@ -138,17 +138,29 @@ class UserController extends GetxController {
                 // If user is logging in, navigate directly to home screen (skip onboarding)
                 // If user is signing up, let onboarding continue (don't navigate here)
                 if (isLogin) {
-                  print('🔄 Redirecting to HomeScreen (existing user login)');
-                  Navigator.of(context).pushAndRemoveUntil(
-                    CupertinoPageRoute(
-                      builder: (context) => HomeScreen(
-                        themeProvider: themeProvider, 
-                        languageProvider: languageProvider,
+                  // For login, check if onboarding was completed
+                  final onboardingCompleted = await UserPrefs.getOnboardingCompleted();
+                  print('🔄 Login - onboarding completed: $onboardingCompleted');
+                  
+                  if (onboardingCompleted) {
+                    print('🔄 Redirecting to HomeScreen (existing user login)');
+                    Navigator.of(context).pushAndRemoveUntil(
+                      CupertinoPageRoute(
+                        builder: (context) => HomeScreen(
+                          themeProvider: themeProvider, 
+                          languageProvider: languageProvider,
+                        ),
                       ),
-                    ),
-                    (route) => false, // Remove all previous routes
-                  );
+                      (route) => false, // Remove all previous routes
+                    );
+                  } else {
+                    // User logged in but onboarding not completed, continue onboarding
+                    print('📝 Login - onboarding not completed, continuing onboarding');
+                    OnboardingController().goToNextPage();
+                  }
                 } else {
+                  // New registration - clear any old onboarding completion status
+                  await UserPrefs.setOnboardingCompleted(false);
                   OnboardingController().goToNextPage();
                   print('📝 New registration - continuing with onboarding');
                 }

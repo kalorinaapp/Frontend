@@ -1030,7 +1030,7 @@ class _LogFoodView extends StatelessWidget {
     final createdAtStr = meal['createdAt'] as String?;
     if (createdAtStr != null) {
       try {
-        final createdAt = DateTime.parse(createdAtStr);
+        final createdAt = DateTime.parse(createdAtStr).toLocal();
         timeString = '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
       } catch (_) {}
     }

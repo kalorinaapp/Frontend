@@ -1181,7 +1181,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                                     ),
                                                   ),
                                                 );
-                                              },
+                                              }, 
                                             );
                                           },
                                         ),
@@ -1339,46 +1339,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               
               const SizedBox(height: 32),
 
-               // Show exercise cards if available
-                      if (_localTodayExercises.isNotEmpty) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Column(
-                            children: [
-                              // Section title
-                              _animateCard(
-                                id: 'recent_exercises_title',
-                                order: 5,
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: Text(
-                                    l10n.recentlyUploaded,
-                                    style: TextStyle(
-                                      color: ThemeHelper.textPrimary,
-                                      fontSize: 20,
-                                      fontFamily: 'Instrument Sans',
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // Exercise cards (already sorted by date descending)
-                              ..._localTodayExercises.asMap().entries.map((entry) {
-                                final index = entry.key;
-                                final exercise = entry.value;
-                                return _animateCard(
-                                  id: 'exercise_$index',
-                                  order: 6 + index,
-                                  child: _buildExerciseCard(exercise, l10n),
-                                );
-                              }).toList(),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-              
               // Recently Logged Section
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1558,7 +1518,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             }
                           }
                           
-                          // Combine meals and foods for display
+                          // Combine meals, foods, and exercises for display
                           // Use foodsFromProgress if available, otherwise fall back to local foods
                           final combined = <Map<String, dynamic>>[];
                           combined.addAll(_localTodayMeals);
@@ -1571,18 +1531,33 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             combined.addAll(_localTodayFoods);
                           }
                           
-                          // Sort by createdAt descending (cached/computed once per build)
+                          // Add exercises to the combined list
+                          for (final exercise in _localTodayExercises) {
+                            final exerciseCopy = Map<String, dynamic>.from(exercise);
+                            exerciseCopy['source'] = 'exercise';
+                            combined.add(exerciseCopy);
+                          }
+                          
+                          // Sort by createdAt/loggedAt descending (latest first)
                           if (combined.length > 1) {
                             combined.sort((a, b) {
-                              final aCreated = a['createdAt'] as String?;
-                              final bCreated = b['createdAt'] as String?;
-                              if (aCreated == null && bCreated == null) return 0;
-                              if (aCreated == null) return 1;
-                              if (bCreated == null) return -1;
+                              // For exercises, use loggedAt first, then createdAt
+                              // For meals/foods, use createdAt
+                              final aTime = a['source'] == 'exercise' 
+                                  ? (a['loggedAt'] as String? ?? a['createdAt'] as String?)
+                                  : (a['createdAt'] as String?);
+                              final bTime = b['source'] == 'exercise'
+                                  ? (b['loggedAt'] as String? ?? b['createdAt'] as String?)
+                                  : (b['createdAt'] as String?);
+                              
+                              if (aTime == null && bTime == null) return 0;
+                              if (aTime == null) return 1;
+                              if (bTime == null) return -1;
+                              
                               try {
-                                final aDate = DateTime.parse(aCreated);
-                                final bDate = DateTime.parse(bCreated);
-                                return bDate.compareTo(aDate);
+                                final aDate = DateTime.parse(aTime);
+                                final bDate = DateTime.parse(bTime);
+                                return bDate.compareTo(aDate); // Descending order (latest first)
                               } catch (_) {
                                 return 0;
                               }
@@ -1590,28 +1565,43 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           }
                           
                           if (combined.isNotEmpty) {
-                            debugPrint('🍎 Dashboard GetBuilder: Rendering ${combined.length} cards');
+                            debugPrint('🍎 Dashboard GetBuilder: Rendering ${combined.length} cards (meals, foods, exercises)');
                             return Column(
                               children: combined.asMap().entries
                                   .map((entry) {
                                     final index = entry.key;
                                     final item = entry.value;
-                                    final isFood = item['source'] == 'food';
-                                    final itemId = _extractMealId(item) ?? 'idx_$index';
-                                    final cardId = isFood ? 'food_$itemId' : 'meal_$itemId';
+                                    final source = item['source'] as String?;
+                                    final isFood = source == 'food';
+                                    final isExercise = source == 'exercise';
+                                    
+                                    String itemId;
+                                    String cardId;
+                                    if (isExercise) {
+                                      final exId = _extractExerciseId(item);
+                                      itemId = exId ?? 'exercise_idx_$index';
+                                      cardId = 'exercise_$itemId';
+                                    } else {
+                                      itemId = _extractMealId(item) ?? 'idx_$index';
+                                      cardId = isFood ? 'food_$itemId' : 'meal_$itemId';
+                                    }
                                     
                                     return _animateCard(
                                       id: cardId,
                                       order: 4 + index,
                                       child: GestureDetector(
                                         onTap: () {
-                                          if (isFood) {
+                                          if (isExercise) {
+                                            _openExerciseDetails(item);
+                                          } else if (isFood) {
                                             _openFoodDetails(item);
                                           } else {
                                             _openMealDetails(item);
                                           }
                                         },
-                                        child: _buildMealTotalsCard(item, l10n),
+                                        child: isExercise 
+                                            ? _buildExerciseCard(item, l10n)
+                                            : _buildMealTotalsCard(item, l10n),
                                       ),
                                     );
                                   })
@@ -2843,7 +2833,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     if (loggedAtStr != null) {
       try {
         // Exact same code as meal card: parse and convert to local timezone
-        final loggedDateTime = DateTime.parse(loggedAtStr).toLocal();
+        final loggedDateTime = DateTime.parse(loggedAtStr);
         timeString = DateFormat('HH:mm', Localizations.localeOf(context).toString()).format(loggedDateTime);
       } catch (_) {}
     }
@@ -2900,56 +2890,21 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            exerciseName,
-                            style: TextStyle(
-                              color: ThemeHelper.textPrimary,
-                              fontSize: 12,
-                              fontFamily: 'Instrument Sans',
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ),
-                        if (timeString.isNotEmpty)
-                          Container(
-                            width: 24,
-                            height: 12,
-                            decoration: ShapeDecoration(
-                              color: widget.themeProvider.isLightMode ? Colors.white : const Color(0xFF1A1A1A),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(15)),
-                              ),
-                              shadows: [
-                                BoxShadow(
-                                  color: ThemeHelper.textPrimary.withOpacity(0.2),
-                                  blurRadius: 3,
-                                  offset: const Offset(0, 0),
-                                  spreadRadius: 0,
-                                )
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                timeString,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: ThemeHelper.textPrimary,
-                                  fontSize: 6,
-                                  fontFamily: 'Instrument Sans',
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                    Text(
+                      exerciseName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: ThemeHelper.textPrimary,
+                        fontSize: 14,
+                        fontFamily: 'Instrument Sans',
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Container(
-                      width: 70,
-                      height: 24,
+                      width: 85,
+                      height: 30,
                       decoration: ShapeDecoration(
                         color: widget.themeProvider.isLightMode ? Colors.white : const Color(0xFF1A1A1A),
                         shape: const RoundedRectangleBorder(
@@ -2965,25 +2920,26 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Image.asset(
                               'assets/icons/apple.png',
                               color: ThemeHelper.textPrimary,
-                              width: 12,
-                              height: 12,
+                              width: 14,
+                              height: 14,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 6),
                             Column(
                               mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   caloriesBurned.toString(),
                                   style: TextStyle(
                                     color: ThemeHelper.textPrimary,
-                                    fontSize: 7,
+                                    fontSize: 9,
                                     fontFamily: 'Instrument Sans',
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -2992,7 +2948,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                                   l10n.calories,
                                   style: TextStyle(
                                     color: ThemeHelper.textSecondary,
-                                    fontSize: 6,
+                                    fontSize: 7,
                                     fontFamily: 'Instrument Sans',
                                     fontWeight: FontWeight.w400,
                                   ),
@@ -3006,17 +2962,49 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: Icon(
-                    CupertinoIcons.chevron_right,
-                    size: 24,
-                    color: ThemeHelper.textSecondary,
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (timeString.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: ShapeDecoration(
+                        color: widget.themeProvider.isLightMode ? Colors.white : const Color(0xFF1A1A1A),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                        shadows: [
+                          BoxShadow(
+                            color: ThemeHelper.textPrimary.withOpacity(0.2),
+                            blurRadius: 3,
+                            offset: const Offset(0, 0),
+                            spreadRadius: 0,
+                          )
+                        ],
+                      ),
+                      child: Text(
+                        timeString,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ThemeHelper.textPrimary,
+                          fontSize: 10,
+                          fontFamily: 'Instrument Sans',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Icon(
+                      CupertinoIcons.chevron_right,
+                      size: 24,
+                      color: ThemeHelper.textSecondary,
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
