@@ -156,61 +156,15 @@ class _WeightLossMotivationPageState extends State<WeightLossMotivationPage>
   String _getMotivationalMessage(AppLocalizations localizations, double weightChangeAmount, bool isLbs) {
     final String? goal = _controller.getStringData('goal');
     
-    // Convert to kg for consistent categorization
-    double amountInKg = isLbs ? weightChangeAmount * 0.453592 : weightChangeAmount;
-    
-    if (goal == 'lose_weight') {
-      if (amountInKg < 5) {
-        return 'Every small step counts!\nYou\'re already on the right track!';
-      } else if (amountInKg < 10) {
-        return localizations.youHaveGreatPotentialLose;
-      } else if (amountInKg < 20) {
-        return 'Your journey to better health starts now!\nWe believe in your success!';
-      } else {
-        return 'You\'ve taken the first step towards a healthier you!\nWe\'re here to support you every step of the way!';
-      }
-    } else if (goal == 'gain_weight') {
-      if (amountInKg < 5) {
-        return 'Small gains lead to big results!\nYou\'re on the right path!';
-      } else if (amountInKg < 10) {
-        return localizations.youHaveGreatPotentialGain;
-      } else if (amountInKg < 15) {
-        return 'Building strength takes time and dedication!\nWe\'re with you all the way!';
-      } else {
-        return 'Your muscle-building journey begins now!\nCommitment is key to your transformation!';
-      }
+    if (goal == 'gain_weight') {
+      return 'Getting started is the hardest part!';
     }
+    // For lose_weight and maintain_weight, use default message
     return localizations.youHaveGreatPotentialLose;
   }
 
   // Get encouragement message based on goal and amount
   String _getEncouragementMessage(AppLocalizations localizations, double weightChangeAmount, bool isLbs) {
-    final String? goal = _controller.getStringData('goal');
-    
-    // Convert to kg for consistent categorization
-    double amountInKg = isLbs ? weightChangeAmount * 0.453592 : weightChangeAmount;
-    
-    if (goal == 'lose_weight') {
-      if (amountInKg < 5) {
-        return 'You\'re doing amazing!';
-      } else if (amountInKg < 10) {
-        return localizations.youveGotThis;
-      } else if (amountInKg < 20) {
-        return localizations.stayStrong;
-      } else {
-        return 'You\'re stronger than you think!';
-      }
-    } else if (goal == 'gain_weight') {
-      if (amountInKg < 5) {
-        return 'Every rep counts!';
-      } else if (amountInKg < 10) {
-        return localizations.stayStrong;
-      } else if (amountInKg < 15) {
-        return 'Consistency is your power!';
-      } else {
-        return 'Beast mode activated!';
-      }
-    }
     return localizations.youveGotThis;
   }
 

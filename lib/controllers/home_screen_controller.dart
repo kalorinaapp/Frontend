@@ -11,7 +11,7 @@ import '../services/streak_service.dart';
 import '../utils/user.prefs.dart' show UserPrefs;
 import '../authentication/user.controller.dart' show UserController;
 import '../providers/health_provider.dart' show HealthProvider;
-import '../screens/meal_details_screen.dart' show MealDetailsScreen;
+// Removed MealDetailsScreen import - no longer navigating after scan
 import '../camera/scan_page.dart' show ScanPage;
 import '../l10n/app_localizations.dart' show AppLocalizations;
 
@@ -47,6 +47,7 @@ class HomeScreenController extends GetxController {
   
   // Services - will be initialized in onInit to avoid issues
   late final ProgressService progressService;
+  late final MealsService mealsService;
   StreakService? streakService;
   
   ImagePicker get picker => _picker;
@@ -60,6 +61,9 @@ class HomeScreenController extends GetxController {
     } else {
       progressService = Get.find<ProgressService>();
     }
+    
+    // Initialize MealsService
+    mealsService = const MealsService();
     
     // Register StreakService only if not already registered
     if (!Get.isRegistered<StreakService>()) {
@@ -534,52 +538,11 @@ class HomeScreenController extends GetxController {
             
             debugPrint('Optimistically added meal to dashboard');
             
-            // Clear selected image before navigating
+            // Clear selected image
             selectedImage.value = null;
             
-            // Use microtask to ensure observable update propagates before navigation
-            // This ensures the dashboard rebuilds with the new meal immediately
-            await Future.microtask(() {});
-            
-            debugPrint('Navigating to MealDetailsScreen');
-            
-            // Navigate if context is available
-            if (context != null && context.mounted) {
-              final savedMeal = await Navigator.of(context).push<Map<String, dynamic>>(
-                CupertinoPageRoute(
-                  builder: (_) => MealDetailsScreen(
-                    mealData: mealData,
-                  ),
-                ),
-              );
-              
-              // Check if meal was deleted
-              if (savedMeal != null && savedMeal['deleted'] == true) {
-                removeMeal(mealData);
-                // User backed out without saving: revert scan state
-                revertScanState();
-              } else if (savedMeal != null) {
-                // Meal was saved - use addMealOptimistically which handles updates correctly
-                // (it will find the existing optimistic meal and update it with delta calculation)
-                addMealOptimistically(savedMeal);
-              } else {
-                // User backed out without saving: remove optimistic meal and revert scan state
-                // Match by createdAt and mealName to find the specific optimistic meal
-                final mealCreatedAt = mealData['createdAt'] as String?;
-                final mealName = (mealData['mealName'] as String?)?.trim();
-                
-                todayMeals.removeWhere((m) {
-                  final mId = m['id'] ?? m['_id'];
-                  if (mId != null) return false; // Skip meals that have IDs
-                  
-                  final mCreatedAt = m['createdAt'] as String?;
-                  final mName = (m['mealName'] as String?)?.trim();
-                  return mCreatedAt == mealCreatedAt && mName == mealName;
-                });
-                
-                revertScanState();
-              }
-            }
+            // Save meal in backend (fire and forget - don't block UI)
+            _saveScannedMealInBackground(mealData);
           } else {
             debugPrint('Scan failed or no scan result');
             debugPrint('Result message: ${result['message']}');
@@ -606,6 +569,95 @@ class HomeScreenController extends GetxController {
     
     // Don't call fetchTodayTotals() - we already have all the data locally
     debugPrint('✅ Added meal directly to dashboard: ${meal['mealName']}');
+  }
+
+  /// Save scanned meal in background and update optimistic meal with saved data
+  Future<void> _saveScannedMealInBackground(Map<String, dynamic> mealData) async {
+    try {
+      final userId = mealData['userId'] as String? ?? AppConstants.userId;
+      final date = mealData['date'] as String? ?? DateTime.now().toIso8601String();
+      final mealType = mealData['mealType'] as String? ?? 'lunch';
+      final mealName = mealData['mealName'] as String? ?? 'Scanned Meal';
+      final entries = (mealData['entries'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      
+      // Clean up entries data - remove MongoDB-specific fields and internal IDs
+      final cleanedEntries = entries.map((entry) {
+        return {
+          'userId': userId,
+          'mealType': mealType,
+          'foodName': entry['foodName'] ?? '',
+          'quantity': entry['quantity'] ?? 1,
+          'unit': entry['unit'] ?? 'g',
+          'calories': entry['calories'] ?? 0,
+          'protein': entry['protein'] ?? 0,
+          'carbs': entry['carbs'] ?? 0,
+          'fat': entry['fat'] ?? 0,
+          'fiber': entry['fiber'] ?? 0,
+          'sugar': entry['sugar'] ?? 0,
+          'sodium': entry['sodium'] ?? 0,
+          'servingSize': entry['servingSize'] ?? 1,
+          'servingUnit': entry['servingUnit'] ?? 'serving',
+        };
+      }).toList();
+
+      debugPrint('💾 Saving scanned meal in background: $mealName');
+      
+      final response = await mealsService.saveCompleteMeal(
+        userId: userId,
+        date: date,
+        mealType: mealType,
+        mealName: mealName,
+        entries: cleanedEntries,
+        notes: mealData['notes'] as String? ?? '',
+        mealImage: mealData['mealImage'] as String?,
+        totalCalories: (mealData['totalCalories'] as num?)?.toInt(),
+        totalProtein: (mealData['totalProtein'] as num?)?.toInt(),
+        totalCarbs: (mealData['totalCarbs'] as num?)?.toInt(),
+        totalFat: (mealData['totalFat'] as num?)?.toInt(),
+        isScanned: true,
+      );
+      
+      if (response != null && response['success'] == true && response['meal'] != null) {
+        final savedMeal = Map<String, dynamic>.from(response['meal'] as Map<String, dynamic>);
+        
+        // Preserve original entries and image from scan
+        savedMeal['entries'] = cleanedEntries;
+        savedMeal['mealImage'] = mealData['mealImage'] ?? savedMeal['mealImage'];
+        
+        debugPrint('✅ Scanned meal saved successfully: ${savedMeal['id'] ?? savedMeal['_id']}');
+        
+        // Update the optimistic meal with saved meal data (including ID)
+        // Match by createdAt and mealName to find the optimistic meal
+        final mealCreatedAt = mealData['createdAt'] as String?;
+        final mealNameTrimmed = (mealData['mealName'] as String?)?.trim();
+        
+        final index = todayMeals.indexWhere((m) {
+          final mId = m['id'] ?? m['_id'];
+          if (mId != null) return false; // Skip meals that already have IDs
+          
+          final mCreatedAt = m['createdAt'] as String?;
+          final mName = (m['mealName'] as String?)?.trim();
+          return mCreatedAt == mealCreatedAt && mName == mealNameTrimmed;
+        });
+        
+        if (index >= 0) {
+          // Update the optimistic meal with saved data
+          todayMeals[index] = savedMeal;
+          todayMeals.refresh();
+          debugPrint('✅ Updated optimistic meal with saved data at index $index');
+        } else {
+          // If we can't find the optimistic meal, add the saved one
+          todayMeals.insert(0, savedMeal);
+          todayMeals.refresh();
+          debugPrint('✅ Added saved meal to dashboard (optimistic meal not found)');
+        }
+      } else {
+        debugPrint('⚠️ Failed to save scanned meal: ${response?['message'] ?? 'Unknown error'}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error saving scanned meal in background: $e');
+      // Don't remove the optimistic meal on error - let user see it and can manually save later
+    }
   }
 
   void addMealOptimistically(Map<String, dynamic> savedMeal) {

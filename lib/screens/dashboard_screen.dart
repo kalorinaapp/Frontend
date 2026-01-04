@@ -286,18 +286,102 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         }
       }
       
-      // Only update if actually changed
+      // Smart merge: Update local meals with widget meals, but avoid re-render if only IDs changed
+      // (e.g., optimistic meal got an ID from server)
+      bool needsSetState = false;
       final newMealIds = uniqueMeals
           .map((m) => _extractMealId(m))
           .whereType<String>()
           .where((id) => id.isNotEmpty)
           .toSet();
       
-      final hasChanged = _lastSyncedMealIds == null ||
+      // Check if we need to update (new meals, removed meals, or content changes)
+      final hasIdChanges = _lastSyncedMealIds == null ||
           _lastSyncedMealIds!.length != newMealIds.length ||
           !newMealIds.every((id) => _lastSyncedMealIds!.contains(id));
       
-      if (hasChanged && mounted) {
+      if (hasIdChanges || _localTodayMeals.length != uniqueMeals.length) {
+        // There are ID changes or count changes - need to check if it's just ID updates
+        // Map local meals by createdAt+mealName for easy lookup
+        final localMealsByKey = <String, Map<String, dynamic>>{};
+        for (final localMeal in _localTodayMeals) {
+          final createdAt = localMeal['createdAt'] as String?;
+          final mealName = (localMeal['mealName'] as String?)?.trim();
+          if (createdAt != null && mealName != null && mealName.isNotEmpty) {
+            localMealsByKey['$createdAt|$mealName'] = localMeal;
+          }
+        }
+        
+        // Check if widget meals are just updates to existing local meals (ID added, content same)
+        bool onlyIdUpdates = true;
+        if (uniqueMeals.length != _localTodayMeals.length) {
+          onlyIdUpdates = false; // Count changed, must be new/removed meals
+        } else {
+          // Check if all widget meals match local meals (allowing for ID updates)
+          for (final widgetMeal in uniqueMeals) {
+            final createdAt = widgetMeal['createdAt'] as String?;
+            final mealName = (widgetMeal['mealName'] as String?)?.trim();
+            if (createdAt == null || mealName == null || mealName.isEmpty) {
+              onlyIdUpdates = false;
+              break;
+            }
+            
+            final key = '$createdAt|$mealName';
+            final localMeal = localMealsByKey[key];
+            
+            if (localMeal == null) {
+              onlyIdUpdates = false; // New meal found
+              break;
+            }
+            
+            // Check if content changed (beyond just ID)
+            final localCalories = ((localMeal['totalCalories'] ?? 0) as num).toInt();
+            final widgetCalories = ((widgetMeal['totalCalories'] ?? 0) as num).toInt();
+            final localProtein = ((localMeal['totalProtein'] ?? 0) as num).toInt();
+            final widgetProtein = ((widgetMeal['totalProtein'] ?? 0) as num).toInt();
+            
+            if (localCalories != widgetCalories || localProtein != widgetProtein) {
+              onlyIdUpdates = false; // Content changed
+              break;
+            }
+          }
+        }
+        
+        if (onlyIdUpdates && mounted) {
+          // Just ID updates - silently update local meals without setState
+          for (int i = 0; i < _localTodayMeals.length; i++) {
+            final localMeal = _localTodayMeals[i];
+            final createdAt = localMeal['createdAt'] as String?;
+            final mealName = (localMeal['mealName'] as String?)?.trim();
+            
+            if (createdAt != null && mealName != null && mealName.isNotEmpty) {
+              // Find matching widget meal
+              final widgetMeal = uniqueMeals.firstWhere(
+                (m) {
+                  final mCreatedAt = m['createdAt'] as String?;
+                  final mName = (m['mealName'] as String?)?.trim();
+                  return mCreatedAt == createdAt && mName == mealName;
+                },
+                orElse: () => <String, dynamic>{},
+              );
+              
+              if (widgetMeal.isNotEmpty) {
+                // Update local meal with widget meal data (including ID)
+                _localTodayMeals[i] = Map<String, dynamic>.from(widgetMeal);
+              }
+            }
+          }
+          
+          // Update last synced IDs without triggering rebuild
+          _lastSyncedMealIds = newMealIds;
+          debugPrint('🔄 Dashboard: Silently updated meal IDs (no re-render)');
+        } else {
+          // Actual changes - need setState
+          needsSetState = true;
+        }
+      }
+      
+      if (needsSetState && mounted) {
         setState(() {
           _localTodayMeals = uniqueMeals;
           _lastSyncedMealIds = newMealIds;

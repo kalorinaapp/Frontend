@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
@@ -29,11 +30,22 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
   late Animation<double> _weightDisplayAnimation;
   late Animation<double> _sliderAnimation;
   
+  // Scroll controller for the ruler
+  late ScrollController _scrollController;
+  
   // Weight unit: true = lbs, false = kg
   bool _isLbs = true;
   
   // Current weight value
   double _currentWeight = 130.0;
+  
+  // Track last haptic feedback position to avoid too frequent feedback
+  int _lastHapticTickIndex = -1;
+  
+  // Tick spacing in pixels
+  static const double _tickSpacing = 8.0; // pixels between ticks
+  static const double _tickIncrementLbs = 1.0; // 1 lb per tick
+  static const double _tickIncrementKg = 0.5; // 0.5 kg per tick
   
   // Weight ranges
   static const double _minWeightLbs = 50.0;
@@ -88,13 +100,79 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
     
     _animationController.forward();
     
+    // Initialize scroll controller
+    _scrollController = ScrollController();
+    
     // Load saved values AFTER build phase to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadSavedValues();
+        _syncScrollToWeight();
       }
     });
+    
+    // Listen to scroll changes
+    _scrollController.addListener(_onScroll);
   }
+  
+  void _onScroll() {
+    if (!_scrollController.hasClients || !mounted) return;
+    
+    final double scrollOffset = _scrollController.offset;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double centerOffset = screenWidth / 2;
+    final double totalOffset = scrollOffset + centerOffset;
+    
+    // Calculate weight from scroll position
+    final double increment = _isLbs ? _tickIncrementLbs : _tickIncrementKg;
+    final double minWeight = _isLbs ? _minWeightLbs : _minWeightKg;
+    final double tickIndex = totalOffset / _tickSpacing;
+    final double newWeight = minWeight + (tickIndex * increment);
+    
+    // Clamp to valid range
+    final double maxWeight = _isLbs ? _maxWeightLbs : _maxWeightKg;
+    final double clampedWeight = newWeight.clamp(minWeight, maxWeight);
+    
+    // Provide haptic feedback when crossing tick marks (every 5 ticks for medium feedback)
+    final int currentTickIndex = tickIndex.round();
+    if (currentTickIndex != _lastHapticTickIndex && currentTickIndex % 5 == 0) {
+      HapticFeedback.selectionClick();
+      _lastHapticTickIndex = currentTickIndex;
+    }
+    
+    if ((_currentWeight - clampedWeight).abs() > 0.01) {
+      setState(() {
+        _currentWeight = clampedWeight;
+        _controller.setDoubleData('desired_weight', _currentWeight);
+      });
+    }
+  }
+  
+  void _syncScrollToWeight() {
+    if (!_scrollController.hasClients || !mounted) return;
+    
+    final double increment = _isLbs ? _tickIncrementLbs : _tickIncrementKg;
+    final double minWeight = _isLbs ? _minWeightLbs : _minWeightKg;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double centerOffset = screenWidth / 2;
+    
+    // Calculate scroll position from weight
+    final double tickIndex = (_currentWeight - minWeight) / increment;
+    final double totalOffset = tickIndex * _tickSpacing;
+    final double scrollOffset = totalOffset - centerOffset;
+    
+    final double maxScroll = _scrollController.position.maxScrollExtent;
+    _scrollController.jumpTo(scrollOffset.clamp(0.0, maxScroll));
+  }
+  
+  // Calculate number of ticks needed for full range
+  int _getTotalTicks() {
+    final double minWeight = _isLbs ? _minWeightLbs : _minWeightKg;
+    final double maxWeight = _isLbs ? _maxWeightLbs : _maxWeightKg;
+    final double increment = _isLbs ? _tickIncrementLbs : _tickIncrementKg;
+    return ((maxWeight - minWeight) / increment).ceil() + 1;
+  }
+  
   
   @override
   void didChangeDependencies() {
@@ -191,11 +269,18 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
     
     if (needsUpdate && mounted) {
       setState(() {});
+      // Sync scroll position after loading values
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _syncScrollToWeight();
+        }
+      });
     }
   }
   
   @override
   void dispose() {
+    _scrollController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -204,6 +289,12 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
     setState(() {
       _currentWeight = newWeight;
       _controller.setDoubleData('desired_weight', _currentWeight);
+    });
+    // Sync scroll position after weight update
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _syncScrollToWeight();
+      }
     });
   }
 
@@ -221,12 +312,19 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
       _controller.setDoubleData('desired_weight', _currentWeight);
       _controller.setBoolData('weight_unit_lbs', _isLbs);
     });
+    
+    // Sync scroll position after unit change
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _syncScrollToWeight();
+      }
+    });
   }
 
   String _formatWeight(double weight) {
     return _isLbs ? '${weight.toStringAsFixed(1)} lbs' : '${weight.toStringAsFixed(1)} kg';
   }
-
+  
   double _getMinWeight() {
     return _isLbs ? _minWeightLbs : _minWeightKg;
   }
@@ -235,33 +333,6 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
     return _isLbs ? _maxWeightLbs : _maxWeightKg;
   }
 
-  double _getSliderWidth() {
-    final double minWeight = _getMinWeight();
-    final double maxWeight = _getMaxWeight();
-    final double percentage = (_currentWeight - minWeight) / (maxWeight - minWeight);
-    final double clampedPercentage = percentage.clamp(0.0, 1.0);
-    return (MediaQuery.of(context).size.width - 40) * clampedPercentage;
-  }
-
-  double _getPointerPosition() {
-    final double minWeight = _getMinWeight();
-    final double maxWeight = _getMaxWeight();
-    final double percentage = (_currentWeight - minWeight) / (maxWeight - minWeight);
-    final double clampedPercentage = percentage.clamp(0.0, 1.0);
-    return 20 + ((MediaQuery.of(context).size.width - 40) * clampedPercentage) - 1;
-  }
-
-  void _updateWeightFromPosition(double localPosition) {
-    final double containerWidth = MediaQuery.of(context).size.width - 40; // Account for margins
-    final double percentage = (localPosition - 20) / containerWidth;
-    final double clampedPercentage = percentage.clamp(0.0, 1.0);
-    
-    final double minWeight = _getMinWeight();
-    final double maxWeight = _getMaxWeight();
-    final double newWeight = minWeight + (clampedPercentage * (maxWeight - minWeight));
-    
-    _updateWeight(newWeight);
-  }
 
   String _getGoalText(AppLocalizations localizations) {
     final String? goal = _controller.getStringData('goal');
@@ -644,89 +715,159 @@ class _DesiredWeightPageState extends State<DesiredWeightPage>
         
         const SizedBox(height: 30),
         
-        // Weight slider
+        // Scrollable weight ruler
         Expanded(
           child: PageAnimations.animatedContent(
             animation: _sliderAnimation,
             child: SizedBox(
-                height: 150,
-                width: double.infinity,
-                child: GestureDetector(
-                onPanStart: (details) {
-                  _updateWeightFromPosition(details.localPosition.dx);
-                },
-                onPanUpdate: (details) {
-                  _updateWeightFromPosition(details.localPosition.dx);
-                },
-                onTapDown: (details) {
-                  _updateWeightFromPosition(details.localPosition.dx);
-                },
-                child: Stack(
-                  children: [
-         
-                    // Filled portion (darker gray)
-                   
-                    // Tick marks with varying heights
-                    ...List.generate(41, (index) {
-                      final double position = (index / 40) * (MediaQuery.of(context).size.width - 40);
-                      final bool isMajorTick = index % 10 == 0;
-                      final bool isMediumTick = index % 5 == 0 && !isMajorTick;
-                      final bool isMinorTick = !isMajorTick && !isMediumTick;
-                      
-                      double tickHeight = 0;
-                      if (isMajorTick) {
-                        tickHeight = 55;
-                      } else if (isMediumTick) {
-                        tickHeight = 40;
-                      } else if (isMinorTick) {
-                        tickHeight = 25;
-                      }
-                      
-                      return Positioned(
-                        left: position + 20,
-                        top: 75 - tickHeight,
-                        child: Container(
-                          width: 1.5,
-                          height: tickHeight,
-                          color: ThemeHelper.textPrimary,
-                        ),
-                      );
-                    }),
-                    // Grayish gradient shade overlay covering full ruler height
-                    Positioned(
-                      left: 20,
-                      top: 20, // Start from major tick head
-                      child: Container(
-                        width: _getSliderWidth(),
-                        height: 55, // From major tick head to feet
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              const Color(0xFF6B6B6B).withOpacity(0.75), // Dark grey at top with transparency
-                              const Color(0xFFD3D3D3).withOpacity(0.3), // Light grey at bottom with transparency
-                            ],
+              height: 150,
+              width: double.infinity,
+              child: Stack(
+                children: [
+                  // Left gradient fade from center pointer
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    child: Builder(
+                      builder: (context) {
+                        final double centerX = MediaQuery.of(context).size.width / 2;
+                        final double gradientWidth = centerX;
+                        return Container(
+                          width: gradientWidth,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                ThemeHelper.background,
+                                ThemeHelper.background.withOpacity(0.0),
+                              ],
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+                        );
+                      },
+                    ),
+                  ),
+                  // Right gradient fade from center pointer
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Builder(
+                      builder: (context) {
+                        final double centerX = MediaQuery.of(context).size.width / 2;
+                        final double screenWidth = MediaQuery.of(context).size.width;
+                        final double gradientWidth = screenWidth - centerX;
+                        return Container(
+                          width: gradientWidth,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerRight,
+                              end: Alignment.centerLeft,
+                              colors: [
+                                ThemeHelper.cardBackground,
+                                ThemeHelper.cardBackground.withOpacity(0.0),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // Dark grey gradient overlay from start to center pointer
+                  Positioned(
+                    left: 0,
+                    top: 25,
+                    child: Builder(
+                      builder: (context) {
+                        final double centerX = MediaQuery.of(context).size.width / 2;
+                        final double gradientWidth = centerX;
+                        return Container(
+                          width: gradientWidth,
+                          height: 55,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                const Color(0xFF6B6B6B).withOpacity(0.75), // Dark grey at top with transparency
+                                const Color(0xFFD3D3D3).withOpacity(0.3), // Light grey at bottom with transparency
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // Fixed center pointer (longest tick)
+                  Positioned(
+                    left: MediaQuery.of(context).size.width / 2 - 1.5,
+                    top: 0,
+                    child: Container(
+                      width: 3,
+                      height: 75,
+                      decoration: BoxDecoration(
+                        color: ThemeHelper.textPrimary,
+                        borderRadius: BorderRadius.circular(1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: ThemeHelper.textPrimary.withOpacity(0.3),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          ),
+                        ],
                       ),
                     ),
-                    // Pointer (tall black line positioned higher)
-                    Positioned(
-                      left: _getPointerPosition(),
-                      top: -35, // Moved higher
-                      child: Container(
-                        width: 3,
-                        height: 110, // Extended height
-                        decoration: BoxDecoration(
-                          color: ThemeHelper.textPrimary,
-                          borderRadius: BorderRadius.circular(1.5),
-                        ),
+                  ),
+                  // Scrollable ruler
+                  SingleChildScrollView(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    physics: const ClampingScrollPhysics(),
+                    child: SizedBox(
+                      height: 150,
+                      width: _getTotalTicks() * _tickSpacing,
+                      child: Stack(
+                        children: [
+                          // Generate all tick marks with original size variations
+                          ...List.generate(_getTotalTicks(), (index) {
+                            final double position = index * _tickSpacing;
+                            
+                            // Determine tick type based on index (more reliable than weight calculation)
+                            // For lbs: 1 lb per tick, so index 0, 10, 20 = major (every 10 lbs)
+                            //         index 5, 15, 25 = medium (every 5 lbs but not major)
+                            // For kg: 0.5 kg per tick, so index 0, 10, 20 = major (every 5 kg)
+                            //         index 5, 15, 25 = medium (every 2.5 kg but not major)
+                            final bool isMajorTick = index % 10 == 0;
+                            final bool isMediumTick = index % 5 == 0 && !isMajorTick;
+                            final bool isMinorTick = !isMajorTick && !isMediumTick;
+                            
+                            double tickHeight = 0;
+                            if (isMajorTick) {
+                              tickHeight = 55; // Tallest for major ticks
+                            } else if (isMediumTick) {
+                              tickHeight = 40; // Medium height
+                            } else {
+                              tickHeight = 25; // Shortest for minor ticks
+                            }
+                            
+                            return Positioned(
+                              left: position,
+                              top: 75 - tickHeight, // Center ticks at 75px (middle of 150px container)
+                              child: Container(
+                                width: isMajorTick ? 2.0 : 1.5,
+                                height: tickHeight,
+                                color: ThemeHelper.textPrimary.withOpacity(isMinorTick ? 0.6 : 1.0),
+                              ),
+                            );
+                          }),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

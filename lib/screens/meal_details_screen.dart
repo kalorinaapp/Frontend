@@ -43,8 +43,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     final isScanned = _currentMealData['isScanned'] ?? false;
     _isScannedMeal = (mealId == null && isScanned);
 
-    // Initialize bookmark state from renderOnDashboard (just check if true or false)
-    _isBookmarked = (_currentMealData['renderOnDashboard'] as bool?) ?? false;
+    // Initialize bookmark state from isBookmarked
+    _isBookmarked = (_currentMealData['isBookmarked'] as bool?) ?? false;
 
     // Auto-save newly scanned meals once on init so they are persisted,
     // while the bookmark flag only controls whether they are shown on dashboard.
@@ -138,8 +138,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               ..['totalProtein'] = totals['protein']
               ..['totalCarbs'] = totals['carbs']
               ..['totalFat'] = totals['fat'];
-            // Sync bookmark state with server response (use renderOnDashboard)
-            _isBookmarked = (_currentMealData['renderOnDashboard'] as bool?) ?? false;
+            // Sync bookmark state with server response (use isBookmarked)
+            _isBookmarked = (_currentMealData['isBookmarked'] as bool?) ?? false;
             // Keep _isScannedMeal true so button stays hidden (it's auto-saved)
           });
           
@@ -201,7 +201,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     // Optimistically toggle bookmark UI and local data
     setState(() {
       _isBookmarked = !wasBookmarked;
-      _currentMealData['renderOnDashboard'] = _isBookmarked;
+      _currentMealData['isBookmarked'] = _isBookmarked;
     });
 
     // Helper to get controller if available
@@ -252,8 +252,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
             _currentMealData
               ..addAll(savedMeal)
               ..['isScanned'] = (_currentMealData['isScanned'] as bool?) ?? true;
-            // Ensure renderOnDashboard is set to true since we're bookmarking
-            _currentMealData['renderOnDashboard'] = true;
+            // Ensure isBookmarked is set to true since we're bookmarking
+            _currentMealData['isBookmarked'] = true;
             // Sync bookmark state
             _isBookmarked = true;
           });
@@ -276,7 +276,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
             }
           }
           
-          // Now update the meal to persist renderOnDashboard: true to backend
+          // Now update the meal to persist isBookmarked: true to backend
           await _updateMeal();
         }
       } else {
@@ -314,7 +314,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
       final mealType = _currentMealData['mealType'] ?? '';
       final mealName = _currentMealData['mealName'] ?? '';
       final isScanned = _currentMealData['isScanned'] ?? false;
-      final renderOnDashboard = _currentMealData['renderOnDashboard'] ?? _isBookmarked;
+      final isBookmarked = _currentMealData['isBookmarked'] ?? _isBookmarked;
       
       // For scanned meals, only save when explicitly requested (Save button pressed)
       if (isScanned && mealId == null) {
@@ -377,8 +377,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           if (response['meal'] != null) {
             setState(() {
               _currentMealData = Map<String, dynamic>.from(response!['meal'] as Map<String, dynamic>);
-              // Sync bookmark state with server response (use renderOnDashboard)
-              _isBookmarked = (_currentMealData['renderOnDashboard'] as bool?) ?? false;
+              // Sync bookmark state with server response (use isBookmarked)
+              _isBookmarked = (_currentMealData['isBookmarked'] as bool?) ?? false;
             });
             
             // Immediately add the newly created meal to dashboard
@@ -386,8 +386,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               final controller = Get.find<HomeScreenController>();
               final newMeal = Map<String, dynamic>.from(_currentMealData);
               
-              // Add to dashboard if bookmarked (renderOnDashboard), otherwise it won't show
-              if (newMeal['renderOnDashboard'] == true) {
+              // Add to dashboard if bookmarked (isBookmarked), otherwise it won't show
+              if (newMeal['isBookmarked'] == true) {
                 // Use addMealOptimistically which handles duplicates correctly
                 controller.addMealOptimistically(newMeal);
                 debugPrint('✅ MealDetailsScreen: Added newly created meal to dashboard');
@@ -414,7 +414,7 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
           entries: entries,
           notes: _currentMealData['notes'] ?? '',
           isScanned: isScanned,
-          renderOnDashboard: renderOnDashboard,
+          isBookmarked: isBookmarked,
           totalCalories: totals['calories'],
           totalProtein: totals['protein'],
           totalCarbs: totals['carbs'],
@@ -434,8 +434,8 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
               _currentMealData['totalProtein'] = totals['protein'];
               _currentMealData['totalCarbs'] = totals['carbs'];
               _currentMealData['totalFat'] = totals['fat'];
-              // Sync bookmark state with server response (use renderOnDashboard)
-              _isBookmarked = (_currentMealData['renderOnDashboard'] as bool?) ?? false;
+              // Sync bookmark state with server response (use isBookmarked)
+              _isBookmarked = (_currentMealData['isBookmarked'] as bool?) ?? false;
             });
             
             // Immediately update HomeScreenController to reflect changes on dashboard

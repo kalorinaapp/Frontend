@@ -51,7 +51,7 @@ class _LogFoodView extends StatelessWidget {
   
   List<String> _getTabs(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return [l10n.myFoods, l10n.savedScans, l10n.directInput];
+    return [l10n.savedScans, l10n.directInput];
   }
 
   void _onEditFood(BuildContext context, Map<String, dynamic> food) async {
@@ -343,15 +343,15 @@ class _LogFoodView extends StatelessWidget {
     return Obx(() {
       switch (controller.selectedTabIndex.value) {
         case 0:
-          return _buildMyFoodsTab(context);
-        case 1:
           return Builder(
             builder: (context) => _buildEmptyTab(context, l10n.savedScans),
           );
-        case 2:
+        case 1:
           return _buildDirectInputTab(context);
         default:
-          return _buildMyFoodsTab(context);
+          return Builder(
+            builder: (context) => _buildEmptyTab(context, l10n.savedScans),
+          );
       }
     });
   }
@@ -1176,51 +1176,50 @@ class _LogFoodView extends StatelessWidget {
                 ],
               ),
             ),
-            // Add-to-dashboard (+) circular button
-           if (meal['renderOnDashboard'] == false)
-              Obx(() {
-                final isAdding = controller.addingToDashboardMealIds.contains(mealId);
-                return GestureDetector(
-                  onTap: isAdding
-                      ? null
-                      : () async {
-                          final ok = await controller.addSavedScanToDashboard(meal);
-                          if (ok) {
-                            Get.snackbar(l10n.success, l10n.successfullyAddedToDashboard);
-                          } else {
-                            Get.snackbar(l10n.error, l10n.unexpectedErrorDescription);
-                          }
-                        },
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: CupertinoColors.black.withOpacity(0.06),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: isAdding
-                          ? const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CupertinoActivityIndicator(),
-                            )
-                          : const Icon(
-                              CupertinoIcons.add,
-                              size: 18,
-                              color: CupertinoColors.black,
-                            ),
-                    ),
+            // Add-to-dashboard (+) circular button (always visible)
+            Obx(() {
+              final isAdding = controller.addingToDashboardMealIds.contains(mealId);
+              return GestureDetector(
+                onTap: isAdding
+                    ? null
+                    : () async {
+                        final ok = await controller.addSavedScanToDashboard(meal);
+                        if (ok) {
+                          Get.snackbar(l10n.success, l10n.successfullyAddedToDashboard);
+                        } else {
+                          Get.snackbar(l10n.error, l10n.unexpectedErrorDescription);
+                        }
+                      },
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: CupertinoColors.black.withOpacity(0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                );
-              }),
+                  child: Center(
+                    child: isAdding
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CupertinoActivityIndicator(),
+                          )
+                        : const Icon(
+                            CupertinoIcons.add,
+                            size: 18,
+                            color: CupertinoColors.black,
+                          ),
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ),

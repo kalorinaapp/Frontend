@@ -215,16 +215,16 @@ class _LogScreenState extends State<LogScreen> {
       
               // const SizedBox(height: 12),
               
-              _buildAnimatedCard(
-                order: 5,
-                child: _buildLogCard(
-                  iconAsset: 'assets/icons/foods.png',
-                  title: l10n.myFoods,
-                  subtitle: l10n.myFoodsSubtitle,
-                  onTap: () => _navigateToMyMeals(0),
-                ),
-              ),
-              const SizedBox(height: 12),
+              // _buildAnimatedCard(
+              //   order: 5,
+              //   child: _buildLogCard(
+              //     iconAsset: 'assets/icons/foods.png',
+              //     title: l10n.myFoods,
+              //     subtitle: l10n.myFoodsSubtitle,
+              //     onTap: () => _navigateToMyMeals(0),
+              //   ),
+              // ),
+              // const SizedBox(height: 12),
               
               _buildAnimatedCard(
                 order: 6,
@@ -232,7 +232,7 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/bookmark.png',
                   title: l10n.savedScans,
                   subtitle: l10n.savedScansSubtitle,
-                  onTap: () => _navigateToMyMeals(1),
+                  onTap: () => _navigateToMyMeals(0),
                 ),
               ),
               const SizedBox(height: 12),
@@ -243,7 +243,7 @@ class _LogScreenState extends State<LogScreen> {
                   iconAsset: 'assets/icons/input.png',
                   title: l10n.directInputFood,
                   subtitle: l10n.directInputFoodSubtitle,
-                  onTap: () => _navigateToMyMeals(2),
+                  onTap: () => _navigateToMyMeals(1),
                 ),
               ),
               const SizedBox(height: 80),
