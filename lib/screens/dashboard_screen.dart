@@ -1605,14 +1605,35 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           // Combine meals, foods, and exercises for display
                           // Use foodsFromProgress if available, otherwise fall back to local foods
                           final combined = <Map<String, dynamic>>[];
-                          combined.addAll(_localTodayMeals);
                           
+                          // Add meals with source marker
+                          for (final meal in _localTodayMeals) {
+                            final mealCopy = Map<String, dynamic>.from(meal);
+                            if (mealCopy['source'] == null) {
+                              mealCopy['source'] = 'meal';
+                            }
+                            combined.add(mealCopy);
+                          }
+                          
+                          // Add foods with source marker
                           if (foodsFromProgress.isNotEmpty || (progressData != null && progressData['progress'] != null)) {
                             // Use foods from progress data (even if empty - that's valid)
-                            combined.addAll(foodsFromProgress);
+                            for (final food in foodsFromProgress) {
+                              final foodCopy = Map<String, dynamic>.from(food);
+                              if (foodCopy['source'] == null) {
+                                foodCopy['source'] = 'food';
+                              }
+                              combined.add(foodCopy);
+                            }
                           } else {
                             // Fall back to local foods if no progress data yet
-                            combined.addAll(_localTodayFoods);
+                            for (final food in _localTodayFoods) {
+                              final foodCopy = Map<String, dynamic>.from(food);
+                              if (foodCopy['source'] == null) {
+                                foodCopy['source'] = 'food';
+                              }
+                              combined.add(foodCopy);
+                            }
                           }
                           
                           // Add exercises to the combined list
@@ -1623,30 +1644,89 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                           }
                           
                           // Sort by createdAt/loggedAt descending (latest first)
-                          if (combined.length > 1) {
-                            combined.sort((a, b) {
-                              // For exercises, use loggedAt first, then createdAt
-                              // For meals/foods, use createdAt
-                              final aTime = a['source'] == 'exercise' 
-                                  ? (a['loggedAt'] as String? ?? a['createdAt'] as String?)
-                                  : (a['createdAt'] as String?);
-                              final bTime = b['source'] == 'exercise'
-                                  ? (b['loggedAt'] as String? ?? b['createdAt'] as String?)
-                                  : (b['createdAt'] as String?);
+                          combined.sort((a, b) {
+                            // Extract timestamp based on source type
+                            String? aTime;
+                            String? bTime;
+                            
+                            final aSource = a['source'] as String?;
+                            final bSource = b['source'] as String?;
+                            
+                            // For exercises, prefer loggedAt, fallback to createdAt
+                            if (aSource == 'exercise') {
+                              aTime = a['loggedAt'] as String? ?? a['createdAt'] as String?;
+                            } else {
+                              // For meals and foods, use createdAt
+                              aTime = a['createdAt'] as String?;
+                            }
+                            
+                            if (bSource == 'exercise') {
+                              bTime = b['loggedAt'] as String? ?? b['createdAt'] as String?;
+                            } else {
+                              // For meals and foods, use createdAt
+                              bTime = b['createdAt'] as String?;
+                            }
+                            
+                            // Handle null cases
+                            if (aTime == null && bTime == null) return 0;
+                            if (aTime == null) return 1; // null goes to end
+                            if (bTime == null) return -1; // null goes to end
+                            
+                            try {
+                              // Parse dates and get displayed time values (no conversion)
+                              // Exercises display UTC time, meals display local time
+                              DateTime aDisplayTime;
+                              DateTime bDisplayTime;
                               
-                              if (aTime == null && bTime == null) return 0;
-                              if (aTime == null) return 1;
-                              if (bTime == null) return -1;
+                              // Parse the date strings
+                              final aParsed = DateTime.parse(aTime);
+                              final bParsed = DateTime.parse(bTime);
                               
-                              try {
-                                final aDate = DateTime.parse(aTime);
-                                final bDate = DateTime.parse(bTime);
-                                return bDate.compareTo(aDate); // Descending order (latest first)
-                              } catch (_) {
-                                return 0;
+                              // For exercises: use UTC time as-is (matches display)
+                              // For meals/foods: use local time as-is (matches display)
+                              if (aSource == 'exercise') {
+                                aDisplayTime = aParsed.isUtc ? aParsed : aParsed.toUtc();
+                              } else {
+                                aDisplayTime = aParsed.isUtc ? aParsed.toLocal() : aParsed;
                               }
-                            });
-                          }
+                              
+                              if (bSource == 'exercise') {
+                                bDisplayTime = bParsed.isUtc ? bParsed : bParsed.toUtc();
+                              } else {
+                                bDisplayTime = bParsed.isUtc ? bParsed.toLocal() : bParsed;
+                              }
+                              
+                              // Extract just the time portion (HH:mm) for comparison
+                              // This compares by displayed time values, not actual chronological time
+                              final aHour = aDisplayTime.hour;
+                              final aMinute = aDisplayTime.minute;
+                              final bHour = bDisplayTime.hour;
+                              final bMinute = bDisplayTime.minute;
+                              
+                              // Compare by displayed time (descending order - latest first)
+                              int comparison;
+                              if (bHour != aHour) {
+                                comparison = bHour.compareTo(aHour);
+                              } else {
+                                comparison = bMinute.compareTo(aMinute);
+                              }
+                              
+                              // Debug logging
+                              final aName = a['mealName'] ?? a['type'] ?? aSource ?? 'unknown';
+                              final bName = b['mealName'] ?? b['type'] ?? bSource ?? 'unknown';
+                              final aTimeStr = '${aHour.toString().padLeft(2, '0')}:${aMinute.toString().padLeft(2, '0')}';
+                              final bTimeStr = '${bHour.toString().padLeft(2, '0')}:${bMinute.toString().padLeft(2, '0')}';
+                              debugPrint('🔄 Sort: ${aSource} "$aName" ($aTimeStr displayed) vs ${bSource} "$bName" ($bTimeStr displayed) -> $comparison');
+                              
+                              return comparison;
+                            } catch (e) {
+                              debugPrint('⚠️ Error parsing date in sort: $e');
+                              debugPrint('⚠️ aSource: $aSource, aTime: $aTime');
+                              debugPrint('⚠️ bSource: $bSource, bTime: $bTime');
+                              // If parsing fails, maintain order
+                              return 0;
+                            }
+                          });
                           
                           if (combined.isNotEmpty) {
                             debugPrint('🍎 Dashboard GetBuilder: Rendering ${combined.length} cards (meals, foods, exercises)');

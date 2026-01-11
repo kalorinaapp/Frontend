@@ -881,6 +881,10 @@ class LogFoodController extends GetxController {
       if (!alreadyOnDashboard) {
         final optimisticMeal = Map<String, dynamic>.from(meal);
         optimisticMeal['renderOnDashboard'] = true;
+        // Use current local datetime for optimistic addition
+        final now = DateTime.now().toLocal();
+        optimisticMeal['date'] = DateTime(now.year, now.month, now.day).toIso8601String();
+        optimisticMeal['createdAt'] = now.toIso8601String();
         homeController.todayMeals.insert(0, optimisticMeal);
         homeController.todayMeals.refresh();
         addedToDashboardOptimistically = true;
@@ -910,6 +914,7 @@ class LogFoodController extends GetxController {
         mealName: mealName,
         entries: entries,
         renderOnDashboard: true,
+        mealDate: DateTime.now().toLocal().toIso8601String(),
       );
 
       final ok = response != null && response['success'] == true;
