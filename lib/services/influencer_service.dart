@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../network/http_helper.dart' show multiPostAPINew;
@@ -69,7 +69,8 @@ class InfluencerService {
   /// Get timezone
   Future<String> getTimezone() async {
     try {
-      return await FlutterNativeTimezone.getLocalTimezone();
+      final tz = await FlutterTimezone.getLocalTimezone();
+      return tz.identifier;
     } catch (e) {
       debugPrint('Error getting timezone: $e');
       return 'UTC';

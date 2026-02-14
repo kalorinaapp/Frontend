@@ -9,7 +9,7 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
-  String get appTitle => 'Karolina';
+  String get appTitle => 'Kayree';
 
   @override
   String get home => 'Startseite';
@@ -323,7 +323,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get logStreak => 'Log Streak';
 
   @override
-  String get caloriesMoreToGo => 'Calories more to go!';
+  String get caloriesMoreToGo => 'Calories to go!';
 
   @override
   String get todaysLunchTotals => 'Today\'s lunch totals';

@@ -13,7 +13,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart'
     show AppleIDAuthorizationScopes, SignInWithApple;
 import 'package:supabase_flutter/supabase_flutter.dart'
     show AuthException, GoTrueClientSignInProvider, OAuthProvider, Supabase, AuthChangeEvent;
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_helper.dart';
 import '../onboarding/controller/onboarding.controller.dart';
@@ -434,7 +434,8 @@ class _CreateAccountPageState extends State<CreateAccountPage>
     // Get device timezone
     String timezone = 'Europe/Zagreb'; // Default fallback
     try {
-      timezone = await FlutterNativeTimezone.getLocalTimezone();
+      final tz = await FlutterTimezone.getLocalTimezone();
+      timezone = tz.identifier;
       debugPrint('🌍 Device timezone: $timezone');
     } catch (e) {
       debugPrint('⚠️ Error getting timezone, using default: $e');
