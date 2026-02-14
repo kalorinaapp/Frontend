@@ -9,7 +9,7 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
-  String get appTitle => 'Karolina';
+  String get appTitle => 'Kayree';
 
   @override
   String get home => 'Kezdőlap';
@@ -175,11 +175,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get day1 => '1. nap';
 
   @override
-  String get day1Title => 'Karolina Pro feloldása';
+  String get day1Title => 'Kayree Pro feloldása';
 
   @override
   String get day1Description =>
-      'Oldd fel a Karolina Pro-t és fedezd fel mindent.';
+      'Oldd fel a Kayree Pro-t és fedezd fel mindent.';
 
   @override
   String get day2 => '2. nap';
@@ -341,7 +341,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get continueButton => 'Folytatás';
 
   @override
-  String get kalorina => 'Karolina';
+  String get kalorina => 'Kayree';
 
   @override
   String get exercise => 'Gyakorlat';

@@ -28,7 +28,7 @@ import 'onboarding/controller/onboarding.controller.dart';
 import 'screens/home_screen.dart';
 import 'constants/app_constants.dart';
 import 'authentication/user.controller.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // Import onboarding pages
 import 'onboarding/screens/stage4_personalization/gender_selection_page.dart';
@@ -595,7 +595,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     // Get device timezone
     String timezone = 'Europe/Zagreb'; // Default fallback
     try {
-      timezone = await FlutterNativeTimezone.getLocalTimezone();
+      final tz = await FlutterTimezone.getLocalTimezone();
+      timezone = tz.identifier;
     } catch (e) {
       debugPrint('⚠️ Error getting timezone, using default: $e');
     }

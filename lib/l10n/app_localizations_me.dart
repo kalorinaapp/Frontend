@@ -9,7 +9,7 @@ class AppLocalizationsCg extends AppLocalizations {
   AppLocalizationsCg([String locale = 'cg']) : super(locale);
 
   @override
-  String get appTitle => 'Karolina';
+  String get appTitle => 'Kayree';
 
   @override
   String get creatingAccount => 'Kreiranje naloga';
