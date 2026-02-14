@@ -123,7 +123,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Karolina'**
+  /// **'Kalorina'**
   String get appTitle;
 
   /// No description provided for @home.
@@ -717,7 +717,7 @@ abstract class AppLocalizations {
   /// No description provided for @caloriesMoreToGo.
   ///
   /// In en, this message translates to:
-  /// **'Calories more to go!'**
+  /// **'Calories to go!'**
   String get caloriesMoreToGo;
 
   /// No description provided for @todaysLunchTotals.
